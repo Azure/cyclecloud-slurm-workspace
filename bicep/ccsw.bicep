@@ -125,7 +125,7 @@ var vms = union(
   } : {}
 )
 
-module ccswVM './vm2.bicep' = [ for vm in items(vms): {
+module ccswVM './vm.bicep' = [ for vm in items(vms): {
   name: 'ccswVM-${vm.key}'
   params: {
     location: location
@@ -377,6 +377,6 @@ output ccswGlobalConfig object = union(
   } : {}
 )
 //output lustre_object object = filer1_is_lustre || filer2_is_lustre ? ccswAMLFS[0] : {}
-output param_script string = loadTextContent('../../testparam/cc_template_functions/create_cc_param.py')
-output initial_param_json object = loadJsonContent('../../testparam/cc_template_functions/initial_params.json')
+output param_script string = loadTextContent('./files-to-load/create_cc_param.py')
+output initial_param_json object = loadJsonContent('./files-to-load/initial_params.json')
 output trash object = trash_for_arm_ttk
