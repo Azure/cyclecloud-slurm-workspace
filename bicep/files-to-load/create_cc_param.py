@@ -55,11 +55,11 @@ def set_params(params,outputs):
     params['NFSType'] = outputs['ccswConfig']['value']['filesystem']['shared']['config']['filertype']
     #FIX below: only works for NFS
     params['FilesystemSize'] = outputs['ccswConfig']['value']['filesystem']['shared']['config']['nfs_capacity_in_gb']
-    params['UseBuiltinShared'] = False #TODO: change this to variable for external scenario 
-    if params['NFSType'] == 'nfs':
-        params['NFSAddress'] = outputs['ccswGlobalConfig']['value']['nfs_home_netad']
-        params['NFSSharedExportPath'] = outputs['ccswGlobalConfig']['value']['nfs_home_path']
-        params['NFSSharedMountOptions'] = outputs['ccswGlobalConfig']['value']['nfs_home_opts']
+    params['UseBuiltinShared'] = True 
+    # if params['NFSType'] == 'nfs':
+    #     params['NFSAddress'] = outputs['ccswGlobalConfig']['value']['nfs_home_netad']
+    #     params['NFSSharedExportPath'] = outputs['ccswGlobalConfig']['value']['nfs_home_path']
+    #     params['NFSSharedMountOptions'] = outputs['ccswGlobalConfig']['value']['nfs_home_opts']
     
     #params['NFSAddress']
     #params['NFSSharedMountOptions']

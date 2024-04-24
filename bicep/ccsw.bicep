@@ -186,6 +186,8 @@ module mySQLccsw './mysql.bicep' = if (create_database) {
 }
 
 var createVnet = ccswConfig.network.vnet.create
+
+//TODO: Clean this up
 var filer1_is_lustre = ccswConfig.filesystem.shared.config.filertype == 'aml'
 var filer2_is_lustre = contains(ccswConfig.filesystem.additional.config, 'filertype') && ccswConfig.filesystem.additional.config.filertype == 'aml'
 
@@ -229,6 +231,7 @@ module ccswAMLFS 'amlfs.bicep' = [ for lustre in lustre_info: {
   ]
 }]
 
+//TODO: Clean this up
 var filer1_is_anf = ccswConfig.filesystem.shared.config.filertype == 'anf'
 var filer2_is_anf = contains(ccswConfig.filesystem.additional.config, 'filertype') && ccswConfig.filesystem.additional.config.filertype == 'anf'
 //only use first set of ANF settings configured by the user 
@@ -274,6 +277,8 @@ module ccswANF 'anf.bicep' = [ for anf in anf_info: {
   ]
 }]
 
+//TODO: Clean this up
+var make_external_nfs = false
 var filer1_is_nfs = ccswConfig.filesystem.shared.config.filertype == 'nfs'
 var filer2_is_nfs = contains(ccswConfig.filesystem.additional.config, 'filertype') && ccswConfig.filesystem.additional.config.filertype == 'nfs'
 //only use first set of NFS settings configured by the user 
@@ -294,7 +299,7 @@ var nfs_info = concat(
   ] : []
 )
 
-module ccswNfsFiles './nfsfiles.bicep' = [ for nfs in nfs_info: {
+module ccswNfsFiles './nfsfiles.bicep' = [ for nfs in nfs_info: if (make_external_nfs) {
   name: 'ccswNfsFiles-${nfs.config.filer}'
   params: {
     name: 'hpcnfs'
@@ -360,7 +365,7 @@ output ccswGlobalConfig object = union(
     anf_home_path                 : length(anf_info) != 0 ? ccswANF[0].outputs.nfs_home_path : ''
     anf_home_opts                 : length(anf_info) != 0 ? ccswANF[0].outputs.nfs_home_opts : ''
   } : {},
-  filer1_is_nfs || filer2_is_nfs ? {
+  make_external_nfs && (filer1_is_nfs || filer2_is_nfs) ? {
     nfs_home_netad                : length(nfs_info) != 0 ? ccswNfsFiles[0].outputs.nfs_home_ip : ''
     nfs_home_path                 : length(nfs_info) != 0 ? ccswNfsFiles[0].outputs.nfs_home_path : ''
     nfs_home_opts                 : length(nfs_info) != 0 ? ccswNfsFiles[0].outputs.nfs_home_opts : ''
