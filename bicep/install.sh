@@ -134,7 +134,7 @@ echo "CC initialize successful"
 sleep 5
 cyclecloud import_template Slurm-GPU -f slurm-gpu.txt
 echo "CC import template successful"
-cyclecloud create_cluster Slurm-GPU CCSW -p slurm_params.json
+cyclecloud create_cluster Slurm-GPU ccsw -p slurm_params.json
 echo "CC create_cluster successful"
 sleep 5
 cyclecloud start_cluster ccsw
