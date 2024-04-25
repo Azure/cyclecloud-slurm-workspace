@@ -49,10 +49,10 @@ rm -rf /tmp/azcopy_linux*
 # curl -L -o /usr/local/bin/yq 'https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64'
 # chmod a+x /usr/local/bin/yq
 if command -v apt; then
-    apt update -y 
+    retry_command "apt update -y"
     #apt install -y 
 else
-    yum update -y
+    retry_command "yum update -y"
     #yum install -y 
 fi
 printf "\n\n"
@@ -137,7 +137,7 @@ echo "CC import template successful"
 cyclecloud create_cluster Slurm-GPU CCSW -p slurm_params.json
 echo "CC create_cluster successful"
 sleep 5
-cyclecloud start_cluster CCSW
+cyclecloud start_cluster ccsw
 echo "CC start_cluster successful"
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
 popd

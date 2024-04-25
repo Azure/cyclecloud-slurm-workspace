@@ -61,69 +61,47 @@ module ccswBastion './bastion.bicep' = if (deploy_bastion) {
 }
 
 
-//TODO update CC version
 param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:latest'
-param schedulerImage string = ccswConfig.slurm_settings.scheduler_node.schedulerImage
 
-var vms = union(
-  {
-    cyclecloud : {
-      //subnetId: subnets.cyclecloud.id
-      name: 'ccsw-cyclecloud' //TODO: implement uniqueness
-      sku: ccVMSize
-      osdisksku: 'StandardSSD_LRS'
-      image: {
-        plan: 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2'
-        ref: contains(cyclecloudBaseImage, '/') ? {
-          id: cyclecloudBaseImage
-        } : {
-          publisher: split(cyclecloudBaseImage,':')[0]
-          offer: split(cyclecloudBaseImage,':')[1]
-          sku: split(cyclecloudBaseImage,':')[2]
-          version: split(cyclecloudBaseImage,':')[3]
-        }
+var vms = {
+  cyclecloud : {
+    //subnetId: subnets.cyclecloud.id
+    name: 'ccsw-cyclecloud' //TODO: implement uniqueness
+    sku: ccVMSize
+    osdisksku: 'StandardSSD_LRS'
+    image: {
+      plan: 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2'
+      ref: contains(cyclecloudBaseImage, '/') ? {
+        id: cyclecloudBaseImage
+      } : {
+        publisher: split(cyclecloudBaseImage,':')[0]
+        offer: split(cyclecloudBaseImage,':')[1]
+        sku: split(cyclecloudBaseImage,':')[2]
+        version: split(cyclecloudBaseImage,':')[3]
       }
-      sshPort: 22 //TODO make this configurable
-      deploy_script: loadTextContent('./install.sh')
-      datadisks: [
-        {
-          name: 'ccsw-cyclecloud-vm-datadisk0'
-          disksku: 'Premium_LRS'
-          size: split(cyclecloudBaseImage,':')[0] == 'azurecyclecloud' ? 0 : 128
-          caching: 'ReadWrite'
-          createOption: split(cyclecloudBaseImage,':')[0] == 'azurecyclecloud' ? 'FromImage' : 'Empty'
-        }
+    }
+    sshPort: 22 //TODO make this configurable
+    deploy_script: loadTextContent('./install.sh')
+    datadisks: [
+      {
+        name: 'ccsw-cyclecloud-vm-datadisk0'
+        disksku: 'Premium_LRS'
+        size: split(cyclecloudBaseImage,':')[0] == 'azurecyclecloud' ? 0 : 128
+        caching: 'ReadWrite'
+        createOption: split(cyclecloudBaseImage,':')[0] == 'azurecyclecloud' ? 'FromImage' : 'Empty'
+      }
+    ]
+    identity: {
+      keyvault: {
+        secret_permissions: [ 'All' ]
+      } 
+      roles: [
+        'Contributor','Storage Account Contributor','Storage Blob Data Contributor'
       ]
-      identity: {
-        keyvault: {
-          secret_permissions: [ 'All' ]
-        } 
-        roles: [
-          'Contributor','Storage Account Contributor','Storage Blob Data Contributor'
-        ]
-      }
-      asgs: [ 'asg-ssh', 'asg-cyclecloud', 'asg-jumpbox']
     }
-  },
-  deploy_scheduler ? {
-    scheduler : {
-      //subnetId: subnets.compute.id
-      name: 'ccsw-scheduler' //TODO: implement uniqueness
-      sku: ccswConfig.slurm_settings.scheduler_node.schedulerVMSize
-      osdisksku: 'StandardSSD_LRS'
-      image: {
-        plan: schedulerImage
-        ref:  {
-          publisher: split(schedulerImage,':')[0]
-          offer: split(schedulerImage,':')[1]
-          sku: split(schedulerImage,':')[2]
-          version: split(schedulerImage,':')[3]
-        }
-      }
-      asgs: [ 'asg-ssh', 'asg-sched', 'asg-cyclecloud-client', 'asg-nfs-client' ]
-    }
-  } : {}
-)
+    asgs: [ 'asg-ssh', 'asg-cyclecloud']
+  }
+}
 
 module ccswVM './vm.bicep' = [ for vm in items(vms): {
   name: 'ccswVM-${vm.key}'
@@ -264,11 +242,7 @@ module ccswANF 'anf.bicep' = [ for anf in anf_info: {
   params: {
     location: location
     name: 'hpc-anf'
-    dualProtocol: false //TODO inquire
     subnetId: subnets.anf.id //TODO change for BYOVnet scenario
-    adUser: adminUsername
-    adPassword: adminPassword
-    adDns: '' //TODO inquire
     serviceLevel: anf.config.serviceLevel
     sizeGB: anf.config.sizeGB
   }

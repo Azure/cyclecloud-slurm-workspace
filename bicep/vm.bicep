@@ -92,20 +92,11 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-11-01' = {
       {
         computerName: name
         adminUsername: adminUser
-      }, contains(vm, 'deploy_script') && vm.deploy_script != '' ? { // deploy script not empty
+      }, 
+      contains(vm, 'deploy_script') && vm.deploy_script != '' ? { // deploy script not empty
         customData: base64(vm.deploy_script)
-      } : {}, contains(vm, 'windows') && vm.windows == true ? { // windows
-        adminPassword: adminPassword
-        windowsConfiguration: {
-          winRM: {
-            listeners: [
-              {
-                protocol: 'Http'
-              }
-            ]
-          }
-        }
-      } : {}, ! contains(vm, 'windows') || vm.windows == false ? { // linux
+      } : {}, 
+      !contains(vm, 'windows') || vm.windows == false ? { // linux
         linuxConfiguration: {
           disablePasswordAuthentication: true
           ssh: {

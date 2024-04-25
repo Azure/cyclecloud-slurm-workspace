@@ -3,30 +3,13 @@ targetScope = 'resourceGroup'
 param name string
 param location string
 param resourcePostfix string = uniqueString(resourceGroup().id,deployment().name)
-param dualProtocol bool
 param subnetId string
-param adUser string
-@secure()
-param adPassword string
-param adDns string
 param serviceLevel string
 param sizeGB int
 
 resource anfAccount 'Microsoft.NetApp/netAppAccounts@2022-05-01' = {
   name: '${name}-account-${resourcePostfix}'
   location: location
-  
-  properties: dualProtocol ? {
-    activeDirectories: [
-      {
-        username: adUser
-        password: adPassword
-        dns: adDns
-        smbServerName: 'anf'
-        domain: 'hpc.azure' 
-      }
-    ]
-  } : {}
 }
 
 resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2022-05-01' = {
@@ -48,12 +31,7 @@ resource anfHome 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2022-05-
     serviceLevel: serviceLevel
     networkFeatures: 'Standard'
     subnetId: subnetId
-    protocolTypes: union([
-        'NFSv3'
-      ], dualProtocol ? [
-        'CIFS'
-      ] : []
-    )
+    protocolTypes: ['NFSv3']
     securityStyle: 'unix'
     usageThreshold: sizeGB * 1024 * 1024 * 1024 *1024
 
