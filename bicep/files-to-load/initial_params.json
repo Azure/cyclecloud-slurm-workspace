@@ -19,7 +19,7 @@
     "SchedulerClusterInitSpecs": null,
     "SchedulerMachineType": "",
     "NFSSchedDiskWarning": null,
-    "DynamicMachineType": "",
+    "DynamicMachineType": "Standard_D2_v4",
     "NodeNamePrefix": "Cluster Prefix",
     "configuration_slurm_disable_pmc": false,
     "Credentials": "azure",
