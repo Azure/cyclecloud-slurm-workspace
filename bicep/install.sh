@@ -109,11 +109,14 @@ mkdir -p $ccsw_root/bin
 # FOR TESTING PURPOSES
 pushd $ccsw_root
 az deployment group show -g $resource_group -n $deployment_name --query properties.outputs > ccswOutputs.json
-wget https://raw.githubusercontent.com/Azure/cyclecloud-slurm/bewatrou/ccsw/templates/slurm-gpu.txt
+# TODO replace main by a release tag
+URI="https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/main/bicep/files-to-load"
+
+wget $URI/slurm-workspace.txt
 (echo -e "$(jq .param_script.value ccswOutputs.json)\\t    " | sed -e '1s/^.//' -e '$s/......$//') > create_cc_param.py
 (jq .initial_param_json.value ccswOutputs.json) > initial_params.json
-#wget https://raw.githubusercontent.com/bwatrous/AzureCycleAKSDeployment/master/docker/cyclecloud8/scripts/cyclecloud_install.py 
-wget https://raw.githubusercontent.com/bwatrous/AzureCycleAKSDeployment/bewatrou/allow_user_creation/docker/cyclecloud8/scripts/cyclecloud_install.py
+
+wget $URI/cyclecloud_install.py
 (python3 create_cc_param.py) > slurm_params.json
 echo "Filework successful" 
 
@@ -132,9 +135,9 @@ echo "CC install script successful"
 cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=ccsw
 echo "CC initialize successful"
 sleep 5
-cyclecloud import_template Slurm-GPU -f slurm-gpu.txt
+cyclecloud import_template Slurm-Workspace -f slurm-workspace.txt
 echo "CC import template successful"
-cyclecloud create_cluster Slurm-GPU ccsw -p slurm_params.json
+cyclecloud create_cluster Slurm-Workspace ccsw -p slurm_params.json
 echo "CC create_cluster successful"
 sleep 5
 cyclecloud start_cluster ccsw
