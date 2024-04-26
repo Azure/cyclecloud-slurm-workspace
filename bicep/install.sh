@@ -81,6 +81,7 @@ timeout 360s bash -c 'until az login -i; do sleep 10; done'
 
 deployment_name='pid-8d5b25bd-0ba7-49b9-90b3-3472bc08443e-partnercenter'
 resource_group=$(echo $mds | jq -r '.compute.resourceGroupName')
+vm_id=$(echo $mds | jq -r '.compute.vmId')
 
 echo "* Waiting for deployment to complete"
 while deployment_state=$(az deployment group show -g $resource_group -n $deployment_name --query properties.provisioningState -o tsv); [ "$deployment_state" != "Succeeded" ]; do
@@ -131,6 +132,19 @@ python3 /opt/ccsw/cyclecloud_install.py --acceptTerms \
     --webServerPort=80 --webServerSslPort=443
 sleep 30
 echo "CC install script successful"
+# Configuring distribution_method
+cat > /tmp/ccsw_site_id.txt <<EOF
+AdType = "Application.Setting"
+Name = "site_id"
+Value = "${vm_id}"
+
+AdType = "Application.Setting"
+Name = "distribution_method"
+Value = "ccsw"
+EOF
+chown cycle_server:cycle_server /tmp/ccsw_site_id.txt
+chmod 664 /tmp/ccsw_site_id.txt
+mv /tmp/ccsw_site_id.txt /opt/cycle_server/config/data/ccsw_site_id.txt
 #sudo -i -u $CYCLECLOUD_USERNAME #TODO test this with CC initialize  
 cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=ccsw
 echo "CC initialize successful"
