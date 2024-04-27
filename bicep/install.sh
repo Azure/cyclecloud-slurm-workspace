@@ -68,7 +68,7 @@ printf "$columns" azcopy `azcopy --version | awk '{ print $3 }'`
 printf "===============================================================================\n"
 
 echo "* Logging in to Azure"
-mds=$(curl -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2017-08-01")
+mds=$(curl -H Metadata:true "http://169.254.169.254/metadata/instance?api-version=2018-10-01")
 cloudenv=$(echo $mds | jq -r '.compute.azEnvironment' | tr '[:upper:]' '[:lower:]')
 if [ "$cloudenv" == "azureusgovernmentcloud" ]; then
     echo "Running in Azure US Government Cloud"
