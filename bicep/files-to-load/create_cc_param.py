@@ -17,17 +17,17 @@ def set_params(params,outputs):
     
     #HTC
     params['HTCMachineType'] = outputs['ccswConfig']['value']['partition_settings']['htc']['htcVMSize']
-    params['MaxHTCExecuteCoreCount'] = int(outputs['ccswConfig']['value']['partition_settings']['htc']['maxNodes'])
+    params['MaxHTCExecuteNodeCount'] = int(outputs['ccswConfig']['value']['partition_settings']['htc']['maxNodes'])
     params['HTCImageName'] = outputs['ccswConfig']['value']['partition_settings']['htc']['image']
 
     #HPC
     params['HPCMachineType'] = outputs['ccswConfig']['value']['partition_settings']['hpc']['hpcVMSize']
-    params['MaxHPCExecuteCoreCount'] = int(outputs['ccswConfig']['value']['partition_settings']['hpc']['maxNodes'])
+    params['MaxHPCExecuteNodeCount'] = int(outputs['ccswConfig']['value']['partition_settings']['hpc']['maxNodes'])
     params['HPCImageName'] = outputs['ccswConfig']['value']['partition_settings']['hpc']['image']
 
     #GPU
     params['GPUMachineType'] = outputs['ccswConfig']['value']['partition_settings']['gpu']['gpuVMSize']
-    params['MaxGPUExecuteCoreCount'] = int(outputs['ccswConfig']['value']['partition_settings']['gpu']['maxNodes'])
+    params['MaxGPUExecuteNodeCount'] = int(outputs['ccswConfig']['value']['partition_settings']['gpu']['maxNodes'])
     params['GPUImageName'] = outputs['ccswConfig']['value']['partition_settings']['gpu']['image']
 
     #scheduler node

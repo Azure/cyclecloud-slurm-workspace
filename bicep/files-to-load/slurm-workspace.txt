@@ -199,7 +199,7 @@ Autoscale = $Autoscale
     Extends = nodearraybase
     MachineType = $HPCMachineType
     ImageName = $HPCImageName
-    MaxCoreCount = $MaxHPCExecuteCoreCount
+    MaxCount = $MaxHPCExecuteNodeCount
     Azure.MaxScalesetSize = $HPCMaxScalesetSize
     AdditionalClusterInitSpecs = $HPCClusterInitSpecs
     EnableNodeHealthChecks = $EnableNodeHealthChecks
@@ -215,7 +215,7 @@ Autoscale = $Autoscale
     Extends = nodearraybase
     MachineType = $GPUMachineType
     ImageName = $GPUImageName
-    MaxCoreCount = $MaxGPUExecuteCoreCount
+    MaxCount = $MaxGPUExecuteNodeCount
     Azure.MaxScalesetSize = $HPCMaxScalesetSize
     EnableNodeHealthChecks = $EnableNodeHealthChecks
 
@@ -233,7 +233,7 @@ Autoscale = $Autoscale
     Extends = nodearraybase
     MachineType = $HTCMachineType
     ImageName = $HTCImageName
-    MaxCoreCount = $MaxHTCExecuteCoreCount
+    MaxCount = $MaxHTCExecuteNodeCount
 
     Interruptible = $HTCUseLowPrio
     MaxPrice = $HTCSpotMaxPrice
@@ -331,26 +331,26 @@ Order = 10
         Widget.Plugin = pico.form.BooleanCheckBox
         Widget.Label = Start and stop execute instances automatically
 
-        [[[parameter MaxHPCExecuteCoreCount]]]
-        Label = Max HPC Cores
-        Description = The total number of HPC execute cores to start
-        DefaultValue = 100
+        [[[parameter MaxHPCExecuteNodeCount]]]
+        Label = Max HPC Nodes
+        Description = The total number of HPC execute nodes to start
+        DefaultValue = 4
         Config.Plugin = pico.form.NumberTextBox
         Config.MinValue = 1
         Config.IntegerOnly = true
 
-        [[[parameter MaxHTCExecuteCoreCount]]]
-        Label = Max HTC Cores
-        Description = The total number of HTC execute cores to start
-        DefaultValue = 100
+        [[[parameter MaxHTCExecuteNodeCount]]]
+        Label = Max HTC Nodes
+        Description = The total number of HTC execute nodes to start
+        DefaultValue = 4
         Config.Plugin = pico.form.NumberTextBox
         Config.MinValue = 1
         Config.IntegerOnly = true
 
-        [[[parameter MaxGPUExecuteCoreCount]]]
-        Label = Max HPC Cores
-        Description = The total number of HPC execute cores to start
-        DefaultValue = 100
+        [[[parameter MaxGPUExecuteNodeCount]]]
+        Label = Max GPU Nodes
+        Description = The total number of GPU execute nodes to start
+        DefaultValue = 4
         Config.Plugin = pico.form.NumberTextBox
         Config.MinValue = 1
         Config.IntegerOnly = true
