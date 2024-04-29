@@ -191,6 +191,7 @@ Autoscale = $Autoscale
         slurm.use_nodename_as_hostname = $NodeNameIsHostname
 
         [[[cluster-init cyclecloud/slurm:execute:3.0.6]]]
+        [[[cluster-init cyclecloud/ccsw:default:1.0.0]]]
 
         [[[network-interface eth0]]]
         AssociatePublicIpAddress = $ExecuteNodesPublic
