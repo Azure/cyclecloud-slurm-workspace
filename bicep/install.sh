@@ -145,6 +145,18 @@ EOF
 chown cycle_server:cycle_server /tmp/ccsw_site_id.txt
 chmod 664 /tmp/ccsw_site_id.txt
 mv /tmp/ccsw_site_id.txt /opt/cycle_server/config/data/ccsw_site_id.txt
+
+# Create the project file
+# TODO: Add the version number in the Url
+cat > /opt/cycle_server/config/data/ccsw_project.txt <<EOF
+AdType = "Cloud.Project"
+Version = "1.0.0"
+ProjectType = "scheduler"
+Url = "https://github.com/Azure/cyclecloud-slurm-workspace"
+AutoUpgrade = false
+Name = "ccsw"
+EOF
+
 #sudo -i -u $CYCLECLOUD_USERNAME #TODO test this with CC initialize  
 cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=ccsw
 echo "CC initialize successful"
