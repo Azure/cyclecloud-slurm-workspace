@@ -3,7 +3,7 @@
 NVME_DISKS_NAME=`ls /dev/nvme*n1`
 NVME_DISKS=`ls -latr /dev/nvme*n1 | wc -l`
 
-echo "Number of NVMe Disks: $NVME_DISKS"
+logger -s "Number of NVMe Disks: $NVME_DISKS"
 
 if [ "$NVME_DISKS" == "0" ]
 then
@@ -18,3 +18,4 @@ else
 fi
 
 chmod 1777 /mnt/nvme
+logger -s "/mnt/nvme mounted"
