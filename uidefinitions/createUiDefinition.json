@@ -223,13 +223,13 @@
                 "name": "filertype",
                 "type": "Microsoft.Common.DropDown",
                 "label": "File-system Type",
-                "defaultValue": "NFS",
+                "defaultValue": "[if(equals(steps('filesystem').shared.newexisting,'new'),'Builtin NFS','External NFS')]",
                 "toolTip": "Filer type for the /shared directory.",
                 "multiselect": false,
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "NFS",
+                      "label": "[if(equals(steps('filesystem').shared.newexisting,'new'),'Builtin NFS','External NFS')]",
                       "value": "nfs"
                     },
                     {
