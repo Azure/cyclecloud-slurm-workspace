@@ -8,6 +8,7 @@ param create_lustre bool = lustre_count > 0
 param deploy_bastion bool = ccswConfig.network.vnet.bastion
 param create_database bool = ccswConfig.slurm_settings.scheduler_node.slurmAccounting
 param deploy_scheduler bool
+param natGatewayId string 
 
 //TODO rename function, see if using exp/0 to throw error is possible 
 func pow2_or_0 (exp int) int => 
@@ -82,6 +83,7 @@ param vnet object = {
       cyclecloud: {
         name: ccswConfig.network.vnet.subnets.cyclecloudSubnet
         cidr: subnet_cidr.cyclecloud
+        nat_gateway: true
         service_endpoints: [
           'Microsoft.Storage'
         ]
@@ -90,6 +92,7 @@ param vnet object = {
       compute: {
         name: ccswConfig.network.vnet.subnets.computeSubnet
         cidr: subnet_cidr.compute
+        nat_gateway : true 
         service_endpoints: [
           'Microsoft.Storage'
         ]
@@ -100,6 +103,7 @@ param vnet object = {
       scheduler: {
         name: ccswConfig.network.vnet.subnets.schedulerSubnet
         cidr: subnet_cidr.scheduler
+        nat_gateway : true
         service_endpoints: [
           'Microsoft.Storage'
         ]
@@ -110,6 +114,7 @@ param vnet object = {
       netapp: {
         name: 'hpc-anf-subnet'
         cidr: subnet_cidr.netapp
+        nat_gateway : false
         service_endpoints: []
         delegations: [
           'Microsoft.Netapp/volumes'
@@ -120,6 +125,7 @@ param vnet object = {
       lustre: {
         name: 'hpc-lustre-subnet'
         cidr: subnet_cidr.lustre
+        nat_gateway : false
         service_endpoints: []
         delegations: []
       }
@@ -128,6 +134,7 @@ param vnet object = {
       bastion: {
         name: 'AzureBastionSubnet'
         cidr: subnet_cidr.bastion
+        nat_gateway : false
         service_endpoints: []
         delegations: []
       }
@@ -136,6 +143,7 @@ param vnet object = {
       database: {
         name: 'hpc-database-subnet'
         cidr: subnet_cidr.database
+        nat_gateway : false
         service_endpoints: []
         delegations: [
           'Microsoft.DBforMySQL/flexibleServers'
@@ -640,6 +648,9 @@ resource ccswVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-07-01' = {
       name: subnet.value.name
       properties: {
         addressPrefix: subnet.value.cidr
+        natGateway: (natGatewayId != '' && subnet.value.nat_gateway) ? {
+          id: natGatewayId
+        } : null
         networkSecurityGroup: subnet.value.name == 'AzureBastionSubnet' ? null : {
           id: ccswCommonNsg.id
         }

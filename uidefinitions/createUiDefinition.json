@@ -886,6 +886,14 @@
                 "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.bastion)]"
               },
               {
+                "name": "natgateway",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Create a NAT Gateway",
+                "toolTip": "Create a NAT Gateway for outbound traffic",
+                "defaultValue": false,
+                "visible": "[equals(steps('networking').newexisting,'new')]"
+              },
+              {
                 "name": "peering",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Peer to an existing virtual network.",
@@ -1579,7 +1587,8 @@
             "peering": {
               "enabled": "[steps('networking').networkSettings.peering]",
               "vnet": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,'')]"
-            }
+            },
+            "create_natgateway": "[if(not(equals(steps('networking').newexisting,'new')),false,steps('networking').networkSettings.natgateway)]"
           }
         },
         "slurm_settings": {
