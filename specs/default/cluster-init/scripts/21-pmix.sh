@@ -4,33 +4,10 @@ PMIX_ROOT=/opt/pmix
 
 logger -s "Configuring PMIx"
 
-function build_pmix()
-{
-    # Build PMIx
-    logger -s "Build PMIx"
-    cd /mnt/scratch
-	rm -rf pmix-${PMIX_VERSION}
-    wget -q https://github.com/openpmix/openpmix/releases/download/v$PMIX_VERSION/pmix-$PMIX_VERSION.tar.gz
-    tar -xzf pmix-$PMIX_VERSION.tar.gz
-    cd pmix-$PMIX_VERSION
-
-    ./autogen.pl
-    ./configure --prefix=$PMIX_DIR
-    make -j install
-	cd ..
-	rm -rf pmix-${PMIX_VERSION}
-    rm pmix-$PMIX_VERSION.tar.gz
-    logger -s "PMIx Sucessfully Installed"
-}
-
 function configure_slurmd()
 {
     logger -s "Configure PMIx in Slurm service"
     [ -d /etc/sysconfig ] || mkdir -pv /etc/sysconfig
-    # while [ ! -f /etc/sysconfig/slurmd ]
-    # do
-    #     sleep 2
-    # done
     set +e
     grep -q PMIX_MCA /etc/sysconfig/slurmd
     pmix_is_not_set=$?
@@ -51,29 +28,52 @@ EOF
     fi
 }
 
-# Install PMIx if not present in the image
-# for almalinux:almalinux-hpc:8_7-hpc-gen2:8.7.2024042601 and above PMIx is already installed
-# if the $PMIX_ROOT directory is not present, then install PMIx
+# Configure PMIx if present in the image
+# for these versions and above, PMIx is installed
+#   - almalinux:almalinux-hpc:8_7-hpc-gen2:8.7.2024042601
+#   - microsoft-dsvm:ubuntu-hpc:2004:20.04.2024043001
+#   - microsoft-dsvm:ubuntu-hpc:2204:22.04.2024043001
+#
+os_release=$(cat /etc/os-release | grep "^ID\=" | cut -d'=' -f 2 | xargs)
+os_version=$(cat /etc/os-release | grep "^VERSION_ID\=" | cut -d'=' -f2 | xargs)
+# if the $PMIX_ROOT directory is not present, then exit on error as PMIx is required
 if [ ! -d $PMIX_ROOT ]; then
-    os_release=$(cat /etc/os-release | grep "^ID\=" | cut -d'=' -f 2 | xargs)
-    case $os_release in
-        rhel|almalinux)
-            PMIX_VERSION=4.2.9
-            PMIX_DIR=$PMIX_ROOT/$PMIX_VERSION
-            logger -s "Installing PMIx $PMIX_VERSION for $os_release"
-            yum -y install pmix-$PMIX_VERSION-1.el8
-            ;;
-        ubuntu|debian)
-            logger -s "Installing PMIx dependencies for $os_release"
-            PMIX_VERSION=3.2.5
-            PMIX_DIR=$PMIX_ROOT/$PMIX_VERSION
-            apt-get update
-            apt-get install -y libevent-dev libhwloc-dev
-            build_pmix
-            ln -s $PMIX_DIR/lib/libpmix.so /usr/lib/libpmix.so
-            ;;
-    esac
+    logger -s "PMIx root directory $PMIX_ROOT not found"
+    exit 0
 fi
+
+logger -s "Configuring PMIx for $os_release $os_version"
+
+case $os_release in
+    almalinux)
+        # Works out of the box
+        ;;
+    ubuntu)
+        case $os_version in
+            20.04)
+                # When enabling these lines PMIx can be loaded by Slurm, but jobs hangs
+                # PMIX_VERSION=4.2.9
+                # PMIX_DIR=$PMIX_ROOT/$PMIX_VERSION
+                # ln -s $PMIX_DIR/lib/libpmix.so /usr/lib/libpmix.so
+                ;;
+            22.04)
+                # When enabling these lines PMIx can be loaded by Slurm, but jobs hangs
+                # PMIX_VERSION=4.2.9
+                # PMIX_DIR=$PMIX_ROOT/$PMIX_VERSION
+                # ln -s $PMIX_DIR/lib/libpmix.so /usr/lib/libpmix.so
+                ;;
+            *)
+                logger -s "Untested OS $os_release $os_version"
+                exit 1
+                ;;
+        esac
+        ;;
+    *)
+        logger -s "Untested OS $os_release $os_version"
+        exit 1
+        ;;
+esac
+
 
 configure_slurmd
 logger -s "PMIx configured successfully"
