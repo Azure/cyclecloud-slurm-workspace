@@ -119,6 +119,7 @@ Autoscale = $Autoscale
 
 
         [[[cluster-init cyclecloud/slurm:scheduler:3.0.6]]]
+        [[[cluster-init cyclecloud/ccsw:scheduler:1.0.0]]]
 
         [[[network-interface eth0]]]
         AssociatePublicIpAddress = $UsePublicNetwork
@@ -177,6 +178,8 @@ Autoscale = $Autoscale
         ImageName = $SchedulerImageName
 
         [[[cluster-init cyclecloud/slurm:login:3.0.6]]]
+        [[[cluster-init cyclecloud/ccsw:login:1.0.0]]]
+
         [[[configuration]]]
         autoscale.enabled = false
         slurm.node_prefix = ${ifThenElse(NodeNamePrefix=="Cluster Prefix", StrJoin("-", ClusterName, ""), NodeNamePrefix)}
