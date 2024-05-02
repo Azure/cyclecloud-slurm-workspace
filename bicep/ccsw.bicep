@@ -33,6 +33,17 @@ module ccswPublicKey './publicKey.bicep' = if (!useEnteredKey) {
 }
 var publicKey = useEnteredKey ? adminSshPublicKey : ccswPublicKey.outputs.publicKey
 
+var create_nat_gateway = ccswConfig.network.vnet.create_natgateway
+module natgateway './natgateway.bicep' = if (create_nat_gateway) {
+  name: 'natgateway'
+  params: {
+    location: location
+    name: 'hpc-nat-gateway'
+  }
+}
+var natGateawayId = create_nat_gateway ? natgateway.outputs.NATGatewayId : ''
+
+
 //FIX: Currently works as expected for creating Vnets for user, but not for BYOV
 module ccswNetwork './network-new.bicep' = {
   name: 'ccswNetwork'
@@ -40,6 +51,7 @@ module ccswNetwork './network-new.bicep' = {
     location: location
     ccswConfig: ccswConfig
     deploy_scheduler: deploy_scheduler
+    natGatewayId: natGateawayId
   }
 }
 var nsg = ccswNetwork.outputs.nsg_ccsw
