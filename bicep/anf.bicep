@@ -2,13 +2,13 @@ targetScope = 'resourceGroup'
 
 param name string
 param location string
-param resourcePostfix string = uniqueString(resourceGroup().id,deployment().name)
+param resourcePostfix string = uniqueString(resourceGroup().id)
 param subnetId string
 param serviceLevel string
 param sizeGB int
 
 resource anfAccount 'Microsoft.NetApp/netAppAccounts@2022-05-01' = {
-  name: '${name}-account-${resourcePostfix}'
+  name: 'hpcanfaccount-${take(resourcePostfix,10)}'
   location: location
 }
 
@@ -22,12 +22,12 @@ resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2022-05-01' = {
   }
 }
 
-resource anfHome 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2022-05-01' = {
-  name: '${name}-anf-home'
+resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2022-05-01' = {
+  name: '${name}-anf-volume'
   location: location
   parent: anfPool
   properties: {
-    creationToken: 'home-${name}'
+    creationToken: '${name}-path'
     serviceLevel: serviceLevel
     networkFeatures: 'Standard'
     subnetId: subnetId
@@ -61,7 +61,7 @@ resource anfHome 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2022-05-
 
 output anf_account_name string = anfAccount.name
 output anf_pool_name string = anfPool.name
-output anf_volume_name string = anfHome.name
-output nfs_home_ip string = anfHome.properties.mountTargets[0].ipAddress
-output nfs_home_path string = 'home-${resourcePostfix}'
-output nfs_home_opts string = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
+output anf_volume_name string = anfVolume.name
+output anf_ip string = anfVolume.properties.mountTargets[0].ipAddress
+output anf_export_path string = '/${name}-path'
+output anf_opts string = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'

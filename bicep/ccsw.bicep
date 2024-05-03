@@ -177,7 +177,21 @@ module mySQLccsw './mysql.bicep' = if (create_database) {
 
 var createVnet = ccswConfig.network.vnet.create
 
-//TODO: Clean this up
+var filer_info = {
+  home: union({
+    use: true
+    create_new: ccswConfig.filesystem.shared.create_new
+    is_second_new_anf: false
+  }, ccswConfig.filesystem.shared.config)
+  additional: union({
+    use: ccswConfig.filesystem.additional.additional_filer
+    create_new: ccswConfig.filesystem.additional.create_new
+    is_second_new_anf: ccswConfig.filesystem.additional.config.filertype == 'anf' && ccswConfig.filesystem.shared.config.filertype == 'anf' && ccswConfig.filesystem.additional.create_new
+  }, ccswConfig.filesystem.additional.config)
+}
+
+
+//TODO: Make Lustre work with filer_info object
 var filer1_is_lustre = ccswConfig.filesystem.shared.config.filertype == 'aml'
 var filer2_is_lustre = contains(ccswConfig.filesystem.additional.config, 'filertype') && ccswConfig.filesystem.additional.config.filertype == 'aml'
 
@@ -221,70 +235,23 @@ module ccswAMLFS 'amlfs.bicep' = [ for lustre in lustre_info: {
   ]
 }]
 
-//TODO: Clean this up
-var filer1_is_anf = ccswConfig.filesystem.shared.config.filertype == 'anf'
-var filer2_is_anf = contains(ccswConfig.filesystem.additional.config, 'filertype') && ccswConfig.filesystem.additional.config.filertype == 'anf'
-//only use first set of ANF settings configured by the user 
-var anf_info = concat(
-  filer1_is_anf ? [
-    union(
-      {subnet_name: (createVnet ? 'hpc-anf-subnet' : ccswConfig.network.vnet.subnets.filerSubnet1)},
-      {config: {
-        serviceLevel: ccswConfig.filesystem.shared.config.anf_service_tier
-        sizeGB: int(ccswConfig.filesystem.shared.config.anf_capacity_in_bytes)
-        filer: 'shared'
-        }
-      }
-    )
-  ] : [],
-  filer2_is_anf && !filer1_is_anf ? [
-    union(
-      {subnet_name: (createVnet ? 'hpc-anf-subnet' : ccswConfig.network.vnet.subnets.filerSubnet2)},
-      {config: {
-        serviceLevel: ccswConfig.filesystem.additional.config.anf_service_tier
-        sizeGB: int(ccswConfig.filesystem.additional.config.anf_capacity_in_bytes)
-        filer: 'additional'
-        }
-      }
-    )
-  ] : []
-)
-module ccswANF 'anf.bicep' = [ for anf in anf_info: {
-  name: 'ccswANF-${anf.config.filer}'
+module ccswANF 'anf.bicep' = [ for filer in items(filer_info): if (filer.value.use && filer.value.create_new && filer.value.filertype == 'anf') {
+  name: 'ccswANF-${filer.key}'
   params: {
     location: location
-    name: 'hpc-anf'
+    name: filer.key
     subnetId: subnets.anf.id //TODO change for BYOVnet scenario
-    serviceLevel: anf.config.serviceLevel
-    sizeGB: anf.config.sizeGB
+    serviceLevel: filer.value.anf_service_tier
+    sizeGB: int(filer.value.anf_capacity_in_bytes)
   }
   dependsOn: [
     ccswNetwork
   ]
 }]
 
-//TODO: Clean this up
-var make_external_nfs = false
-var filer1_is_nfs = ccswConfig.filesystem.shared.config.filertype == 'nfs'
-var filer2_is_nfs = contains(ccswConfig.filesystem.additional.config, 'filertype') && ccswConfig.filesystem.additional.config.filertype == 'nfs'
-//only use first set of NFS settings configured by the user 
-var nfs_info = concat(
-  filer1_is_nfs ? [
-    {config: {
-      sizeGB: int(ccswConfig.filesystem.shared.config.nfs_capacity_in_gb)
-      filer: 'shared'
-      }
-    }
-  ] : [],
-  filer2_is_nfs && !filer1_is_nfs ? [
-    {config: {
-      sizeGB: int(ccswConfig.filesystem.additional.config.nfs_capacity_in_gb)
-      filer: 'additional'
-      }
-    }
-  ] : []
-)
-
+//TODO: Implement Azure NFS Files
+//var make_external_nfs = false
+/*
 module ccswNfsFiles './nfsfiles.bicep' = [ for nfs in nfs_info: if (make_external_nfs) {
   name: 'ccswNfsFiles-${nfs.config.filer}'
   params: {
@@ -297,6 +264,33 @@ module ccswNfsFiles './nfsfiles.bicep' = [ for nfs in nfs_info: if (make_externa
     ccswNetwork
   ]
 }]
+*/
+
+//NOTE: in ANF deployment loops, the bicep items() function alphabetizes the language elements of filer_info (i.e., index 0 references 'additional' and 1 references 'home' below)
+//TODO: update logic for AMLFS and Azure NFS Files 
+var filer_info_final = {
+  home: {
+    use: true
+    create_new: filer_info.home.create_new
+    filertype: filer_info.home.filertype
+    nfs_capacity_in_gb: filer_info.home.nfs_capacity_in_gb
+    ip_address: (filer_info.home.filertype == 'anf' && filer_info.home.create_new) ? ccswANF[1].outputs.anf_ip : filer_info.home.ip_address
+    export_path: (filer_info.home.filertype == 'anf' && filer_info.home.create_new) ? ccswANF[1].outputs.anf_export_path : filer_info.home.export_path
+    mount_options: (filer_info.home.filertype == 'anf' && filer_info.home.create_new) ? ccswANF[1].outputs.anf_opts : filer_info.home.mount_options
+
+  }
+  additional: { 
+    use: ccswConfig.filesystem.additional.additional_filer
+    create_new: ccswConfig.filesystem.additional.create_new
+    filertype: filer_info.additional.filertype
+    ip_address: (filer_info.additional.filertype == 'anf' && filer_info.additional.create_new) ? ccswANF[0].outputs.anf_ip : filer_info.additional.ip_address
+    mount_path: (filer_info.additional.filertype == 'anf' && filer_info.additional.create_new) ? '${ccswANF[0].outputs.anf_ip}:${ccswANF[0].outputs.anf_export_path}' : filer_info.additional.mount_path
+    export_path: (filer_info.additional.filertype == 'anf' && filer_info.additional.create_new) ? ccswANF[0].outputs.anf_export_path : filer_info.additional.export_path
+    mount_options: (filer_info.additional.filertype == 'anf' && filer_info.additional.create_new) ? ccswANF[0].outputs.anf_opts : filer_info.additional.mount_options
+  }
+}
+output filer_info_final object = filer_info_final
+
 
 output cyclecloudPrincipalId string = ccswVM[indexOf(map(items(vms), item => item.key), 'cyclecloud')].outputs.principalId
 
@@ -312,6 +306,7 @@ var envNameToCloudMap = {
 }
 var pword = split('foo-${adminPassword}-foo','-')[1] //workaround linter & arm-ttk
 
+//FIX: remove old comments and clean up
 output ccswGlobalConfig object = union(
   {
     global_cc_storage             : ccswStorage.outputs.storageAccountName
@@ -346,7 +341,7 @@ output ccswGlobalConfig object = union(
   /*!empty(existingComputeMIrg) ? {
     compute_mi_id                 : resourceId(existingComputeMIrg,'Microsoft.ManagedIdentity/userAssignedIdentities', computeMIname)
   }: {},*/
-  filer1_is_anf || filer2_is_anf ? {
+  /*filer1_is_anf || filer2_is_anf ? {
     anf_home_netad                : length(anf_info) != 0 ? ccswANF[0].outputs.nfs_home_ip : ''
     anf_home_path                 : length(anf_info) != 0 ? ccswANF[0].outputs.nfs_home_path : ''
     anf_home_opts                 : length(anf_info) != 0 ? ccswANF[0].outputs.nfs_home_opts : ''
@@ -360,12 +355,13 @@ output ccswGlobalConfig object = union(
     anf_home_ip                   : azhopConfig.mounts.home.server
     anf_home_path                 : azhopConfig.mounts.home.export
     anf_home_opts                 : azhopConfig.mounts.home.options
-  } : {},*/
+  } : {},
   filer1_is_lustre || filer2_is_lustre? {
     lustre_ip                    : length(lustre_info) != 0 ? ccswAMLFS[0].outputs.lustre_mgs : ''
     //lustre_home_path             : length(lustre_info) != 0 ? ccswAMLFS[0].outputs.lustre_path : '' //TODO confirm correct
     lustre_home_opts             : length(lustre_info) != 0 ? ccswAMLFS[0].outputs.lustre_mountcommand : '' //TODO confirm correct
-  } : {}
+  } : {}*/
+  {}
 )
 //output lustre_object object = filer1_is_lustre || filer2_is_lustre ? ccswAMLFS[0] : {}
 output param_script string = loadTextContent('./files-to-load/create_cc_param.py')

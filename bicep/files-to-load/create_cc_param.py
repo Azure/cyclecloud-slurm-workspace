@@ -51,29 +51,25 @@ def set_params(params,outputs):
     params['loginMachineType'] = (outputs['ccswConfig']['value']['slurm_settings']['login_nodes']['loginVMSize']).strip()
     params['NumberLoginNodes'] = int(outputs['ccswConfig']['value']['slurm_settings']['login_nodes']['initialNodes'])
     
-    #NFS
-    params['NFSType'] = outputs['ccswConfig']['value']['filesystem']['shared']['config']['filertype']
-    #FIX below: only works for NFS
-    params['FilesystemSize'] = outputs['ccswConfig']['value']['filesystem']['shared']['config']['nfs_capacity_in_gb']
-    params['UseBuiltinShared'] = True 
-    # if params['NFSType'] == 'nfs':
-    #     params['NFSAddress'] = outputs['ccswGlobalConfig']['value']['nfs_home_netad']
-    #     params['NFSSharedExportPath'] = outputs['ccswGlobalConfig']['value']['nfs_home_path']
-    #     params['NFSSharedMountOptions'] = outputs['ccswGlobalConfig']['value']['nfs_home_opts']
-    
-    #params['NFSAddress']
-    #params['NFSSharedMountOptions']
-    #params['NFSSharedExportPath']
+    #Network Attached Storage
+    params['UseBuiltinShared'] = outputs['filer_info_final']['value']['home']['create_new'] and (outputs['filer_info_final']['value']['home']['filertype'] == 'nfs')
+    if params['UseBuiltinShared']:
+        params['FilesystemSize'] = outputs['filer_info_final']['value']['home']['nfs_capacity_in_gb']
+    else:
+        params['NFSType'] = 'nfs' if outputs['filer_info_final']['value']['home']['filertype'] in ['nfs','anf'] else 'lustre'
+        if params['NFSType'] == 'nfs':
+            params['NFSSharedExportPath'] = outputs['filer_info_final']['value']['home']['export_path']
+            params['NFSSharedMountOptions'] = outputs['filer_info_final']['value']['home']['mount_options']
+        params['NFSAddress'] = outputs['filer_info_final']['value']['home']['ip_address']
 
-    #params['AdditionalNFS']
-    #params['NFSSchedType']
-    #params['NFSSchedAddress']
-    #params['NFSSchedMountOptions']
-    #params['NFSSchedExportPath']
-    #params['AdditionalNFSType']
-    #params['AdditionalNFSExportPath']
-    #params['AdditionalNFSMountOptions']
-    #params['AdditionalNFSMountPoint']
+    params['AdditionalNFS'] = outputs['filer_info_final']['value']['additional']['use']
+    if params['AdditionalNFS']:
+        params['AdditionalNFSType'] = 'nfs' if outputs['filer_info_final']['value']['additional']['filertype'] in ['nfs','anf'] else 'lustre'
+        if params['AdditionalNFSType'] == 'nfs':
+            params['AdditionalNFSMountPoint'] = outputs['filer_info_final']['value']['additional']['mount_path']
+            params['AdditionalNFSExportPath'] = outputs['filer_info_final']['value']['additional']['export_path']
+            params['AdditionalNFSMountOptions'] = outputs['filer_info_final']['value']['additional']['mount_options']
+        params['AdditionalNFSAddress'] = outputs['filer_info_final']['value']['additional']['ip_address']
 
 def main():
     slurm_params = get_json_dict('initial_params.json')
