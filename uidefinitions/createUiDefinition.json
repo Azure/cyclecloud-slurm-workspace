@@ -872,7 +872,8 @@
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Create a Bastion for SSH connections",
                 "toolTip": "Deploy an Azure Bastion for SSH connections",
-                "defaultValue": false
+                "defaultValue": false,
+                "visible": "[equals(steps('networking').newexisting,'new')]"
               },
               {
                 "name": "bastionsubnet",
@@ -883,7 +884,7 @@
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
-                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.bastion)]"
+                "visible": false
               },
               {
                 "name": "natgateway",
@@ -899,7 +900,7 @@
                 "label": "Peer to an existing virtual network.",
                 "defaultValue": false,
                 "toolTip": "Enable peering to your existing virtual network",
-                "visible": true
+                "visible": "[equals(steps('networking').newexisting,'new')]"
               },
               {
                 "name": "vnetPeeredVnetSelector",
@@ -915,7 +916,7 @@
                 "constraints": {
                   "required": true
                 },
-                "visible": "[steps('networking').networkSettings.peering]"
+                "visible": "[and(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.peering)]"
               }
             ],
             "visible": true
@@ -1580,12 +1581,12 @@
               "cyclecloudSubnet": "[if(equals(steps('networking').newexisting,'new'),'hpc-cyclecloud-subnet',steps('networking').networkSettings.ccsubnet)]",
               "computeSubnet": "[if(equals(steps('networking').newexisting,'new'),'hpc-compute-subnet',steps('networking').networkSettings.computesubnet)]",
               "filerSubnet1": "[if(equals(steps('networking').newexisting,'new'),'foo',steps('networking').networkSettings.filersubnet1)]",
-              "filerSubnet2": "[if(equals(steps('networking').newexisting,'new'),'foo',steps('networking').networkSettings.filersubnet2)]",
+              "filerSubnet2": "[if(equals(steps('networking').newexisting,'new'),'foo',if(not(steps('filesystem').additionalCheck.checkbox),'foo',steps('networking').networkSettings.filersubnet2))]",
               "bastionSubnet": "[if(equals(steps('networking').newexisting,'new'),'AzureBastionSubnet',if(steps('networking').networkSettings.bastion,steps('networking').networkSettings.bastionsubnet,''))]"
             },
-            "bastion": "[steps('networking').networkSettings.bastion]",
+            "bastion": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.bastion,false)]",
             "peering": {
-              "enabled": "[steps('networking').networkSettings.peering]",
+              "enabled": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.peering,false)]",
               "vnet": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,'')]"
             },
             "create_natgateway": "[if(not(equals(steps('networking').newexisting,'new')),false,steps('networking').networkSettings.natgateway)]"
