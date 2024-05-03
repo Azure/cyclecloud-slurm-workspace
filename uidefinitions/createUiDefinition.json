@@ -322,7 +322,7 @@
               {
                 "name": "amlInfoBox",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[equals(steps('filesystem').shared.filertype,'aml')]",
+                "visible": "[and(equals(steps('filesystem').shared.filertype,'aml'),equals(steps('filesystem').shared.newexisting,'new'))]",
                 "options": {
                   "icon": "Warning",
                   "text": "Please consult the linked page for the capacity range of each Azure Managed Lustre Tier.",
@@ -456,15 +456,11 @@
                 "name": "newexisting",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Create new file-system",
-                "defaultValue": "Create new",
-                "toolTip": "Add an additional filer.",
+                "defaultValue": "Use existing",
+                "toolTip": "Create new file-system or use existing.",
                 "multiselect": false,
                 "constraints": {
                   "allowedValues": [
-                    {
-                      "label": "Create new",
-                      "value": "new"
-                    },
                     {
                       "label": "Use existing",
                       "value": "existing"
@@ -578,7 +574,7 @@
               {
                 "name": "amlInfoBox",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[equals(steps('filesystem').additional.filertype,'aml')]",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]",
                 "options": {
                   "icon": "Warning",
                   "text": "Please consult the linked page for the capacity range of each Azure Managed Lustre Tier.",
