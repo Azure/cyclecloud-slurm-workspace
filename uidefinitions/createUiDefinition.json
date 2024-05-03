@@ -317,7 +317,7 @@
                   "regex": "^(100|10[0-1]\\d{3}|[1-9]\\d{2}|[1-9]\\d{3}|[1-9]\\d{4}|102400)$",
                   "validationMessage": "Please enter an integer between 100 and 102400"
                 },
-                "visible": "[equals(steps('filesystem').shared.filertype,'nfs')]"
+                "visible": "[and(equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'nfs'))]"
               },
               {
                 "name": "amlInfoBox",
@@ -414,7 +414,7 @@
                 "defaultValue": "",
                 "toolTip": "Mount options for the primary filer",
                 "constraints": {
-                  "required": true,
+                  "required": false,
                   "regex": "^.+$",
                   "validationMessage": "Please enter a mount option."
                 },
@@ -484,7 +484,7 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "NFS",
+                      "label": "[if(equals(steps('filesystem').additional.newexisting,'existing'),'NFS','')]",
                       "value": "nfs"
                     },
                     {
@@ -573,8 +573,8 @@
                   "regex": "^(100|10[0-1]\\d{3}|[1-9]\\d{2}|[1-9]\\d{3}|[1-9]\\d{4}|102400)$",
                   "validationMessage": "Please enter an integer between 100 and 102400"
                 },
-                "visible": "[equals(steps('filesystem').additional.filertype,'nfs')]"
-              },
+                "visible": "[and(equals(steps('filesystem').additional.newexisting,'new'),equals(steps('filesystem').additional.filertype,'nfs'))]"
+              }, 
               {
                 "name": "amlInfoBox",
                 "type": "Microsoft.Common.InfoBox",
@@ -683,7 +683,7 @@
                 "defaultValue": "",
                 "toolTip": "Mount options for the additional filer.",
                 "constraints": {
-                  "required": true,
+                  "required": false,
                   "regex": "^.+$",
                   "validationMessage": "Please enter a mount option."
                 },
@@ -1548,7 +1548,7 @@
               "lustre_tier": "[if(equals(steps('filesystem').shared.filertype,'aml'),steps('filesystem').shared.lustretier,'')]",
               "lustre_capacity_in_tib": "[if(equals(steps('filesystem').shared.filertype,'aml'),steps('filesystem').shared.azurelustrecapacity,-1)]",
               "ip_address": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,'')]",
-              "export_path": "[steps('filesystem').shared.exportPath]",
+              "export_path": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,'')]",
               "mount_options": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.mountOptions,'')]"
             }
           },
@@ -1556,15 +1556,15 @@
             "additional_filer": "[steps('filesystem').additionalCheck.checkbox]",
             "create_new": "[equals(steps('filesystem').additional.newexisting,'new')]",
             "config": {
-              "filertype": "[steps('filesystem').additional.filertype]",
+              "filertype": "[if(steps('filesystem').additionalCheck.checkbox,steps('filesystem').additional.filertype,'')]",
               "nfs_capacity_in_gb": "[if(equals(steps('filesystem').additional.filertype,'nfs'),steps('filesystem').additional.nfscapacity,-1)]",
               "anf_service_tier": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,'')]",
               "anf_capacity_in_bytes": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anfcapacity,-1)]",
               "lustre_tier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,'')]",
               "lustre_capacity_in_tib": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.azurelustrecapacity,-1)]",
               "ip_address": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.ipAddress,'')]",
-              "mount_path": "[steps('filesystem').additional.exportPath]",
-              "export_path": "[steps('filesystem').additional.exportPath]",
+              "mount_path": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.mountPath,'')]",
+              "export_path": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.exportPath,'')]",
               "mount_options": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.mountOptions,'')]"
             }
           }
