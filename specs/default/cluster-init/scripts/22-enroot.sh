@@ -44,7 +44,7 @@ function configure_enroot()
         ln -s /mnt/nvme/enroot /mnt/enroot
     else
         mkdir -pv /mnt/scratch/enroot
-        ln -s /mnt/nvme/enroot /mnt/enroot
+        ln -s /mnt/scratch/enroot /mnt/enroot
     fi
 
     logger -s "Creating enroot scratch directories in $ENROOT_SCRATCH_DIR"
