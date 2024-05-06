@@ -68,6 +68,9 @@ Autoscale = $Autoscale
         [[[cluster-init cyclecloud/slurm:default:3.0.6]]]
         Optional = true
 
+        [[[cluster-init cyclecloud/ccsw:default:1.0.0]]]
+        Order = 10000
+
         [[[volume boot]]]
         Size = ${ifThenElse(BootDiskSize > 0, BootDiskSize, undefined)}
         SSD = True
@@ -119,7 +122,6 @@ Autoscale = $Autoscale
 
 
         [[[cluster-init cyclecloud/slurm:scheduler:3.0.6]]]
-        [[[cluster-init cyclecloud/ccsw:scheduler:1.0.0]]]
 
         [[[network-interface eth0]]]
         AssociatePublicIpAddress = $UsePublicNetwork
@@ -178,7 +180,6 @@ Autoscale = $Autoscale
         ImageName = $SchedulerImageName
 
         [[[cluster-init cyclecloud/slurm:login:3.0.6]]]
-        [[[cluster-init cyclecloud/ccsw:login:1.0.0]]]
 
         [[[configuration]]]
         autoscale.enabled = false
@@ -194,7 +195,6 @@ Autoscale = $Autoscale
         slurm.use_nodename_as_hostname = $NodeNameIsHostname
 
         [[[cluster-init cyclecloud/slurm:execute:3.0.6]]]
-        [[[cluster-init cyclecloud/ccsw:default:1.0.0]]]
 
         [[[network-interface eth0]]]
         AssociatePublicIpAddress = $ExecuteNodesPublic
