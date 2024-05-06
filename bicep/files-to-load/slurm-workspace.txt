@@ -175,6 +175,7 @@ Autoscale = $Autoscale
         InitialCount = $NumberLoginNodes
         MachineType = $loginMachineType
         ImageName = $SchedulerImageName
+        AdditionalClusterInitSpecs = $LoginClusterInitSpecs
 
         [[[cluster-init cyclecloud/slurm:login:3.0.6]]]
         [[[configuration]]]
@@ -191,7 +192,6 @@ Autoscale = $Autoscale
         slurm.use_nodename_as_hostname = $NodeNameIsHostname
 
         [[[cluster-init cyclecloud/slurm:execute:3.0.6]]]
-        [[[cluster-init cyclecloud/ccsw:default:1.0.0]]]
 
         [[[network-interface eth0]]]
         AssociatePublicIpAddress = $ExecuteNodesPublic
@@ -825,7 +825,13 @@ Order = 20
         DefaultValue = =undefined
         Description = Cluster init specs to apply to the scheduler node
         ParameterType = Cloud.ClusterInitSpecs
-    
+
+        [[[parameter LoginClusterInitSpecs]]]
+        Label = Login Cluster-Init
+        DefaultValue = =undefined
+        Description = Cluster init specs to apply to Login nodes
+        ParameterType = Cloud.ClusterInitSpecs
+
         [[[parameter HTCClusterInitSpecs]]]
         Label = HTC Cluster-Init
         DefaultValue = =undefined
