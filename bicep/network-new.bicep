@@ -160,7 +160,6 @@ var nsg_rules = {
     //
 
     // SSH internal rules
-    AllowSshFromJumpboxIn: ['320', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'asg', 'asg-jumpbox', 'asg', 'asg-ssh']
     AllowSshFromComputeIn: ['330', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'compute', 'asg', 'asg-ssh']
     AllowSshToComputeIn: ['360', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'asg', 'asg-ssh', 'subnet', 'compute']
 
@@ -261,7 +260,6 @@ var nsg_rules = {
     //      AllowComputeComputeSchedOut : ['381', 'Outbound', 'Allow', '*', 'Shed', 'subnet', 'compute', 'subnet', 'compute']
 
     // SSH internal rules
-    AllowSshFromJumpboxOut: ['490', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'asg', 'asg-jumpbox', 'asg', 'asg-ssh']
     AllowSshComputeOut: ['500', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'asg', 'asg-ssh', 'subnet', 'compute']
     AllowSshFromComputeOut: ['530', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'compute', 'asg', 'asg-ssh']
 
@@ -276,7 +274,6 @@ var nsg_rules = {
     DenyVnetOutbound: ['3100', 'Outbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
   }
   internet: {
-    AllowInternetSshIn: ['200', 'Inbound', 'Allow', 'Tcp', 'HubSsh', 'tag', 'Internet', 'asg', 'asg-jumpbox']
     AllowInternetHttpIn: ['210', 'Inbound', 'Allow', 'Tcp', 'Web', 'tag', 'Internet', 'subnet', 'frontend']
   }
   hub: {
@@ -611,7 +608,7 @@ var securityRules = [ for rule in nsgRules : {
     rule.value[7] == 'ips' ? { destinationAddressPrefixes: rule.value[8] } : {}
   )
 }]
-var asgNames = union([ 'asg-ssh', 'asg-jumpbox', 'asg-sched', 'asg-cyclecloud', 'asg-cyclecloud-client', 'asg-nfs-client','asg-deployer' ], create_lustre ? [ 'asg-lustre-client' ] : [], create_database ? ['asg-mysql-client'] : [])
+var asgNames = union([ 'asg-ssh', 'asg-sched', 'asg-cyclecloud', 'asg-cyclecloud-client', 'asg-nfs-client','asg-deployer' ], create_lustre ? [ 'asg-lustre-client' ] : [], create_database ? ['asg-mysql-client'] : [])
 
 var peering_enabled = ccswConfig.network.vnet.peering.enabled
 var peered_vnet_name = contains(ccswConfig.network.vnet.peering.vnet,'name') ? ccswConfig.network.vnet.peering.vnet.name : 'foo'
