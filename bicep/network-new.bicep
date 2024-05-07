@@ -175,17 +175,6 @@ var nsg_rules = {
     //      AllowComputeComputeSchedIn  : ['401', 'Inbound', 'Allow', '*', 'Shed', 'subnet', 'compute', 'subnet', 'compute']
 
     // CycleCloud
-    AllowCycleClientIn: [
-      '450'
-      'Inbound'
-      'Allow'
-      'Tcp'
-      'CycleCloud'
-      'asg'
-      'asg-cyclecloud-client'
-      'asg'
-      'asg-cyclecloud'
-    ]
     AllowCycleClientComputeIn: [
       '460'
       'Inbound'
@@ -197,17 +186,6 @@ var nsg_rules = {
       'asg'
       'asg-cyclecloud'
     ]
-    AllowCycleServerIn: [
-      '465'
-      'Inbound'
-      'Allow'
-      'Tcp'
-      'CycleCloud'
-      'asg'
-      'asg-cyclecloud'
-      'asg'
-      'asg-cyclecloud-client'
-    ]
 
     // Deny all remaining traffic
     DenyVnetInbound: ['3100', 'Inbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
@@ -217,28 +195,6 @@ var nsg_rules = {
     //
 
     // CycleCloud
-    AllowCycleServerOut: [
-      '300'
-      'Outbound'
-      'Allow'
-      'Tcp'
-      'CycleCloud'
-      'asg'
-      'asg-cyclecloud'
-      'asg'
-      'asg-cyclecloud-client'
-    ]
-    AllowCycleClientOut: [
-      '310'
-      'Outbound'
-      'Allow'
-      'Tcp'
-      'CycleCloud'
-      'asg'
-      'asg-cyclecloud-client'
-      'asg'
-      'asg-cyclecloud'
-    ]
     AllowComputeCycleClientIn: [
       '320'
       'Outbound'
@@ -608,7 +564,7 @@ var securityRules = [ for rule in nsgRules : {
     rule.value[7] == 'ips' ? { destinationAddressPrefixes: rule.value[8] } : {}
   )
 }]
-var asgNames = union([ 'asg-ssh', 'asg-sched', 'asg-cyclecloud', 'asg-cyclecloud-client', 'asg-nfs-client','asg-deployer' ], create_lustre ? [ 'asg-lustre-client' ] : [], create_database ? ['asg-mysql-client'] : [])
+var asgNames = union([ 'asg-ssh', 'asg-sched', 'asg-cyclecloud', 'asg-nfs-client','asg-deployer' ], create_lustre ? [ 'asg-lustre-client' ] : [], create_database ? ['asg-mysql-client'] : [])
 
 var peering_enabled = ccswConfig.network.vnet.peering.enabled
 var peered_vnet_name = contains(ccswConfig.network.vnet.peering.vnet,'name') ? ccswConfig.network.vnet.peering.vnet.name : 'foo'
