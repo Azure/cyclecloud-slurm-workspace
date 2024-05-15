@@ -159,55 +159,52 @@ var nsg_rules = {
     // INBOUND RULES
     //
 
-    // SSH internal rules
-    AllowSshFromComputeIn: ['330', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'compute', 'asg', 'asg-ssh']
-    AllowSshToComputeIn: ['360', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'asg', 'asg-ssh', 'subnet', 'compute']
-
     // All communications inside compute subnet
-    AllowAllComputeComputeIn: ['365', 'Inbound', 'Allow', 'Tcp', 'All', 'subnet', 'compute', 'subnet', 'compute']
+    AllowAllComputeComputeIn: ['365', 'Inbound', 'Allow', 'Tcp', 'All', 'subnet', 'compute', 'subnet', 'compute'] // Applied
 
     // CycleCloud
-    AllowCycleClientComputeIn: ['460', 'Inbound', 'Allow', 'Tcp', 'CycleCloud', 'subnet', 'compute', 'asg', 'asg-cyclecloud']
+    AllowCycleClientComputeIn: ['460', 'Inbound', 'Allow', 'Tcp', 'CycleCloud', 'subnet', 'compute', '  ', 'asg-cyclecloud'] // Applied
 
     // Deny all remaining traffic
-    //DenyVnetInbound: ['3100', 'Inbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
+    DenyVnetInbound: ['3100', 'Inbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork'] // Applied
 
+    //
+    // OUTBOUND RULES
+    //    
     // CycleCloud
-    AllowComputeCycleClientIn: ['320', 'Outbound', 'Allow', 'Tcp', 'CycleCloud', 'subnet', 'compute', 'asg', 'asg-cyclecloud']
-
-    // SSH internal rules
-    AllowSshComputeOut: ['500', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'asg', 'asg-ssh', 'subnet', 'compute']
-    AllowSshFromComputeOut: ['530', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'compute', 'asg', 'asg-ssh']
+    AllowCycleClientComputeOut: ['320', 'Outbound', 'Allow', 'Tcp', 'CycleCloud', 'subnet', 'compute', 'asg', 'asg-cyclecloud'] // Applied
 
     // All communications inside compute subnet
-    AllowAllComputeComputeOut: ['540', 'Outbound', 'Allow', 'Tcp', 'All', 'subnet', 'compute', 'subnet', 'compute']
-
-    // Admin and Deployment
-    AllowDnsOut: ['590', 'Outbound', 'Allow', '*', 'Dns', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
+    AllowAllComputeComputeOut: ['540', 'Outbound', 'Allow', 'Tcp', 'All', 'subnet', 'compute', 'subnet', 'compute'] // Applied
 
     // Deny all remaining traffic and allow Internet access
     AllowInternetOutBound: ['3000', 'Outbound', 'Allow', 'Tcp', 'All', 'tag', 'VirtualNetwork', 'tag', 'Internet']
-    //DenyVnetOutbound: ['3100', 'Outbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
+    DenyVnetOutbound: ['3100', 'Outbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork'] // Applied
   }
-  internet: {
-    AllowInternetHttpIn: ['210', 'Inbound', 'Allow', 'Tcp', 'Web', 'tag', 'Internet', 'subnet', 'frontend']
-  }
-  hub: {
-    AllowHubSshIn: ['200', 'Inbound', 'Allow', 'Tcp', 'HubSsh', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
-    AllowHubHttpIn: ['210', 'Inbound', 'Allow', 'Tcp', 'Web', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
-  }
+  // TODO: This rule is not applied, it should be removed
+//  internet: {
+//    AllowInternetHttpIn: ['210', 'Inbound', 'Allow', 'Tcp', 'Web', 'tag', 'Internet', 'subnet', 'frontend']
+//  }
+  // TODO: This rule is not applied, it should be removed
+//  hub: {
+//    AllowHubSshIn: ['200', 'Inbound', 'Allow', 'Tcp', 'HubSsh', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
+//    AllowHubHttpIn: ['210', 'Inbound', 'Allow', 'Tcp', 'Web', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
+//  }
+  // TODO : Need to be validated
   mysql: {
     // Inbound
-    AllowMySQLIn: ['700', 'Inbound', 'Allow', 'Tcp', 'MySQL', 'asg', 'asg-mysql-client', 'subnet', 'database']
+    AllowMySQLIn: ['700', 'Inbound', 'Allow', 'Tcp', 'MySQL', 'subnet', 'compute', 'subnet', 'database']
     // Outbound
-    AllowMySQLOut: ['700', 'Outbound', 'Allow', 'Tcp', 'MySQL', 'asg', 'asg-mysql-client', 'subnet', 'database']
+    AllowMySQLOut: ['700', 'Outbound', 'Allow', 'Tcp', 'MySQL', 'subnet', 'compute', 'subnet', 'database']
   }
+  // TODO : Need to be validated
   anf: {
     // Inbound
     AllowNfsComputeIn: ['435', 'Inbound', 'Allow', '*', 'Nfs', 'subnet', 'compute', 'subnet', 'netapp']
     // Outbound
     AllowNfsComputeOut: ['450', 'Outbound', 'Allow', '*', 'Nfs', 'subnet', 'compute', 'subnet', 'netapp']
   }
+  // TODO : Need to be validated
   lustre: {
     // Inbound
     AllowLustreClientComputeIn: ['420', 'Inbound', 'Allow', 'Tcp', 'Lustre', 'subnet', 'compute', 'subnet', 'lustre']
@@ -217,8 +214,10 @@ var nsg_rules = {
     AllowLustreClientComputeOut: ['420', 'Outbound', 'Allow', 'Tcp', 'Lustre', 'subnet', 'compute', 'subnet', 'lustre']
     AllowLustreSubnetAnyOutbound: ['430', 'Outbound', 'Allow', '*', 'All', 'subnet', 'lustre', 'subnet', 'lustre']
   }
+  // See documentation in https://learn.microsoft.com/en-us/azure/bastion/bastion-nsg if we need to apply NSGs on the BastionSubnet
   bastion: {
-    AllowBastionIn: ['530', 'Inbound', 'Allow', 'Tcp', 'Bastion', 'subnet', 'bastion', 'tag', 'VirtualNetwork']
+    // This rule is to allow connectivity from Bastion to any VMs in the VNet
+    AllowBastionIn: ['530', 'Inbound', 'Allow', 'Tcp', 'Bastion', 'subnet', 'bastion', 'tag', 'VirtualNetwork'] // Applied
   }
 }
 
