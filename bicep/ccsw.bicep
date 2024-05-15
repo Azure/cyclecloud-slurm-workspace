@@ -111,7 +111,7 @@ var vms = {
         'Contributor','Storage Account Contributor','Storage Blob Data Contributor'
       ]
     }
-    asgs: [ 'asg-ssh', 'asg-cyclecloud']
+    asgs: [ 'asg-cyclecloud' ]
   }
 }
 
