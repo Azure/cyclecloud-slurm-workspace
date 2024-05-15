@@ -6,31 +6,6 @@ read_os
 
 PMIX_ROOT=/opt/pmix
 
-# TODO: Try not to change the slurmd configuration file, instead use the environment variables in the job script
-function configure_slurmd()
-{
-    logger -s "Configure PMIx in Slurm service"
-    [ -d /etc/sysconfig ] || mkdir -pv /etc/sysconfig
-    set +e
-    grep -q PMIX_MCA /etc/sysconfig/slurmd
-    pmix_is_not_set=$?
-    set -e
-    if [ $pmix_is_not_set ]; then
-        # slurmd environment variables for PMIx
-        logger -s "Set PMIx environment variables in slurmd"
-cat <<EOF >> /etc/sysconfig/slurmd
-
-PMIX_MCA_ptl=^usock
-PMIX_MCA_psec=none
-PMIX_SYSTEM_TMPDIR=/var/empty
-PMIX_MCA_gds=hash
-HWLOC_COMPONENTS=-opencl
-EOF
-    logger -s "Restart slurmd service to apply PMIx configuration"
-    systemctl restart slurmd
-    fi
-}
-
 # Configure PMIx if present in the image
 # for these versions and above, PMIx is installed
 #   - almalinux:almalinux-hpc:8_7-hpc-gen2:8.7.2024042601
@@ -75,6 +50,5 @@ function configure_pmix()
 if is_compute; then
     logger -s "Configuring PMIx"
     configure_pmix
-    #configure_slurmd
     logger -s "PMIx configured successfully"
 fi
