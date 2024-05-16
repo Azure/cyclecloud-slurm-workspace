@@ -122,14 +122,10 @@
         "name": "autogeneratePasswordsAndKeys",
         "type": "Microsoft.Common.DropDown",
         "label": "SSH public key source",
-        "defaultValue": "Generate new key pair",
+        "defaultValue": "Use existing public key",
         "toolTip": "Keypair and passwords can be retrieved from keyvault after deploying.",
         "constraints": {
           "allowedValues": [
-            {
-              "label": "Generate new key pair",
-              "value": 1
-            },
             {
               "label": "Use existing public key",
               "value": 2
@@ -732,7 +728,7 @@
               {
                 "name": "existing",
                 "type": "Microsoft.Common.TextBlock",
-                "visible": true,
+                "visible": false,
                 "options": {
                   "text": "Placeholder. Scrap?"
                 }
