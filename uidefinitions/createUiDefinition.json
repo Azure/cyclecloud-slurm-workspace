@@ -1360,9 +1360,18 @@
         "label": "Users",
         "elements": [
           {
-            "name": "infobox",
+            "name": "disabledinfobox",
             "type": "Microsoft.Common.InfoBox",
             "visible": true,
+            "options": {
+              "icon": "Info",
+              "text": "This feature is currently under development."
+            }
+          },
+          {
+            "name": "infobox",
+            "type": "Microsoft.Common.InfoBox",
+            "visible": false,
             "options": {
               "icon": "Info",
               "text": "Optionally create users in addition to the admin user created in the Basics section.\n\nIt is recommended that the admin user create a user account in order to run jobs.\n\nWhen first accessing Azure CycleCloud, these users should update their temporary passwords and set their public keys if not done so below."
@@ -1373,6 +1382,7 @@
             "type": "Microsoft.Common.EditableGrid",
             "ariaLabel": "Enter info for users",
             "label": "People",
+            "visible": false,
             "constraints": {
               "width": "Full",
               "rows": {
