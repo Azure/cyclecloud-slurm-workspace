@@ -1145,7 +1145,7 @@
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Max number of nodes",
-                "defaultValue": "1",
+                "defaultValue": "100",
                 "toolTip": "Enter an integer between 1 and 1000",
                 "constraints": {
                   "required": true,
@@ -1216,7 +1216,7 @@
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Max number of nodes",
-                "defaultValue": "1",
+                "defaultValue": "100",
                 "toolTip": "Enter an integer between 1 and 1000",
                 "constraints": {
                   "required": true,
@@ -1297,7 +1297,7 @@
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Max number of nodes",
-                "defaultValue": "1",
+                "defaultValue": "100",
                 "toolTip": "Enter an integer between 1 and 1000",
                 "constraints": {
                   "required": true,
