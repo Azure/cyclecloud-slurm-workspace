@@ -159,427 +159,88 @@ var nsg_rules = {
     // INBOUND RULES
     //
 
-    // SSH internal rules
-    AllowSshFromJumpboxIn: ['320', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'asg', 'asg-jumpbox', 'asg', 'asg-ssh']
-    AllowSshFromComputeIn: ['330', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'compute', 'asg', 'asg-ssh']
-    AllowSshToComputeIn: ['360', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'asg', 'asg-ssh', 'subnet', 'compute']
-
     // All communications inside compute subnet
     AllowAllComputeComputeIn: ['365', 'Inbound', 'Allow', 'Tcp', 'All', 'subnet', 'compute', 'subnet', 'compute']
 
-    // Scheduler
-    AllowSchedIn: ['369', 'Inbound', 'Allow', '*', 'Shed', 'asg', 'asg-sched', 'asg', 'asg-sched']
-    //AllowPbsClientIn            : ['370', 'Inbound', 'Allow', '*', 'Pbs', 'asg', 'asg-pbs-client', 'asg', 'asg-pbs']
-    AllowSchedComputeIn: ['380', 'Inbound', 'Allow', '*', 'Shed', 'asg', 'asg-sched', 'subnet', 'compute']
-    //      AllowComputePbsClientIn     : ['390', 'Inbound', 'Allow', '*', 'Pbs', 'subnet', 'compute', 'asg', 'asg-pbs-client']
-    AllowComputeSchedIn: ['400', 'Inbound', 'Allow', '*', 'Shed', 'subnet', 'compute', 'asg', 'asg-sched']
-    //      AllowComputeComputeSchedIn  : ['401', 'Inbound', 'Allow', '*', 'Shed', 'subnet', 'compute', 'subnet', 'compute']
-
     // CycleCloud
-    AllowCycleClientIn: [
-      '450'
-      'Inbound'
-      'Allow'
-      'Tcp'
-      'CycleCloud'
-      'asg'
-      'asg-cyclecloud-client'
-      'asg'
-      'asg-cyclecloud'
-    ]
-    AllowCycleClientComputeIn: [
-      '460'
-      'Inbound'
-      'Allow'
-      'Tcp'
-      'CycleCloud'
-      'subnet'
-      'compute'
-      'asg'
-      'asg-cyclecloud'
-    ]
-    AllowCycleServerIn: [
-      '465'
-      'Inbound'
-      'Allow'
-      'Tcp'
-      'CycleCloud'
-      'asg'
-      'asg-cyclecloud'
-      'asg'
-      'asg-cyclecloud-client'
-    ]
+    AllowCycleClientComputeIn: ['460', 'Inbound', 'Allow', 'Tcp', 'CycleCloud', 'subnet', 'compute', '  ', 'asg-cyclecloud']
 
     // Deny all remaining traffic
     DenyVnetInbound: ['3100', 'Inbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
 
     //
-    // Outbound
-    //
-
+    // OUTBOUND RULES
+    //    
     // CycleCloud
-    AllowCycleServerOut: [
-      '300'
-      'Outbound'
-      'Allow'
-      'Tcp'
-      'CycleCloud'
-      'asg'
-      'asg-cyclecloud'
-      'asg'
-      'asg-cyclecloud-client'
-    ]
-    AllowCycleClientOut: [
-      '310'
-      'Outbound'
-      'Allow'
-      'Tcp'
-      'CycleCloud'
-      'asg'
-      'asg-cyclecloud-client'
-      'asg'
-      'asg-cyclecloud'
-    ]
-    AllowComputeCycleClientIn: [
-      '320'
-      'Outbound'
-      'Allow'
-      'Tcp'
-      'CycleCloud'
-      'subnet'
-      'compute'
-      'asg'
-      'asg-cyclecloud'
-    ]
-
-    // Scheduler
-    AllowSchedOut: ['340', 'Outbound', 'Allow', '*', 'Shed', 'asg', 'asg-sched', 'asg', 'asg-sched']
-    //      AllowPbsClientOut           : ['350', 'Outbound', 'Allow', '*', 'Pbs', 'asg', 'asg-pbs-client', 'asg', 'asg-pbs']
-    AllowSchedComputeOut: ['360', 'Outbound', 'Allow', '*', 'Shed', 'asg', 'asg-sched', 'subnet', 'compute']
-    AllowComputeSchedOut: ['370', 'Outbound', 'Allow', '*', 'Shed', 'subnet', 'compute', 'asg', 'asg-sched']
-    //AllowComputePbsClientOut    : ['380', 'Outbound', 'Allow', '*', 'Pbs', 'subnet', 'compute', 'asg', 'asg-pbs-client']
-    //      AllowComputeComputeSchedOut : ['381', 'Outbound', 'Allow', '*', 'Shed', 'subnet', 'compute', 'subnet', 'compute']
-
-    // SSH internal rules
-    AllowSshFromJumpboxOut: ['490', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'asg', 'asg-jumpbox', 'asg', 'asg-ssh']
-    AllowSshComputeOut: ['500', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'asg', 'asg-ssh', 'subnet', 'compute']
-    AllowSshFromComputeOut: ['530', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'compute', 'asg', 'asg-ssh']
+    AllowCycleClientComputeOut: ['320', 'Outbound', 'Allow', 'Tcp', 'CycleCloud', 'subnet', 'compute', 'asg', 'asg-cyclecloud']
 
     // All communications inside compute subnet
     AllowAllComputeComputeOut: ['540', 'Outbound', 'Allow', 'Tcp', 'All', 'subnet', 'compute', 'subnet', 'compute']
-
-    // Admin and Deployment
-    AllowDnsOut: ['590', 'Outbound', 'Allow', '*', 'Dns', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
 
     // Deny all remaining traffic and allow Internet access
     AllowInternetOutBound: ['3000', 'Outbound', 'Allow', 'Tcp', 'All', 'tag', 'VirtualNetwork', 'tag', 'Internet']
     DenyVnetOutbound: ['3100', 'Outbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
   }
-  internet: {
-    AllowInternetSshIn: ['200', 'Inbound', 'Allow', 'Tcp', 'HubSsh', 'tag', 'Internet', 'asg', 'asg-jumpbox']
-    AllowInternetHttpIn: ['210', 'Inbound', 'Allow', 'Tcp', 'Web', 'tag', 'Internet', 'subnet', 'frontend']
-  }
-  hub: {
-    AllowHubSshIn: ['200', 'Inbound', 'Allow', 'Tcp', 'HubSsh', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
-    AllowHubHttpIn: ['210', 'Inbound', 'Allow', 'Tcp', 'Web', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
-  }
-  /*ad: {
-    // Inbound
-    // AD communication
-    AllowAdServerTcpIn: [
-      '220'
-      'Inbound'
-      'Allow'
-      'Tcp'
-      'DomainControlerTcp'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-      'asg'
-      'asg-ad-client'
-    ]
-    AllowAdServerUdpIn: [
-      '230'
-      'Inbound'
-      'Allow'
-      'Udp'
-      'DomainControlerUdp'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-      'asg'
-      'asg-ad-client'
-    ]
-    AllowAdClientTcpIn: [
-      '240'
-      'Inbound'
-      'Allow'
-      'Tcp'
-      'DomainControlerTcp'
-      'asg'
-      'asg-ad-client'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-    ]
-    AllowAdClientUdpIn: [
-      '250'
-      'Inbound'
-      'Allow'
-      'Udp'
-      'DomainControlerUdp'
-      'asg'
-      'asg-ad-client'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-    ]
-    AllowAdServerComputeTcpIn: [
-      '260'
-      'Inbound'
-      'Allow'
-      'Tcp'
-      'DomainControlerTcp'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-      'subnet'
-      'compute'
-    ]
-    AllowAdServerComputeUdpIn: [
-      '270'
-      'Inbound'
-      'Allow'
-      'Udp'
-      'DomainControlerUdp'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-      'subnet'
-      'compute'
-    ]
-    AllowAdClientComputeTcpIn: [
-      '280'
-      'Inbound'
-      'Allow'
-      'Tcp'
-      'DomainControlerTcp'
-      'subnet'
-      'compute'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-    ]
-    AllowAdClientComputeUdpIn: [
-      '290'
-      'Inbound'
-      'Allow'
-      'Udp'
-      'DomainControlerUdp'
-      'subnet'
-      'compute'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-    ]
-    AllowWinRMIn: ['520', 'Inbound', 'Allow', 'Tcp', 'WinRM', 'asg', 'asg-jumpbox', 'asg', 'asg-rdp']
-    AllowRdpIn: ['550', 'Inbound', 'Allow', 'Tcp', 'Rdp', 'asg', 'asg-jumpbox', 'asg', 'asg-rdp']
-    // Outbound
-    // AD communication
-    AllowAdClientTcpOut: [
-      '200'
-      'Outbound'
-      'Allow'
-      'Tcp'
-      'DomainControlerTcp'
-      'asg'
-      'asg-ad-client'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-    ]
-    AllowAdClientUdpOut: [
-      '210'
-      'Outbound'
-      'Allow'
-      'Udp'
-      'DomainControlerUdp'
-      'asg'
-      'asg-ad-client'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-    ]
-    AllowAdClientComputeTcpOut: [
-      '220'
-      'Outbound'
-      'Allow'
-      'Tcp'
-      'DomainControlerTcp'
-      'subnet'
-      'compute'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-    ]
-    AllowAdClientComputeUdpOut: [
-      '230'
-      'Outbound'
-      'Allow'
-      'Udp'
-      'DomainControlerUdp'
-      'subnet'
-      'compute'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-    ]
-    AllowAdServerTcpOut: [
-      '240'
-      'Outbound'
-      'Allow'
-      'Tcp'
-      'DomainControlerTcp'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-      'asg'
-      'asg-ad-client'
-    ]
-    AllowAdServerUdpOut: [
-      '250'
-      'Outbound'
-      'Allow'
-      'Udp'
-      'DomainControlerUdp'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-      'asg'
-      'asg-ad-client'
-    ]
-    AllowAdServerComputeTcpOut: [
-      '260'
-      'Outbound'
-      'Allow'
-      'Tcp'
-      'DomainControlerTcp'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-      'subnet'
-      'compute'
-    ]
-    AllowAdServerComputeUdpOut: [
-      '270'
-      'Outbound'
-      'Allow'
-      'Udp'
-      'DomainControlerUdp'
-      nsgTargetForDC.type
-      nsgTargetForDC.target
-      'subnet'
-      'compute'
-    ]
-    AllowRdpOut: ['570', 'Outbound', 'Allow', 'Tcp', 'Rdp', 'asg', 'asg-jumpbox', 'asg', 'asg-rdp']
-    AllowWinRMOut: ['580', 'Outbound', 'Allow', 'Tcp', 'WinRM', 'asg', 'asg-jumpbox', 'asg', 'asg-rdp']
-  }*/
-  ondemand: {
-    // Inbound
-    //AllowComputeSlurmIn         : ['405', 'Inbound', 'Allow', '*', 'Slurmd', 'asg', 'asg-ondemand', 'subnet', 'compute']
-    AllowCycleWebIn: ['440', 'Inbound', 'Allow', 'Tcp', 'Web', 'asg', 'asg-ondemand', 'asg', 'asg-cyclecloud']
-    AllowComputeNoVncIn: ['470', 'Inbound', 'Allow', 'Tcp', 'NoVnc', 'subnet', 'compute', 'asg', 'asg-ondemand']
-    AllowNoVncComputeIn: ['480', 'Inbound', 'Allow', 'Tcp', 'NoVnc', 'asg', 'asg-ondemand', 'subnet', 'compute']
-    // Not sure if this is really needed. Why opening web port from deployer to ondemand ?
-    // AllowWebDeployerIn          : ['595', 'Inbound', 'Allow', 'Tcp', 'Web', 'asg', 'asg-deployer', 'asg', 'asg-ondemand']
-    // Outbound
-    AllowCycleWebOut: ['330', 'Outbound', 'Allow', 'Tcp', 'Web', 'asg', 'asg-ondemand', 'asg', 'asg-cyclecloud']
-    //AllowSlurmComputeOut        : ['385', 'Outbound', 'Allow', '*', 'Slurmd', 'asg', 'asg-ondemand', 'subnet', 'compute']
-    AllowComputeNoVncOut: ['550', 'Outbound', 'Allow', 'Tcp', 'NoVnc', 'subnet', 'compute', 'asg', 'asg-ondemand']
-    AllowNoVncComputeOut: ['560', 'Outbound', 'Allow', 'Tcp', 'NoVnc', 'asg', 'asg-ondemand', 'subnet', 'compute']
-    // AllowWebDeployerOut         : ['595', 'Outbound', 'Allow', 'Tcp', 'Web', 'asg', 'asg-deployer', 'asg', 'asg-ondemand']
-  }
+  // TODO: This rule is not applied, it should be removed
+//  internet: {
+//    AllowInternetHttpIn: ['210', 'Inbound', 'Allow', 'Tcp', 'Web', 'tag', 'Internet', 'subnet', 'frontend']
+//  }
+  // TODO: This rule is not applied, it should be removed
+//  hub: {
+//    AllowHubSshIn: ['200', 'Inbound', 'Allow', 'Tcp', 'HubSsh', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
+//    AllowHubHttpIn: ['210', 'Inbound', 'Allow', 'Tcp', 'Web', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
+//  }
+  // TODO : Need to be validated
   mysql: {
     // Inbound
-    AllowMySQLIn: ['700', 'Inbound', 'Allow', 'Tcp', 'MySQL', 'asg', 'asg-mysql-client', 'subnet', 'database']
+    AllowMySQLIn: ['700', 'Inbound', 'Allow', 'Tcp', 'MySQL', 'subnet', 'compute', 'subnet', 'database']
     // Outbound
-    AllowMySQLOut: ['700', 'Outbound', 'Allow', 'Tcp', 'MySQL', 'asg', 'asg-mysql-client', 'subnet', 'database']
+    AllowMySQLOut: ['700', 'Outbound', 'Allow', 'Tcp', 'MySQL', 'subnet', 'compute', 'subnet', 'database']
   }
+  // TODO : Need to be validated
   anf: {
     // Inbound
-    AllowNfsIn: ['434', 'Inbound', 'Allow', '*', 'Nfs', 'asg', 'asg-nfs-client', 'subnet', 'netapp']
     AllowNfsComputeIn: ['435', 'Inbound', 'Allow', '*', 'Nfs', 'subnet', 'compute', 'subnet', 'netapp']
     // Outbound
-    AllowNfsOut: ['440', 'Outbound', 'Allow', '*', 'Nfs', 'asg', 'asg-nfs-client', 'subnet', 'netapp']
     AllowNfsComputeOut: ['450', 'Outbound', 'Allow', '*', 'Nfs', 'subnet', 'compute', 'subnet', 'netapp']
   }
-  /*ad_anf: {
-  // Inbound
-    AllowAdServerNetappTcpIn    : ['300', 'Inbound', 'Allow', 'Tcp', 'DomainControlerTcp', 'subnet', 'netapp', nsgTargetForDC.type, nsgTargetForDC.target]
-    AllowAdServerNetappUdpIn    : ['310', 'Inbound', 'Allow', 'Udp', 'DomainControlerUdp', 'subnet', 'netapp', nsgTargetForDC.type, nsgTargetForDC.target]
-    // Outbound
-    AllowAdServerNetappTcpOut   : ['280', 'Outbound', 'Allow', 'Tcp', 'DomainControlerTcp', nsgTargetForDC.type, nsgTargetForDC.target, 'subnet', 'netapp']
-    AllowAdServerNetappUdpOut   : ['290', 'Outbound', 'Allow', 'Udp', 'DomainControlerUdp', nsgTargetForDC.type, nsgTargetForDC.target, 'subnet', 'netapp']
-  }*/
+  // TODO : Need to be validated
   lustre: {
     // Inbound
-    AllowLustreClientIn: ['410', 'Inbound', 'Allow', 'Tcp', 'Lustre', 'asg', 'asg-lustre-client', 'subnet', 'lustre']
     AllowLustreClientComputeIn: ['420', 'Inbound', 'Allow', 'Tcp', 'Lustre', 'subnet', 'compute', 'subnet', 'lustre']
     AllowLustreSubnetAnyInbound: ['430', 'Inbound', 'Allow', '*', 'All', 'subnet', 'lustre', 'subnet', 'lustre']
     // Outbound
     AllowAzureCloudServiceAccess: ['400', 'Outbound', 'Allow', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'AzureCloud']
-    AllowLustreClientOut: ['410', 'Outbound', 'Allow', 'Tcp', 'Lustre', 'asg', 'asg-lustre-client', 'subnet', 'lustre']
     AllowLustreClientComputeOut: ['420', 'Outbound', 'Allow', 'Tcp', 'Lustre', 'subnet', 'compute', 'subnet', 'lustre']
     AllowLustreSubnetAnyOutbound: ['430', 'Outbound', 'Allow', '*', 'All', 'subnet', 'lustre', 'subnet', 'lustre']
   }
+  // See documentation in https://learn.microsoft.com/en-us/azure/bastion/bastion-nsg if we need to apply NSGs on the BastionSubnet
   bastion: {
+    // This rule is to allow connectivity from Bastion to any VMs in the VNet
     AllowBastionIn: ['530', 'Inbound', 'Allow', 'Tcp', 'Bastion', 'subnet', 'bastion', 'tag', 'VirtualNetwork']
-  }
-  gateway: {
-    AllowInternalWebUsersIn: ['540', 'Inbound', 'Allow', 'Tcp', 'Web', 'subnet', 'gateway', 'asg', 'asg-ondemand']
-  }
-  grafana: {
-    // Telegraf / Grafana
-    // Inbound
-    AllowTelegrafIn: ['490', 'Inbound', 'Allow', 'Tcp', 'Telegraf', 'asg', 'asg-telegraf', 'asg', 'asg-grafana']
-    AllowComputeTelegrafIn: ['500', 'Inbound', 'Allow', 'Tcp', 'Telegraf', 'subnet', 'compute', 'asg', 'asg-grafana']
-    AllowGrafanaIn: ['510', 'Inbound', 'Allow', 'Tcp', 'Grafana', 'asg', 'asg-ondemand', 'asg', 'asg-grafana']
-    // Outbound
-    AllowTelegrafOut: ['460', 'Outbound', 'Allow', 'Tcp', 'Telegraf', 'asg', 'asg-telegraf', 'asg', 'asg-grafana']
-    AllowComputeTelegrafOut: ['470', 'Outbound', 'Allow', 'Tcp', 'Telegraf', 'subnet', 'compute', 'asg', 'asg-grafana']
-    AllowGrafanaOut: ['480', 'Outbound', 'Allow', 'Tcp', 'Grafana', 'asg', 'asg-ondemand', 'asg', 'asg-grafana']
-  }
-  deployer: {
-    // Inbound
-    AllowSshFromDeployerIn: ['340', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'asg', 'asg-deployer', 'asg', 'asg-ssh']
-    AllowDeployerToPackerSshIn: ['350', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'asg', 'asg-deployer', 'subnet', 'admin']
-    // Outbound
-    AllowSshDeployerOut: ['510', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'asg', 'asg-deployer', 'asg', 'asg-ssh']
-    AllowSshDeployerPackerOut: ['520', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'asg', 'asg-deployer', 'subnet', 'admin']
   }
 }
 
 var nsgRules = items(union(
   nsg_rules.default,
   deploy_bastion ? nsg_rules.bastion : {},
-  //config.deploy_gateway ? config.nsg_rules.gateway : {},
   create_anf ? nsg_rules.anf : {},
   create_lustre ? nsg_rules.lustre : {},
-  //config.deploy_grafana ? config.nsg_rules.grafana : {},
-  //config.deploy_ondemand ? config.nsg_rules.ondemand : {},
   create_database ? nsg_rules.mysql : {}))
 var incomingSSHPort = 22 //todo FIX LATER
 var servicePorts = {
   All: ['0-65535']
-  Bastion: (incomingSSHPort == 22) ? ['22', '3389'] : ['22', string(incomingSSHPort), '3389']
+  Bastion: (incomingSSHPort == 22) ? ['22'] : ['22', string(incomingSSHPort)]
   Web: ['443', '80']
   Ssh: ['22']
   HubSsh: [string(incomingSSHPort)]
-  // DNS, Kerberos, RpcMapper, Ldap, Smb, KerberosPass, LdapSsl, LdapGc, LdapGcSsl, AD Web Services, RpcSam
-  DomainControlerTcp: ['53', '88', '135', '389', '445', '464', '636', '3268', '3269', '9389', '49152-65535']
-  // DNS, Kerberos, W32Time, NetBIOS, Ldap, KerberosPass, LdapSsl
-  DomainControlerUdp: ['53', '88', '123', '138', '389', '464', '636']
-  // Web, NoVNC, WebSockify
-  NoVnc: ['80', '443', '5900-5910', '61001-61010']
   Dns: ['53']
-  Rdp: ['3389']
-  //Pbs: ['6200', '15001-15009', '17001', '32768-61000']
-  //Slurm: ['6817-6819']
-  Shed: ['6817-6819', '59000-61000']
   Lustre: ['988', '1019-1023']
-  Nfs: ['111', '635', '2049', '4045', '4046']
-  SMB: ['445']
-  Telegraf: ['8086']
-  Grafana: ['3000']
+  // 111: portmapper, 635: mountd, 2049: nfsd, 4045: nlockmgr, 4046: status, 4049: rquotad
+  Nfs: ['111', '635', '2049', '4045', '4046', '4049']
   // HTTPS, AMQP
   CycleCloud: ['9443', '5672']
   MySQL: ['3306', '33060']
-  WinRM: ['5985', '5986']
 }
 var securityRules = [ for rule in nsgRules : {
   name: rule.key
@@ -611,7 +272,7 @@ var securityRules = [ for rule in nsgRules : {
     rule.value[7] == 'ips' ? { destinationAddressPrefixes: rule.value[8] } : {}
   )
 }]
-var asgNames = union([ 'asg-ssh', 'asg-jumpbox', 'asg-sched', 'asg-cyclecloud', 'asg-cyclecloud-client', 'asg-nfs-client','asg-deployer' ], create_lustre ? [ 'asg-lustre-client' ] : [], create_database ? ['asg-mysql-client'] : [])
+var asgNames = union([ 'asg-ssh', 'asg-cyclecloud'], create_database ? ['asg-mysql-client'] : [])
 
 var peering_enabled = ccswConfig.network.vnet.peering.enabled
 var peered_vnet_name = contains(ccswConfig.network.vnet.peering.vnet,'name') ? ccswConfig.network.vnet.peering.vnet.name : 'foo'
