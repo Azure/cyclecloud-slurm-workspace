@@ -163,7 +163,7 @@ var nsg_rules = {
     AllowAllComputeComputeIn: ['365', 'Inbound', 'Allow', 'Tcp', 'All', 'subnet', 'compute', 'subnet', 'compute']
 
     // CycleCloud
-    AllowCycleClientComputeIn: ['460', 'Inbound', 'Allow', 'Tcp', 'CycleCloud', 'subnet', 'compute', '  ', 'asg-cyclecloud']
+    AllowCycleClientComputeIn: ['460', 'Inbound', 'Allow', 'Tcp', 'CycleCloud', 'subnet', 'compute', 'asg', 'asg-cyclecloud']
 
     // Deny all remaining traffic
     DenyVnetInbound: ['3100', 'Inbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
