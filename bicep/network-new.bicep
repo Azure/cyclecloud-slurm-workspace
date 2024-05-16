@@ -236,7 +236,8 @@ var servicePorts = {
   HubSsh: [string(incomingSSHPort)]
   Dns: ['53']
   Lustre: ['988', '1019-1023']
-  Nfs: ['111', '635', '2049', '4045', '4046']
+  // 111: portmapper, 635: mountd, 2049: nfsd, 4045: nlockmgr, 4046: status, 4049: rquotad
+  Nfs: ['111', '635', '2049', '4045', '4046', '4049']
   // HTTPS, AMQP
   CycleCloud: ['9443', '5672']
   MySQL: ['3306', '33060']
