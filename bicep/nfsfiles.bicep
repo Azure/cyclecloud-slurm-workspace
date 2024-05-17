@@ -83,3 +83,8 @@ resource nfsFilesHome 'Microsoft.Storage/storageAccounts/fileServices/shares@202
 output nfs_home_ip string = '${nfsFilesStorageAccount.name}.file.${environment().suffixes.storage}'
 output nfs_home_path string = '/${nfsFilesStorageAccount.name}/nfshome'
 output nfs_home_opts string = 'vers=4,minorversion=1,sec=sys'
+
+// All fs modules must output ip_address, export_path and mount_options
+output ip_address string = '${nfsFilesStorageAccount.name}.file.${environment().suffixes.storage}'
+output export_path string = '/${nfsFilesStorageAccount.name}/nfshome'
+output mount_options string = 'vers=4,minorversion=1,sec=sys'

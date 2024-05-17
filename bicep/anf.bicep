@@ -65,3 +65,8 @@ output anf_volume_name string = anfVolume.name
 output anf_ip string = anfVolume.properties.mountTargets[0].ipAddress
 output anf_export_path string = '/${name}-path'
 output anf_opts string = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
+
+// Require fs_module outputs
+output ip_address string = anfVolume.properties.mountTargets[0].ipAddress
+output export_path string = '/${name}-path'
+output mount_options string = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
