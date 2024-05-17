@@ -253,7 +253,7 @@
               {
                 "name": "anfInfoBoxSlurmHA",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[equals(steps('filesystem').shared.filertype,'anf')]",
+                "visible": false,
                 "options": {
                   "icon": "Warning",
                   "text": "Slurm High Availability will be unavailable in Slurm Settings with this choice of file-system."
@@ -992,7 +992,7 @@
                 "label": "Slurm HA",
                 "toolTip": "Select to enable Slurm High Availability",
                 "defaultValue": false,
-                "visible": "[and(not(equals(steps('filesystem').shared.filertype,'anf')),not(equals(steps('filesystem').additional.filertype,'anf')))]"
+                "visible": false
               },
               {
                 "name": "slurmAccounting",
@@ -1256,6 +1256,7 @@
                 "type": "Microsoft.Common.CheckBox",
                 "toolTip": "Enable Azure Spot discount",
                 "defaultValue": false,
+                "visible": false,
                 "constraints": {
                   "required": false
                 }
@@ -1337,6 +1338,7 @@
                 "toolTip": "Enable Azure Spot discount",
                 "label": "Enable Azure Spot",
                 "defaultValue": false,
+                "visible": false,
                 "constraints": {
                   "required": false
                 }
