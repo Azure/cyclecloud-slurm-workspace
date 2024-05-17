@@ -159,6 +159,9 @@ var nsg_rules = {
     // INBOUND RULES
     //
 
+    // Allow ssh from Frontend to compute
+    AllowSshFrontendComputeIn: ['200', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'frontend', 'subnet', 'compute']
+
     // All communications inside compute subnet
     AllowAllComputeComputeIn: ['365', 'Inbound', 'Allow', 'Tcp', 'All', 'subnet', 'compute', 'subnet', 'compute']
 
@@ -171,6 +174,9 @@ var nsg_rules = {
     //
     // OUTBOUND RULES
     //    
+    // Allow ssh from Frontend to compute
+    AllowSshFrontendComputeOut: ['200', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'frontend', 'subnet', 'compute']
+
     // CycleCloud
     AllowCycleClientComputeOut: ['320', 'Outbound', 'Allow', 'Tcp', 'CycleCloud', 'subnet', 'compute', 'asg', 'asg-cyclecloud']
 
