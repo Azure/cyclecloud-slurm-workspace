@@ -165,7 +165,13 @@ cyclecloud import_template Slurm-Workspace -f slurm-workspace.txt
 echo "CC import template successful"
 cyclecloud create_cluster Slurm-Workspace ccsw -p slurm_params.json
 echo "CC create_cluster successful"
-sleep 5
+
+# Wait for Azure.MachineType to be populated
+while ! (cycle_server execute 'select * from Azure.MachineType' | grep -q Standard); do
+    echo "Waiting for Azure.MachineType to be populated..."
+    sleep 10
+done
+
 cyclecloud start_cluster ccsw
 echo "CC start_cluster successful"
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
