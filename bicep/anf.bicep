@@ -27,6 +27,7 @@ resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2022-0
   location: location
   parent: anfPool
   properties: {
+    unixPermissions: '0755'
     creationToken: '${name}-path'
     serviceLevel: serviceLevel
     networkFeatures: 'Standard'
