@@ -789,7 +789,7 @@ Order = 20
         Conditions.Hidden := NodeNameIsHostname != true
 
         [[[parameter SchedulerImageName]]]
-        Label = Scheduler OS
+        Label = Login Node OS
         ParameterType = Cloud.Image
         Config.OS = linux
         DefaultValue = almalinux8
