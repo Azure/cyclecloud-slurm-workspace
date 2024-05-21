@@ -24,7 +24,7 @@ func decompose_ip(ip string) object => {
 func get_cidr(ip string) int => int(split(ip,'/')[1])
 
 func subnet_octets(cidr int) object => {
-  cyclecloud: { //frontend
+  cyclecloud: { //cyclecloud
     o3: 0
     o4: 0
     cidr: 29
@@ -159,8 +159,8 @@ var nsg_rules = {
     // INBOUND RULES
     //
 
-    // Allow ssh from Frontend to compute
-    AllowSshFrontendComputeIn: ['200', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'frontend', 'subnet', 'compute']
+    // Allow ssh from cyclecloud to compute
+    AllowSshCyclecloudComputeIn: ['200', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'cyclecloud', 'subnet', 'compute']
 
     // All communications inside compute subnet
     AllowAllComputeComputeIn: ['365', 'Inbound', 'Allow', 'Tcp', 'All', 'subnet', 'compute', 'subnet', 'compute']
@@ -174,8 +174,8 @@ var nsg_rules = {
     //
     // OUTBOUND RULES
     //    
-    // Allow ssh from Frontend to compute
-    AllowSshFrontendComputeOut: ['200', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'frontend', 'subnet', 'compute']
+    // Allow ssh from cyclecloud to compute
+    AllowSshCyclecloudComputeOut: ['200', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'cyclecloud', 'subnet', 'compute']
 
     // CycleCloud
     AllowCycleClientComputeOut: ['320', 'Outbound', 'Allow', 'Tcp', 'CycleCloud', 'subnet', 'compute', 'asg', 'asg-cyclecloud']
