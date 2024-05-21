@@ -41,3 +41,10 @@ output lustre_mgs string = fileSystem.properties.clientInfo.mgsAddress //ip addr
 //output lustre_path string = fileSystem.properties.hsm.archiveStatus[0].filesystemPath
 //output lustre_path string = fileSystem.properties.hsm.settings.importPrefix
 output lustre_mountcommand string = fileSystem.properties.clientInfo.mountCommand
+
+// All fs modules must output ip_address, export_path and mount_options
+output ip_address string = fileSystem.properties.clientInfo.mgsAddress
+// TODO we are fighting the chef cookbooks here by adding tcp:/lustrefs, as it simply prepends all paths
+// with tcp:/lustrefs
+output export_path string = ''
+output mount_options string = ''

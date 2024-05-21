@@ -57,18 +57,18 @@ def set_params(params,outputs):
         params['FilesystemSize'] = outputs['filer_info_final']['value']['home']['nfs_capacity_in_gb']
     else:
         params['NFSType'] = 'nfs' if outputs['filer_info_final']['value']['home']['filertype'] in ['nfs','anf'] else 'lustre'
-        if params['NFSType'] == 'nfs':
-            params['NFSSharedExportPath'] = outputs['filer_info_final']['value']['home']['export_path']
-            params['NFSSharedMountOptions'] = outputs['filer_info_final']['value']['home']['mount_options']
+        # We no longer need to handle these differently based on the fs type, as each
+        # fs module's common outputs map to these.
+        params['NFSSharedExportPath'] = outputs['filer_info_final']['value']['home']['export_path']
+        params['NFSSharedMountOptions'] = outputs['filer_info_final']['value']['home']['mount_options']
         params['NFSAddress'] = outputs['filer_info_final']['value']['home']['ip_address']
 
     params['AdditionalNFS'] = outputs['filer_info_final']['value']['additional']['use']
     if params['AdditionalNFS']:
         params['AdditionalNFSType'] = 'nfs' if outputs['filer_info_final']['value']['additional']['filertype'] in ['nfs','anf'] else 'lustre'
-        if params['AdditionalNFSType'] == 'nfs':
-            params['AdditionalNFSMountPoint'] = outputs['filer_info_final']['value']['additional']['mount_path']
-            params['AdditionalNFSExportPath'] = outputs['filer_info_final']['value']['additional']['export_path']
-            params['AdditionalNFSMountOptions'] = outputs['filer_info_final']['value']['additional']['mount_options']
+        params['AdditionalNFSMountPoint'] = outputs['filer_info_final']['value']['additional']['mount_path']
+        params['AdditionalNFSExportPath'] = outputs['filer_info_final']['value']['additional']['export_path']
+        params['AdditionalNFSMountOptions'] = outputs['filer_info_final']['value']['additional']['mount_options']
         params['AdditionalNFSAddress'] = outputs['filer_info_final']['value']['additional']['ip_address']
 
 def main():
