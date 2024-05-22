@@ -154,9 +154,9 @@ module ccswStorage './storage.bicep' = {
   params:{
     location: location
     saName: 'ccswstorage${uniqueString(resourceGroup().id)}'
-    lockDownNetwork: true // Restrict access to the storage account from compute and cyclecloud subnets, and lustre if used
+    lockDownNetwork: true // Restrict access to the storage account from compute and cyclecloud subnets
     allowableIps: []
-    subnetIds: concat([ subnets.compute.id],[subnets.cyclecloud.id], filer1_is_lustre || filer2_is_lustre ? [subnets.lustre.id] : [])
+    subnetIds: concat([subnets.compute.id], [subnets.cyclecloud.id])
   }
 }
 
