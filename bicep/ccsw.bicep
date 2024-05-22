@@ -135,7 +135,7 @@ module ccswVM './vm.bicep' = [ for vm in items(vms): {
 }]
 
 module ccswRolesAssignments './roleAssignments.bicep' = [ for vm in items(vms): if (contains(vm.value, 'identity') && contains(vm.value.identity, 'roles')) {
-  name: 'ccswRoleFor-${vm.key}'
+  name: 'ccswRoleFor-${vm.key}-${location}'
   scope: subscription()
   params: {
     name: vm.key
@@ -176,7 +176,6 @@ module mySQLccsw './mysql.bicep' = if (create_database) {
 }
 
 var createVnet = ccswConfig.network.vnet.create
-
 
 var filer_info = {
   home: union({
