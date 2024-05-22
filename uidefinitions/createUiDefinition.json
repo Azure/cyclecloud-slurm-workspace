@@ -1000,7 +1000,7 @@
                 "label": "Slurm job accounting",
                 "toolTip": "Select to enable Slurm job accounting in a managed mySQL instance",
                 "defaultValue": false,
-                "visible": true
+                "visible": false
               },
               {
                 "name": "databaseAdminPassword",
