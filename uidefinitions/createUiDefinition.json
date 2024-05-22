@@ -1603,7 +1603,7 @@
             "slurmVersion": "[steps('scheduler').schedulerSection.slurmVersion]",
             "canUseSlurmHA": "[and(not(equals(steps('filesystem').shared.filertype,'anf')),not(equals(steps('filesystem').additional.filertype,'anf')))]",
             "slurmHA": "[steps('scheduler').schedulerSection.slurmHA]",
-            "slurmAccounting": "[steps('scheduler').schedulerSection.slurmAccounting]"
+            "slurmAccounting": false
           },
           "login_nodes": {
             "loginVMSize": "[steps('scheduler').loginNodesSection.vmsize]",
