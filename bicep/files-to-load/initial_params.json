@@ -73,6 +73,7 @@
     "HTCUseLowPrio": false,
     "configuration_slurm_ha_enabled": false,
     "SchedulerImageName": "almalinux8",
+    "LoginImageName": "almalinux8",
     "EnableTerminateNotification": false,
     "HPCClusterInitSpecs": null,
     "DynamicImageName": "almalinux8",
