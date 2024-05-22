@@ -5,7 +5,7 @@
   "parameters": {
     "config": {
       "basics": {
-        "description": "Preview version 0.0.10",
+        "description": "Preview version 2024.5.22",
         "resourceGroup": {
           "visible": false
         },
@@ -1000,7 +1000,7 @@
                 "label": "Slurm job accounting",
                 "toolTip": "Select to enable Slurm job accounting in a managed mySQL instance",
                 "defaultValue": false,
-                "visible": true
+                "visible": false
               },
               {
                 "name": "databaseAdminPassword",

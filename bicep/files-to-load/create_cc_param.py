@@ -35,8 +35,8 @@ def set_params(params,outputs):
     params['SchedulerMachineType'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['schedulerVMSize']
     params['SchedulerImageName'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['schedulerImage']
     params['configuration_slurm_version'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['slurmVersion']
-    if outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['canUseSlurmHA']:
-        params['configuration_slurm_ha_enabled'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['slurmHA']
+    # if outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['canUseSlurmHA']:
+    #     params['configuration_slurm_ha_enabled'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['slurmHA']
     params['configuration_slurm_accounting_enabled'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['slurmAccounting']
     if params['configuration_slurm_accounting_enabled']:
         params['configuration_slurm_accounting_user'] = outputs['ccswGlobalConfig']['value']['database_user']
