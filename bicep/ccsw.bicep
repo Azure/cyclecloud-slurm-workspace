@@ -181,12 +181,10 @@ var filer_info = {
   home: union({
     use: true
     create_new: ccswConfig.filesystem.shared.create_new
-    is_second_new_anf: false
   }, ccswConfig.filesystem.shared.config)
   additional: union({
     use: ccswConfig.filesystem.additional.additional_filer
     create_new: ccswConfig.filesystem.additional.create_new
-    is_second_new_anf: ccswConfig.filesystem.additional.config.filertype == 'anf' && ccswConfig.filesystem.shared.config.filertype == 'anf' && ccswConfig.filesystem.additional.create_new
   }, ccswConfig.filesystem.additional.config)
 }
 
@@ -268,11 +266,11 @@ module ccswNfsFiles './nfsfiles.bicep' = [ for nfs in nfs_info: if (make_externa
 
 //NOTE: in ANF deployment loops, the bicep items() function alphabetizes the language elements of filer_info (i.e., index 0 references 'additional' and 1 references 'home' below)
 // Note we use duck typing here - each module has the same expected outputs - ip_address, export_path and mount_options.
-var fs_module_home = filer_info.home.create_new ? (filer_info.home.filertype == 'anf' ? ccswANF[1] : (filer_info.home.filertype == 'aml' ? ccswAMLFS[0] : null)) : null
+var fs_module_home = filer_info.home.create_new ? (filer_info.home.filertype == 'anf' ? ccswANF[1] : null) : null
 
 // TODO: if we restore creation of additional FS, we can use the same concept. It will probably break for two amlfs deployments, but ...
 // that is incredibly expensive as well.
-// var fs_module_additional = filer_info.home.create_new ? (filer_info.home.filertype == 'anf' ? ccswANF[0] : (filer_info.home.filertype == 'aml' ? ccswAMLFS[0] : null)) : null
+var fs_module_additional = filer_info.additional.create_new ? (filer_info.additional.filertype == 'anf' ? ccswANF[0] : (filer_info.additional.filertype == 'aml' ? ccswAMLFS[0] : null)) : null
 
 var filer_info_final = {
   home: {
@@ -289,14 +287,13 @@ var filer_info_final = {
   }
   additional: { 
     use: ccswConfig.filesystem.additional.additional_filer
-    // For now, we are forcing additional filer to always be external. We can come back to creating them in the future.
-    create_new: false
+    create_new: filer_info.additional.filertype
     filertype: filer_info.additional.filertype
-    ip_address: filer_info.additional.ip_address
+    ip_address: fs_module_additional == null ? filer_info.additional.ip_address : fs_module_additional!.outputs.ip_address
+    export_path: fs_module_additional == null ? filer_info.additional.export_path : fs_module_additional!.outputs.export_path
+    mount_options: fs_module_additional == null ? filer_info.additional.mount_options : fs_module_additional!.outputs.mount_options
     mount_path: filer_info.additional.mount_path
-    export_path: filer_info.additional.export_path
-    mount_options: filer_info.additional.mount_options
-  }
+    }
 }
 output filer_info_final object = filer_info_final
 
