@@ -38,6 +38,7 @@ module natgateway './natgateway.bicep' = if (create_nat_gateway) {
   name: 'natgateway'
   params: {
     location: location
+    tags: ccswConfig.tags['Microsoft.Network/natGateways']
     name: 'hpc-nat-gateway'
   }
 }
@@ -49,6 +50,8 @@ module ccswNetwork './network-new.bicep' = {
   name: 'ccswNetwork'
   params: {
     location: location
+    tags: ccswConfig.tags['Microsoft.Network/virtualNetworks']
+    nsgTags: ccswConfig.tags['Microsoft.Network/networkSecurityGroups']
     ccswConfig: ccswConfig
     deploy_scheduler: deploy_scheduler
     natGatewayId: natGateawayId
@@ -68,6 +71,7 @@ module ccswBastion './bastion.bicep' = if (deploy_bastion) {
   scope: createVnet ? resourceGroup() : resourceGroup(split(ccswConfig.network.vnet.id,'/')[4])
   params: {
     location: location
+    tags: ccswConfig.tags['Microsoft.Network/bastionHosts']
     subnetId: subnets.bastion.id
   }
 }
@@ -119,6 +123,8 @@ module ccswVM './vm.bicep' = [ for vm in items(vms): {
   name: 'ccswVM-${vm.key}'
   params: {
     location: location
+    tags: ccswConfig.tags['Microsoft.Compute/virtualMachines']
+    networkInterfacesTags: ccswConfig.tags['Microsoft.Network/networkInterfaces']
     name: vm.value.name 
     vm: vm.value
     image: vm.value.image
@@ -147,12 +153,12 @@ module ccswRolesAssignments './roleAssignments.bicep' = [ for vm in items(vms): 
     ccswVM
   ]
 }]
-//output ccVM_principalId string = ccswVM[0].outputs.principalId
 
 module ccswStorage './storage.bicep' = {
   name: 'ccswStorage'
   params:{
     location: location
+    tags: ccswConfig.tags['Microsoft.Storage/storageAccounts']
     saName: 'ccswstorage${uniqueString(resourceGroup().id)}'
     lockDownNetwork: true // Restrict access to the storage account from compute and cyclecloud subnets
     allowableIps: []
@@ -163,11 +169,12 @@ module ccswStorage './storage.bicep' = {
 var create_database = ccswConfig.slurm_settings.scheduler_node.slurmAccounting
 var db_name = 'hpc-mysqldb-${uniqueString(resourceGroup().id)}'
 var db_password = databaseAdminPassword
-//contains(ccswConfig.slurm_settings.scheduler_node, 'databaseAdminPassword') ? ccswConfig.slurm_settings.scheduler_node.databaseAdminPassword : ''
+
 module mySQLccsw './mysql.bicep' = if (create_database) {
   name: 'mySQLDB-ccsw'
   params: {
     location: location
+    tags: ccswConfig.tags['Microsoft.DBforMySQL/flexibleServers']
     Name: db_name
     adminUser: adminUsername
     adminPassword: db_password
@@ -223,6 +230,7 @@ module ccswAMLFS 'amlfs.bicep' = [ for lustre in lustre_info: {
   name: 'ccswAMLFS-${lustre.config.filer}'
   params: {
     location: location
+    tags: ccswConfig.tags['Microsoft.StorageCache/amlFileSystems']
     name: 'hpc-lustre'
     subnetId: subnets.lustre.id //TODO change for BYOVnet scenario
     sku: lustre.config.sku
@@ -237,6 +245,7 @@ module ccswANF 'anf.bicep' = [ for filer in items(filer_info): if (filer.value.u
   name: 'ccswANF-${filer.key}'
   params: {
     location: location
+    tags: ccswConfig.tags['Microsoft.NetApp/netAppAccounts']
     name: filer.key
     subnetId: subnets.anf.id //TODO change for BYOVnet scenario
     serviceLevel: filer.value.anf_service_tier
@@ -246,24 +255,6 @@ module ccswANF 'anf.bicep' = [ for filer in items(filer_info): if (filer.value.u
     ccswNetwork
   ]
 }]
-
-//TODO: Implement Azure NFS Files
-//var make_external_nfs = false
-/*
-module ccswNfsFiles './nfsfiles.bicep' = [ for nfs in nfs_info: if (make_external_nfs) {
-  name: 'ccswNfsFiles-${nfs.config.filer}'
-  params: {
-    name: 'hpcnfs'
-    location: location
-    allowedSubnetIds: concat([subnets.compute.id, subnets.cyclecloud.id ],deploy_scheduler ? [subnets.scheduler.id] : [])
-    sizeGB: nfs.config.sizeGB
-  }
-  dependsOn: [
-    ccswNetwork
-  ]
-}]
-*/
-
 //NOTE: in ANF deployment loops, the bicep items() function alphabetizes the language elements of filer_info (i.e., index 0 references 'additional' and 1 references 'home' below)
 // Note we use duck typing here - each module has the same expected outputs - ip_address, export_path and mount_options.
 var fs_module_home = filer_info.home.create_new ? (filer_info.home.filertype == 'anf' ? ccswANF[1] : null) : null

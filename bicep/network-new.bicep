@@ -1,5 +1,7 @@
 param address string = ccswConfig.network.vnet.address_space
 param location string
+param tags object
+param nsgTags object
 param ccswConfig object
 
 param create_anf bool = ccswConfig.filesystem.shared.config.filertype == 'anf' || (contains(ccswConfig.filesystem.?additional.?config ?? {},'filertype') && ccswConfig.filesystem.additional.config.filertype == 'anf')
@@ -288,6 +290,7 @@ var peered_vnet_id = contains(ccswConfig.network.vnet.peering.vnet,'id') ? ccswC
 resource asgs 'Microsoft.Network/applicationSecurityGroups@2022-07-01' = [ for name in asgNames: {
   name: name
   location: location
+  tags: nsgTags
 }]
 
 output asgIds array = [ for i in range(0, length(asgNames)): { '${asgs[i].name}': asgs[i].id } ]
@@ -295,6 +298,7 @@ output asgIds array = [ for i in range(0, length(asgNames)): { '${asgs[i].name}'
 resource ccswCommonNsg 'Microsoft.Network/networkSecurityGroups@2022-07-01' = {
   name: 'nsg-ccsw-common'
   location: location
+  tags: nsgTags
   properties: {
     securityRules: securityRules
   }
@@ -306,7 +310,7 @@ resource ccswCommonNsg 'Microsoft.Network/networkSecurityGroups@2022-07-01' = {
 resource ccswVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-07-01' = {
   name: vnet.name
   location: location
-  tags: contains(vnet, 'tags') ? vnet.tags : {}
+  tags: contains(vnet, 'tags') ? vnet.tags : tags
   properties: {
     addressSpace: {
       addressPrefixes: [ vnet.cidr ]

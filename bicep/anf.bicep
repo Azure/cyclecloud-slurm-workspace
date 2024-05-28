@@ -2,6 +2,7 @@ targetScope = 'resourceGroup'
 
 param name string
 param location string
+param tags object
 param resourcePostfix string = uniqueString(resourceGroup().id)
 param subnetId string
 param serviceLevel string
@@ -15,6 +16,7 @@ resource anfAccount 'Microsoft.NetApp/netAppAccounts@2022-05-01' = {
 resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2022-05-01' = {
   name: '${name}-anf-pool'
   location: location
+  tags: tags
   parent: anfAccount
   properties: {
     serviceLevel: serviceLevel
@@ -25,6 +27,7 @@ resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2022-05-01' = {
 resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2022-05-01' = {
   name: '${name}-anf-volume'
   location: location
+  tags: tags
   parent: anfPool
   properties: {
     unixPermissions: '0755'

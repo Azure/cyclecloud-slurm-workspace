@@ -1,6 +1,7 @@
 targetScope = 'resourceGroup'
 
 param location string
+param tags object
 param saName string
 param lockDownNetwork bool
 param allowableIps array
@@ -12,6 +13,7 @@ var subIds = [ for id in subnetIds : { id: id } ]
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: saName
   location: location
+  tags: tags
   sku: {
     name: 'Standard_LRS'
   }

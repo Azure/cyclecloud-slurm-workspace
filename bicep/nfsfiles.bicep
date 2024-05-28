@@ -1,6 +1,7 @@
 targetScope = 'resourceGroup'
 
 param location string
+param tags object
 param name string
 param allowedSubnetIds array
 param sizeGB int

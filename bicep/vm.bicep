@@ -4,6 +4,8 @@ param name string
 param vm object
 param image object
 param location string
+param tags object
+param networkInterfacesTags object
 //param resourcePostfix string = '${uniqueString(subscription().subscriptionId, resourceGroup().id)}x'
 param subnetId string
 param adminUser string
@@ -17,6 +19,7 @@ param nsg object
 resource nic 'Microsoft.Network/networkInterfaces@2022-07-01' = {
   name: '${name}-nic'
   location: location
+  tags: networkInterfacesTags
   properties: {
     ipConfigurations: [
       {
@@ -41,6 +44,7 @@ var datadisks = contains(vm, 'datadisks') ? vm.datadisks : []
 resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-11-01' = {
   name: '${name}-vm'
   location: location
+  tags: tags
   plan: contains(image, 'plan') && empty(image.plan) == false ? {
     publisher: split(image.plan,':')[0]
     product: split(image.plan,':')[1]

@@ -1434,7 +1434,12 @@
               "Microsoft.Network/networkInterfaces",
               "Microsoft.Network/virtualNetworks",
               "Microsoft.Network/networkSecurityGroups",
-              "Microsoft.Resources/resourceGroups"
+              "Microsoft.Network/natGateways",
+              "Microsoft.Resources/resourceGroups",
+              "Microsoft.DBforMySQL/flexibleServers",
+              "Microsoft.StorageCache/amlFileSystems",
+              "Microsoft.NetApp/netAppAccounts",
+              "Microsoft.Network/bastionHosts"
             ]
           }
         ]
