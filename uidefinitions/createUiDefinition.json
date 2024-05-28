@@ -1026,6 +1026,16 @@
               }
             ],
             "visible": true
+          },
+          {
+            "name": "healthCheck",
+            "type": "Microsoft.Common.CheckBox",
+            "label": "Enable health check",
+            "toolTip": "Enable health check scripts (NHC) to be run during allocation.",
+            "defaultValue": false,
+            "constraints": {
+              "required": false
+            }
           }
         ]
       },
@@ -1182,16 +1192,6 @@
                 "constraints": {
                   "required": false
                 }
-              },
-              {
-                "name": "healthCheckHPC",
-                "type": "Microsoft.Common.CheckBox",
-                "label": "Enable health check",
-                "toolTip": "Enable health check",
-                "defaultValue": false,
-                "constraints": {
-                  "required": false
-                }
               }
             ]
           },
@@ -1261,16 +1261,6 @@
                 "label": "Enable Azure Spot",
                 "defaultValue": false,
                 "visible": false,
-                "constraints": {
-                  "required": false
-                }
-              },
-              {
-                "name": "healthCheckGPU",
-                "type": "Microsoft.Common.CheckBox",
-                "toolTip": "Enable health check",
-                "label": "Enable health check",
-                "defaultValue": false,
                 "constraints": {
                   "required": false
                 }
@@ -1516,6 +1506,7 @@
           }
         },
         "slurm_settings": {
+          "health_check": "[steps('scheduler').healthCheck]",
           "scheduler_node": {
             "schedulerVMSize": "[steps('scheduler').schedulerSection.vmsize]",
             "schedulerImage": "[steps('scheduler').schedulerSection.ImageName]",
@@ -1543,15 +1534,13 @@
             "hpcVMSize": "[steps('slurmSettings').HPCSection.vmsize]",
             "maxNodes": "[steps('slurmSettings').HPCSection.maxNodes]",
             "image": "[steps('slurmSettings').HPCSection.ImageName]",
-            "use_spot": "[steps('slurmSettings').HPCSection.spotHPC]",
-            "health_check": "[steps('slurmSettings').HPCSection.healthCheckHPC]"
+            "use_spot": "[steps('slurmSettings').HPCSection.spotHPC]"
           },
           "gpu": {
             "gpuVMSize": "[steps('slurmSettings').GPUSection.vmsize]",
             "maxNodes": "[steps('slurmSettings').GPUSection.maxNodes]",
             "image": "[steps('slurmSettings').GPUSection.ImageName]",
-            "use_spot": "[steps('slurmSettings').GPUSection.spotGPU]",
-            "health_check": "[steps('slurmSettings').GPUSection.healthCheckGPU]"
+            "use_spot": "[steps('slurmSettings').GPUSection.spotGPU]"
           }
         },
         "users": "[steps('users').usergrid]",
