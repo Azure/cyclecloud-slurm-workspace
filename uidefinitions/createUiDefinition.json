@@ -367,7 +367,7 @@
                 "type": "Microsoft.Common.TextBlock",
                 "visible": true,
                 "options": {
-                  "text": "Optionally mount another NFS endpoint on the cluster nodes."
+                  "text": "Optionally mount another endpoint on the cluster nodes."
                 }
               },
               {
