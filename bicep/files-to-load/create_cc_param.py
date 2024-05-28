@@ -19,6 +19,7 @@ def set_params(params,outputs):
     params['HTCMachineType'] = outputs['ccswConfig']['value']['partition_settings']['htc']['htcVMSize']
     params['MaxHTCExecuteNodeCount'] = int(outputs['ccswConfig']['value']['partition_settings']['htc']['maxNodes'])
     params['HTCImageName'] = outputs['ccswConfig']['value']['partition_settings']['htc']['image']
+    params['HTCUseLowPrio'] = outputs['ccswConfig']['value']['partition_settings']['htc']['use_spot']
 
     #HPC
     params['HPCMachineType'] = outputs['ccswConfig']['value']['partition_settings']['hpc']['hpcVMSize']
@@ -52,7 +53,7 @@ def set_params(params,outputs):
     params['NumberLoginNodes'] = int(outputs['ccswConfig']['value']['slurm_settings']['login_nodes']['initialNodes'])
     params['LoginImageName'] = outputs['ccswConfig']['value']['slurm_settings']['login_nodes']['loginImage']
     params['EnableNodeHealthChecks'] = outputs['ccswConfig']['value']['slurm_settings']['health_check']
-    
+
     #Network Attached Storage
     params['UseBuiltinShared'] = outputs['filer_info_final']['value']['home']['create_new'] and (outputs['filer_info_final']['value']['home']['filertype'] == 'nfs')
     if params['UseBuiltinShared']:
