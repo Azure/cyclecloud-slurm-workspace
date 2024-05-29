@@ -3,6 +3,7 @@
     "AdditionalNFSMountOptions": null,
     "About shared": null,
     "loginMachineType": "",
+    "LoginClusterInitSpecs": null,
     "NFSSchedAddress": null,
     "configuration_slurm_accounting_password": null,
     "DynamicUseLowPrio": false,
