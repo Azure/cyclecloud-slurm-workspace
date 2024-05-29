@@ -35,8 +35,8 @@ def set_params(params,outputs):
     params['SchedulerMachineType'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['schedulerVMSize']
     params['SchedulerImageName'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['schedulerImage']
     params['configuration_slurm_version'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['slurmVersion']
-    if outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['canUseSlurmHA']:
-        params['configuration_slurm_ha_enabled'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['slurmHA']
+    # if outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['canUseSlurmHA']:
+    #     params['configuration_slurm_ha_enabled'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['slurmHA']
     params['configuration_slurm_accounting_enabled'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['slurmAccounting']
     if params['configuration_slurm_accounting_enabled']:
         params['configuration_slurm_accounting_user'] = outputs['ccswGlobalConfig']['value']['database_user']
@@ -50,6 +50,7 @@ def set_params(params,outputs):
     #login node(s)
     params['loginMachineType'] = (outputs['ccswConfig']['value']['slurm_settings']['login_nodes']['loginVMSize']).strip()
     params['NumberLoginNodes'] = int(outputs['ccswConfig']['value']['slurm_settings']['login_nodes']['initialNodes'])
+    params['LoginImageName'] = outputs['ccswConfig']['value']['slurm_settings']['login_nodes']['loginImage']
     
     #Network Attached Storage
     params['UseBuiltinShared'] = outputs['filer_info_final']['value']['home']['create_new'] and (outputs['filer_info_final']['value']['home']['filertype'] == 'nfs')
@@ -57,18 +58,18 @@ def set_params(params,outputs):
         params['FilesystemSize'] = outputs['filer_info_final']['value']['home']['nfs_capacity_in_gb']
     else:
         params['NFSType'] = 'nfs' if outputs['filer_info_final']['value']['home']['filertype'] in ['nfs','anf'] else 'lustre'
-        if params['NFSType'] == 'nfs':
-            params['NFSSharedExportPath'] = outputs['filer_info_final']['value']['home']['export_path']
-            params['NFSSharedMountOptions'] = outputs['filer_info_final']['value']['home']['mount_options']
+        # We no longer need to handle these differently based on the fs type, as each
+        # fs module's common outputs map to these.
+        params['NFSSharedExportPath'] = outputs['filer_info_final']['value']['home']['export_path']
+        params['NFSSharedMountOptions'] = outputs['filer_info_final']['value']['home']['mount_options']
         params['NFSAddress'] = outputs['filer_info_final']['value']['home']['ip_address']
 
     params['AdditionalNFS'] = outputs['filer_info_final']['value']['additional']['use']
     if params['AdditionalNFS']:
         params['AdditionalNFSType'] = 'nfs' if outputs['filer_info_final']['value']['additional']['filertype'] in ['nfs','anf'] else 'lustre'
-        if params['AdditionalNFSType'] == 'nfs':
-            params['AdditionalNFSMountPoint'] = outputs['filer_info_final']['value']['additional']['mount_path']
-            params['AdditionalNFSExportPath'] = outputs['filer_info_final']['value']['additional']['export_path']
-            params['AdditionalNFSMountOptions'] = outputs['filer_info_final']['value']['additional']['mount_options']
+        params['AdditionalNFSMountPoint'] = outputs['filer_info_final']['value']['additional']['mount_path']
+        params['AdditionalNFSExportPath'] = outputs['filer_info_final']['value']['additional']['export_path']
+        params['AdditionalNFSMountOptions'] = outputs['filer_info_final']['value']['additional']['mount_options']
         params['AdditionalNFSAddress'] = outputs['filer_info_final']['value']['additional']['ip_address']
 
 def main():

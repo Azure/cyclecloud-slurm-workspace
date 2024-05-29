@@ -5,7 +5,7 @@
   "parameters": {
     "config": {
       "basics": {
-        "description": "Preview version 0.0.9",
+        "description": "Preview version 2024.05.27",
         "resourceGroup": {
           "visible": false
         },
@@ -122,14 +122,10 @@
         "name": "autogeneratePasswordsAndKeys",
         "type": "Microsoft.Common.DropDown",
         "label": "SSH public key source",
-        "defaultValue": "Generate new key pair",
+        "defaultValue": "Use existing public key",
         "toolTip": "Keypair and passwords can be retrieved from keyvault after deploying.",
         "constraints": {
           "allowedValues": [
-            {
-              "label": "Generate new key pair",
-              "value": 1
-            },
             {
               "label": "Use existing public key",
               "value": 2
@@ -235,10 +231,6 @@
                     {
                       "label": "Azure NetApp Files",
                       "value": "anf"
-                    },
-                    {
-                      "label": "Azure Managed Lustre",
-                      "value": "aml"
                     }
                   ],
                   "required": true
@@ -257,7 +249,7 @@
               {
                 "name": "anfInfoBoxSlurmHA",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[equals(steps('filesystem').shared.filertype,'anf')]",
+                "visible": false,
                 "options": {
                   "icon": "Warning",
                   "text": "Slurm High Availability will be unavailable in Slurm Settings with this choice of file-system."
@@ -318,64 +310,6 @@
                   "validationMessage": "Please enter an integer between 100 and 102400"
                 },
                 "visible": "[and(equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'nfs'))]"
-              },
-              {
-                "name": "amlInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').shared.filertype,'aml'),equals(steps('filesystem').shared.newexisting,'new'))]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "Please consult the linked page for the capacity range of each Azure Managed Lustre Tier.",
-                  "uri": "https://learn.microsoft.com/en-us/azure/azure-managed-lustre/create-file-system-portal#file-system-details"
-                }
-              },
-              {
-                "name": "lustretier",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Lustre Tier",
-                "defaultValue": "AMLFS-Durable-Premium-250",
-                "multiselect": false,
-                "toolTip": "Select the Azure Manage Lustre SKU to use",
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "AMLFS-Durable-Premium-40",
-                      "description": "40 MB/s/TB, 48TB size increment",
-                      "value": "AMLFS-Durable-Premium-40"
-                    },
-                    {
-                      "label": "AMLFS-Durable-Premium-125",
-                      "description": "125 MB/s/TB, 16TB size increment",
-                      "value": "AMLFS-Durable-Premium-125"
-                    },
-                    {
-                      "label": "AMLFS-Durable-Premium-250",
-                      "description": "250 MB/s/TB, 8TB size increment",
-                      "value": "AMLFS-Durable-Premium-250"
-                    },
-                    {
-                      "label": "AMLFS-Durable-Premium-500",
-                      "description": "500 MB/s/TB, 4TB size increment",
-                      "value": "AMLFS-Durable-Premium-500"
-                    }
-                  ],
-                  "required": true
-                },
-                "visible": "[and(equals(steps('filesystem').shared.filertype,'aml'),equals(steps('filesystem').shared.newexisting,'new'))]"
-              },
-              {
-                "name": "azurelustrecapacity",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Capacity",
-                "toolTip": "Capacity of the Azure Managed Lustre volume.",
-                "subLabel": "TiB",
-                "defaultValue": "48",
-                "visible": "[and(equals(steps('filesystem').shared.filertype,'aml'),equals(steps('filesystem').shared.newexisting,'new'))]",
-                "constraints": {
-                  "required": true,
-                  "regex": "^[4-9]$|^[1-9][0-9]$|^[1-6][0-9]{2}$|^7[0-6][0-9]$|^768$",
-                  "validationMessage": "Please enter an integer between 4 and 768"
-                }
               },
               {
                 "name": "ipAddress",
@@ -456,11 +390,15 @@
                 "name": "newexisting",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Create new file-system",
-                "defaultValue": "Use existing",
+                "defaultValue": "Create new",
                 "toolTip": "Create new file-system or use existing.",
                 "multiselect": false,
                 "constraints": {
                   "allowedValues": [
+                    {
+                      "label": "Create new",
+                      "value": "new"
+                    },
                     {
                       "label": "Use existing",
                       "value": "existing"
@@ -474,15 +412,11 @@
                 "name": "filertype",
                 "type": "Microsoft.Common.DropDown",
                 "label": "File-system Type",
-                "defaultValue": "NFS",
+                "defaultValue": "Azure Managed Lustre",
                 "toolTip": "File-system type.",
                 "multiselect": false,
                 "constraints": {
                   "allowedValues": [
-                    {
-                      "label": "[if(equals(steps('filesystem').additional.newexisting,'existing'),'NFS','')]",
-                      "value": "nfs"
-                    },
                     {
                       "label": "Azure NetApp Files",
                       "value": "anf"
@@ -509,7 +443,7 @@
               {
                 "name": "anfInfoBoxSlurmHA",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[equals(steps('filesystem').additional.filertype,'anf')]",
+                "visible": "[and(false, equals(steps('filesystem').additional.filertype,'anf'))]",
                 "options": {
                   "icon": "Warning",
                   "text": "Slurm High Availability will be unavailable in Slurm Settings with this choice of file-system."
@@ -555,22 +489,6 @@
                 },
                 "visible": "[and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'))]"
               },
-              {
-                "name": "nfscapacity",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Capacity",
-                "toolTip": "Capacity of the NFS volume.",
-                "subLabel": "GB",
-                "defaultValue": 1024,
-                "min": 100,
-                "max": 102400,
-                "constraints": {
-                  "required": true,
-                  "regex": "^(100|10[0-1]\\d{3}|[1-9]\\d{2}|[1-9]\\d{3}|[1-9]\\d{4}|102400)$",
-                  "validationMessage": "Please enter an integer between 100 and 102400"
-                },
-                "visible": "[and(equals(steps('filesystem').additional.newexisting,'new'),equals(steps('filesystem').additional.filertype,'nfs'))]"
-              }, 
               {
                 "name": "amlInfoBox",
                 "type": "Microsoft.Common.InfoBox",
@@ -732,7 +650,7 @@
               {
                 "name": "existing",
                 "type": "Microsoft.Common.TextBlock",
-                "visible": true,
+                "visible": false,
                 "options": {
                   "text": "Placeholder. Scrap?"
                 }
@@ -996,7 +914,7 @@
                 "label": "Slurm HA",
                 "toolTip": "Select to enable Slurm High Availability",
                 "defaultValue": false,
-                "visible": "[and(not(equals(steps('filesystem').shared.filertype,'anf')),not(equals(steps('filesystem').additional.filertype,'anf')))]"
+                "visible": false
               },
               {
                 "name": "slurmAccounting",
@@ -1004,7 +922,7 @@
                 "label": "Slurm job accounting",
                 "toolTip": "Select to enable Slurm job accounting in a managed mySQL instance",
                 "defaultValue": false,
-                "visible": true
+                "visible": false
               },
               {
                 "name": "databaseAdminPassword",
@@ -1149,7 +1067,7 @@
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Max number of nodes",
-                "defaultValue": "1",
+                "defaultValue": "100",
                 "toolTip": "Enter an integer between 1 and 1000",
                 "constraints": {
                   "required": true,
@@ -1220,7 +1138,7 @@
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Max number of nodes",
-                "defaultValue": "1",
+                "defaultValue": "100",
                 "toolTip": "Enter an integer between 1 and 1000",
                 "constraints": {
                   "required": true,
@@ -1260,6 +1178,7 @@
                 "type": "Microsoft.Common.CheckBox",
                 "toolTip": "Enable Azure Spot discount",
                 "defaultValue": false,
+                "visible": false,
                 "constraints": {
                   "required": false
                 }
@@ -1301,7 +1220,7 @@
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Max number of nodes",
-                "defaultValue": "1",
+                "defaultValue": "100",
                 "toolTip": "Enter an integer between 1 and 1000",
                 "constraints": {
                   "required": true,
@@ -1341,6 +1260,7 @@
                 "toolTip": "Enable Azure Spot discount",
                 "label": "Enable Azure Spot",
                 "defaultValue": false,
+                "visible": false,
                 "constraints": {
                   "required": false
                 }
@@ -1364,9 +1284,18 @@
         "label": "Users",
         "elements": [
           {
-            "name": "infobox",
+            "name": "disabledinfobox",
             "type": "Microsoft.Common.InfoBox",
             "visible": true,
+            "options": {
+              "icon": "Info",
+              "text": "This feature is currently under development."
+            }
+          },
+          {
+            "name": "infobox",
+            "type": "Microsoft.Common.InfoBox",
+            "visible": false,
             "options": {
               "icon": "Info",
               "text": "Optionally create users in addition to the admin user created in the Basics section.\n\nIt is recommended that the admin user create a user account in order to run jobs.\n\nWhen first accessing Azure CycleCloud, these users should update their temporary passwords and set their public keys if not done so below."
@@ -1377,6 +1306,7 @@
             "type": "Microsoft.Common.EditableGrid",
             "ariaLabel": "Enter info for users",
             "label": "People",
+            "visible": false,
             "constraints": {
               "width": "Full",
               "rows": {
@@ -1542,8 +1472,6 @@
               "nfs_capacity_in_gb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),steps('filesystem').shared.nfscapacity,-1)]",
               "anf_service_tier": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,'')]",
               "anf_capacity_in_bytes": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anfcapacity,-1)]",
-              "lustre_tier": "[if(equals(steps('filesystem').shared.filertype,'aml'),steps('filesystem').shared.lustretier,'')]",
-              "lustre_capacity_in_tib": "[if(equals(steps('filesystem').shared.filertype,'aml'),steps('filesystem').shared.azurelustrecapacity,-1)]",
               "ip_address": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,'')]",
               "export_path": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,'')]",
               "mount_options": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.mountOptions,'')]"
@@ -1554,15 +1482,14 @@
             "create_new": "[equals(steps('filesystem').additional.newexisting,'new')]",
             "config": {
               "filertype": "[if(steps('filesystem').additionalCheck.checkbox,steps('filesystem').additional.filertype,'')]",
-              "nfs_capacity_in_gb": "[if(equals(steps('filesystem').additional.filertype,'nfs'),steps('filesystem').additional.nfscapacity,-1)]",
               "anf_service_tier": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,'')]",
               "anf_capacity_in_bytes": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anfcapacity,-1)]",
               "lustre_tier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,'')]",
               "lustre_capacity_in_tib": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.azurelustrecapacity,-1)]",
               "ip_address": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.ipAddress,'')]",
-              "mount_path": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.mountPath,'')]",
+              "mount_path": "[steps('filesystem').additional.mountPath]",
               "export_path": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.exportPath,'')]",
-              "mount_options": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.mountOptions,'')]"
+              "mount_options": "[steps('filesystem').additional.mountOptions]"
             }
           }
         },
@@ -1595,7 +1522,7 @@
             "slurmVersion": "[steps('scheduler').schedulerSection.slurmVersion]",
             "canUseSlurmHA": "[and(not(equals(steps('filesystem').shared.filertype,'anf')),not(equals(steps('filesystem').additional.filertype,'anf')))]",
             "slurmHA": "[steps('scheduler').schedulerSection.slurmHA]",
-            "slurmAccounting": "[steps('scheduler').schedulerSection.slurmAccounting]"
+            "slurmAccounting": false
           },
           "login_nodes": {
             "loginVMSize": "[steps('scheduler').loginNodesSection.vmsize]",

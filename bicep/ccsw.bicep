@@ -111,7 +111,7 @@ var vms = {
         'Contributor','Storage Account Contributor','Storage Blob Data Contributor'
       ]
     }
-    asgs: [ 'asg-ssh', 'asg-cyclecloud']
+    asgs: [ 'asg-cyclecloud' ]
   }
 }
 
@@ -135,7 +135,7 @@ module ccswVM './vm.bicep' = [ for vm in items(vms): {
 }]
 
 module ccswRolesAssignments './roleAssignments.bicep' = [ for vm in items(vms): if (contains(vm.value, 'identity') && contains(vm.value.identity, 'roles')) {
-  name: 'ccswRoleFor-${vm.key}'
+  name: 'ccswRoleFor-${vm.key}-${location}'
   scope: subscription()
   params: {
     name: vm.key
@@ -154,9 +154,9 @@ module ccswStorage './storage.bicep' = {
   params:{
     location: location
     saName: 'ccswstorage${uniqueString(resourceGroup().id)}'
-    lockDownNetwork: false
+    lockDownNetwork: true // Restrict access to the storage account from compute and cyclecloud subnets
     allowableIps: []
-    subnetIds: concat([ subnets.compute.id],deploy_scheduler ? [subnets.scheduler.id] : [])
+    subnetIds: concat([subnets.compute.id], [subnets.cyclecloud.id])
   }
 }
 
@@ -181,12 +181,10 @@ var filer_info = {
   home: union({
     use: true
     create_new: ccswConfig.filesystem.shared.create_new
-    is_second_new_anf: false
   }, ccswConfig.filesystem.shared.config)
   additional: union({
     use: ccswConfig.filesystem.additional.additional_filer
     create_new: ccswConfig.filesystem.additional.create_new
-    is_second_new_anf: ccswConfig.filesystem.additional.config.filertype == 'anf' && ccswConfig.filesystem.shared.config.filertype == 'anf' && ccswConfig.filesystem.additional.create_new
   }, ccswConfig.filesystem.additional.config)
 }
 
@@ -267,27 +265,35 @@ module ccswNfsFiles './nfsfiles.bicep' = [ for nfs in nfs_info: if (make_externa
 */
 
 //NOTE: in ANF deployment loops, the bicep items() function alphabetizes the language elements of filer_info (i.e., index 0 references 'additional' and 1 references 'home' below)
-//TODO: update logic for AMLFS and Azure NFS Files 
+// Note we use duck typing here - each module has the same expected outputs - ip_address, export_path and mount_options.
+var fs_module_home = filer_info.home.create_new ? (filer_info.home.filertype == 'anf' ? ccswANF[1] : null) : null
+
+// TODO: if we restore creation of additional FS, we can use the same concept. It will probably break for two amlfs deployments, but ...
+// that is incredibly expensive as well.
+var fs_module_additional = filer_info.additional.create_new ? (filer_info.additional.filertype == 'anf' ? ccswANF[0] : (filer_info.additional.filertype == 'aml' ? ccswAMLFS[0] : null)) : null
+
 var filer_info_final = {
   home: {
     use: true
     create_new: filer_info.home.create_new
     filertype: filer_info.home.filertype
     nfs_capacity_in_gb: filer_info.home.nfs_capacity_in_gb
-    ip_address: (filer_info.home.filertype == 'anf' && filer_info.home.create_new) ? ccswANF[1].outputs.anf_ip : filer_info.home.ip_address
-    export_path: (filer_info.home.filertype == 'anf' && filer_info.home.create_new) ? ccswANF[1].outputs.anf_export_path : filer_info.home.export_path
-    mount_options: (filer_info.home.filertype == 'anf' && filer_info.home.create_new) ? ccswANF[1].outputs.anf_opts : filer_info.home.mount_options
+    // note the fs_module_home! - it really can't be null, but the linter does not handle the
+    // ternary with a null properly
+    ip_address: fs_module_home == null ? filer_info.home.ip_address : fs_module_home!.outputs.ip_address
+    export_path: fs_module_home == null ? filer_info.home.export_path : fs_module_home!.outputs.export_path
+    mount_options: fs_module_home == null ? filer_info.home.mount_options : fs_module_home!.outputs.mount_options
 
   }
   additional: { 
     use: ccswConfig.filesystem.additional.additional_filer
-    create_new: ccswConfig.filesystem.additional.create_new
+    create_new: filer_info.additional.filertype
     filertype: filer_info.additional.filertype
-    ip_address: (filer_info.additional.filertype == 'anf' && filer_info.additional.create_new) ? ccswANF[0].outputs.anf_ip : filer_info.additional.ip_address
-    mount_path: (filer_info.additional.filertype == 'anf' && filer_info.additional.create_new) ? '${ccswANF[0].outputs.anf_ip}:${ccswANF[0].outputs.anf_export_path}' : filer_info.additional.mount_path
-    export_path: (filer_info.additional.filertype == 'anf' && filer_info.additional.create_new) ? ccswANF[0].outputs.anf_export_path : filer_info.additional.export_path
-    mount_options: (filer_info.additional.filertype == 'anf' && filer_info.additional.create_new) ? ccswANF[0].outputs.anf_opts : filer_info.additional.mount_options
-  }
+    ip_address: fs_module_additional == null ? filer_info.additional.ip_address : fs_module_additional!.outputs.ip_address
+    export_path: fs_module_additional == null ? filer_info.additional.export_path : fs_module_additional!.outputs.export_path
+    mount_options: fs_module_additional == null ? filer_info.additional.mount_options : fs_module_additional!.outputs.mount_options
+    mount_path: filer_info.additional.mount_path
+    }
 }
 output filer_info_final object = filer_info_final
 
