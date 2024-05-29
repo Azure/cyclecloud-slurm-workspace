@@ -3,16 +3,7 @@
     "AdditionalNFSMountOptions": null,
     "About shared": null,
     "loginMachineType": "",
-    "LoginClusterInitSpecs": {
-        "ccsw:default:1.0.0" : {
-            "Order" : 10000,
-            "Spec" : "default",
-            "Name" : "ccsw:default:1.0.0",
-            "Project" : "ccsw",
-            "SourceLocker" : "cyclecloud",
-            "Version" : "1.0.0"
-        }
-    },
+    "LoginClusterInitSpecs": null,
     "NFSSchedAddress": null,
     "configuration_slurm_accounting_password": null,
     "DynamicUseLowPrio": false,
@@ -26,16 +17,7 @@
     "DynamicClusterInitSpecs": null,
     "About shared part 2": null,
     "HPCImageName": "almalinux8",
-    "SchedulerClusterInitSpecs": {
-        "ccsw:default:1.0.0" : {
-            "Order" : 10000,
-            "Spec" : "default",
-            "Name" : "ccsw:default:1.0.0",
-            "Project" : "ccsw",
-            "SourceLocker" : "cyclecloud",
-            "Version" : "1.0.0"
-        }
-    },
+    "SchedulerClusterInitSpecs": null,
     "SchedulerMachineType": "",
     "NFSSchedDiskWarning": null,
     "DynamicMachineType": "Standard_D2_v4",
@@ -44,16 +26,7 @@
     "Credentials": "azure",
     "UseBuiltinSched": true,
     "Autoscale": true,
-    "GPUClusterInitSpecs": {
-        "ccsw:default:1.0.0" : {
-            "Order" : 10000,
-            "Spec" : "default",
-            "Name" : "ccsw:default:1.0.0",
-            "Project" : "ccsw",
-            "SourceLocker" : "cyclecloud",
-            "Version" : "1.0.0"
-        }        
-    },
+    "GPUClusterInitSpecs": null,
     "NFSAddress": null,
     "slurm": null,
     "configuration_slurm_accounting_url": null,
@@ -102,29 +75,11 @@
     "configuration_slurm_ha_enabled": false,
     "SchedulerImageName": "almalinux8",
     "EnableTerminateNotification": false,
-    "HPCClusterInitSpecs": {
-        "ccsw:default:1.0.0" : {
-            "Order" : 10000,
-            "Spec" : "default",
-            "Name" : "ccsw:default:1.0.0",
-            "Project" : "ccsw",
-            "SourceLocker" : "cyclecloud",
-            "Version" : "1.0.0"
-        }
-    },
+    "HPCClusterInitSpecs": null,
     "DynamicImageName": "almalinux8",
     "Additional Shared FS Mount Readme": null,
     "DynamicSpotMaxPrice": null,
-    "HTCClusterInitSpecs": {
-        "ccsw:default:1.0.0" : {
-            "Order" : 10000,
-            "Spec" : "default",
-            "Name" : "ccsw:default:1.0.0",
-            "Project" : "ccsw",
-            "SourceLocker" : "cyclecloud",
-            "Version" : "1.0.0"
-        }
-    },
+    "HTCClusterInitSpecs": null,
     "SchedFilesystemSize": 30,
     "HPCMaxScalesetSize": 100,
     "SchedulerHAZone": null
