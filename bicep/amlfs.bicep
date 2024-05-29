@@ -1,6 +1,7 @@
 targetScope = 'resourceGroup'
 
 param location string
+param tags object
 param name string
 param subnetId string
 @allowed([
@@ -22,6 +23,7 @@ param capacity int
 resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2023-05-01' = {
   name: '${name}-${uniqueString(resourceGroup().id,deployment().name)}'
   location: location
+  tags: tags
   sku: {
     name: sku
   }

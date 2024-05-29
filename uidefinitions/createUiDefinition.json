@@ -367,7 +367,7 @@
                 "type": "Microsoft.Common.TextBlock",
                 "visible": true,
                 "options": {
-                  "text": "Optionally mount another NFS endpoint on the cluster nodes."
+                  "text": "Optionally mount another endpoint on the cluster nodes."
                 }
               },
               {
@@ -496,7 +496,7 @@
                 "options": {
                   "icon": "Warning",
                   "text": "Please consult the linked page for the capacity range of each Azure Managed Lustre Tier.",
-                  "uri": "https://learn.microsoft.com/en-us/azure/azure-managed-lustre/create-file-system-portal#file-system-details"
+                  "uri": "https://learn.microsoft.com/en-us/azure/azure-managed-lustre/create-file-system-portal?WT.mc_id=Portal-Microsoft_Azure_CreateUIDef#throughput-configurations"
                 }
               },
               {
@@ -1026,6 +1026,16 @@
               }
             ],
             "visible": true
+          },
+          {
+            "name": "healthCheck",
+            "type": "Microsoft.Common.CheckBox",
+            "label": "Enable health check",
+            "toolTip": "Enable health check scripts (NHC) to be run during allocation.",
+            "defaultValue": false,
+            "constraints": {
+              "required": false
+            }
           }
         ]
       },
@@ -1182,16 +1192,6 @@
                 "constraints": {
                   "required": false
                 }
-              },
-              {
-                "name": "healthCheckHPC",
-                "type": "Microsoft.Common.CheckBox",
-                "label": "Enable health check",
-                "toolTip": "Enable health check",
-                "defaultValue": false,
-                "constraints": {
-                  "required": false
-                }
               }
             ]
           },
@@ -1261,16 +1261,6 @@
                 "label": "Enable Azure Spot",
                 "defaultValue": false,
                 "visible": false,
-                "constraints": {
-                  "required": false
-                }
-              },
-              {
-                "name": "healthCheckGPU",
-                "type": "Microsoft.Common.CheckBox",
-                "toolTip": "Enable health check",
-                "label": "Enable health check",
-                "defaultValue": false,
                 "constraints": {
                   "required": false
                 }
@@ -1444,7 +1434,12 @@
               "Microsoft.Network/networkInterfaces",
               "Microsoft.Network/virtualNetworks",
               "Microsoft.Network/networkSecurityGroups",
-              "Microsoft.Resources/resourceGroups"
+              "Microsoft.Network/natGateways",
+              "Microsoft.Resources/resourceGroups",
+              "Microsoft.DBforMySQL/flexibleServers",
+              "Microsoft.StorageCache/amlFileSystems",
+              "Microsoft.NetApp/netAppAccounts",
+              "Microsoft.Network/bastionHosts"
             ]
           }
         ]
@@ -1516,6 +1511,7 @@
           }
         },
         "slurm_settings": {
+          "health_check": "[steps('scheduler').healthCheck]",
           "scheduler_node": {
             "schedulerVMSize": "[steps('scheduler').schedulerSection.vmsize]",
             "schedulerImage": "[steps('scheduler').schedulerSection.ImageName]",
@@ -1543,15 +1539,13 @@
             "hpcVMSize": "[steps('slurmSettings').HPCSection.vmsize]",
             "maxNodes": "[steps('slurmSettings').HPCSection.maxNodes]",
             "image": "[steps('slurmSettings').HPCSection.ImageName]",
-            "use_spot": "[steps('slurmSettings').HPCSection.spotHPC]",
-            "health_check": "[steps('slurmSettings').HPCSection.healthCheckHPC]"
+            "use_spot": "[steps('slurmSettings').HPCSection.spotHPC]"
           },
           "gpu": {
             "gpuVMSize": "[steps('slurmSettings').GPUSection.vmsize]",
             "maxNodes": "[steps('slurmSettings').GPUSection.maxNodes]",
             "image": "[steps('slurmSettings').GPUSection.ImageName]",
-            "use_spot": "[steps('slurmSettings').GPUSection.spotGPU]",
-            "health_check": "[steps('slurmSettings').GPUSection.healthCheckGPU]"
+            "use_spot": "[steps('slurmSettings').GPUSection.spotGPU]"
           }
         },
         "users": "[steps('users').usergrid]",

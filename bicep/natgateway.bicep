@@ -1,12 +1,14 @@
 targetScope = 'resourceGroup'
 
 param location string
+param tags object
 param name string
 
 
 resource publicip 'Microsoft.Network/publicIPAddresses@2023-06-01' = {
   name: 'pip-${name}'
   location: location
+  tags: tags
   sku: {
     name: 'Standard'
   }

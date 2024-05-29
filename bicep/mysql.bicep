@@ -1,6 +1,7 @@
 targetScope = 'resourceGroup'
 
 param location string
+param tags object
 param Name string
 param adminUser string
 @secure()
@@ -19,6 +20,7 @@ param skuName string = 'Standard_B2ms'
 // Create a MySQL Flexible Server
 resource server 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' = {
   location: location
+  tags: tags
   name: Name
   sku: {
     name: skuName
