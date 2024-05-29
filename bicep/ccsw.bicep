@@ -183,15 +183,15 @@ var filer_info = {
     create_new: ccswConfig.filesystem.shared.create_new
   }, ccswConfig.filesystem.shared.config)
   additional: union({
-    use: ccswConfig.filesystem.additional.additional_filer
-    create_new: ccswConfig.filesystem.additional.create_new
-  }, ccswConfig.filesystem.additional.config)
+    use: ccswConfig.filesystem.?additional.?additional_filer ?? false
+    create_new: ccswConfig.filesystem.?additional.?create_new ?? false
+  }, ccswConfig.filesystem.?additional.?config ?? {})
 }
 
 
 //TODO: Make Lustre work with filer_info object
 var filer1_is_lustre = ccswConfig.filesystem.shared.config.filertype == 'aml'
-var filer2_is_lustre = contains(ccswConfig.filesystem.additional.config, 'filertype') && ccswConfig.filesystem.additional.config.filertype == 'aml'
+var filer2_is_lustre = contains(ccswConfig.filesystem.?additional.?config ?? {}, 'filertype') && ccswConfig.filesystem.additional.config.filertype == 'aml'
 
 //only use first set of Lustre settings configured by the user 
 var lustre_info = concat(
@@ -210,8 +210,8 @@ var lustre_info = concat(
     union(
       {subnet_name: (createVnet ? 'hpc-lustre-subnet' : ccswConfig.network.vnet.subnets.filerSubnet2)},
       {config: {
-        sku: ccswConfig.filesystem.additional.config.lustre_tier
-        capacity: int(ccswConfig.filesystem.additional.config.lustre_capacity_in_tib)
+        sku: ccswConfig.filesystem.?additional.?config.?lustre_tier
+        capacity: int(ccswConfig.filesystem.?additional.?config.?lustre_capacity_in_tib ?? 0)
         filer: 'additional'
         }
       }
@@ -270,7 +270,7 @@ var fs_module_home = filer_info.home.create_new ? (filer_info.home.filertype == 
 
 // TODO: if we restore creation of additional FS, we can use the same concept. It will probably break for two amlfs deployments, but ...
 // that is incredibly expensive as well.
-var fs_module_additional = filer_info.additional.create_new ? (filer_info.additional.filertype == 'anf' ? ccswANF[0] : (filer_info.additional.filertype == 'aml' ? ccswAMLFS[0] : null)) : null
+var fs_module_additional = (filer_info.additional.?create_new ?? false) ? (filer_info.?additional.?filertype == 'anf' ? ccswANF[0] : (filer_info.?additional.?filertype == 'aml' ? ccswAMLFS[0] : null)) : null
 
 var filer_info_final = {
   home: {
@@ -286,13 +286,13 @@ var filer_info_final = {
 
   }
   additional: { 
-    use: ccswConfig.filesystem.additional.additional_filer
-    create_new: filer_info.additional.filertype
-    filertype: filer_info.additional.filertype
-    ip_address: fs_module_additional == null ? filer_info.additional.ip_address : fs_module_additional!.outputs.ip_address
-    export_path: fs_module_additional == null ? filer_info.additional.export_path : fs_module_additional!.outputs.export_path
-    mount_options: fs_module_additional == null ? filer_info.additional.mount_options : fs_module_additional!.outputs.mount_options
-    mount_path: filer_info.additional.mount_path
+    use: ccswConfig.filesystem.?additional.additional_filer ?? false
+    create_new: filer_info.?additional.?create_new ?? false
+    filertype: filer_info.?additional.?filertype
+    ip_address: fs_module_additional == null ? filer_info.?additional.?ip_address : fs_module_additional!.outputs.ip_address
+    export_path: fs_module_additional == null ? filer_info.?additional.?export_path : fs_module_additional!.outputs.export_path
+    mount_options: fs_module_additional == null ? filer_info.?additional.?mount_options : fs_module_additional!.outputs.mount_options
+    mount_path: filer_info.?additional.?mount_path
     }
 }
 output filer_info_final object = filer_info_final

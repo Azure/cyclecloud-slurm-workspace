@@ -2,8 +2,8 @@ param address string = ccswConfig.network.vnet.address_space
 param location string
 param ccswConfig object
 
-param create_anf bool = ccswConfig.filesystem.shared.config.filertype == 'anf' || (contains(ccswConfig.filesystem.additional.config,'filertype') && ccswConfig.filesystem.additional.config.filertype == 'anf')
-param lustre_count int = (ccswConfig.filesystem.shared.config.filertype == 'aml' ? 1 : 0) + ((contains(ccswConfig.filesystem.additional.config,'filertype') && ccswConfig.filesystem.additional.config.filertype == 'aml') ? 1 : 0)
+param create_anf bool = ccswConfig.filesystem.shared.config.filertype == 'anf' || (contains(ccswConfig.filesystem.?additional.?config ?? {},'filertype') && ccswConfig.filesystem.additional.config.filertype == 'anf')
+param lustre_count int = (ccswConfig.filesystem.shared.config.filertype == 'aml' ? 1 : 0) + ((contains(ccswConfig.filesystem.?additional.?config ?? {},'filertype') && ccswConfig.filesystem.additional.config.filertype == 'aml') ? 1 : 0)
 param create_lustre bool = lustre_count > 0
 param deploy_bastion bool = ccswConfig.network.vnet.bastion
 param create_database bool = ccswConfig.slurm_settings.scheduler_node.slurmAccounting
@@ -413,7 +413,7 @@ resource subnetDatabase 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' e
 var subnet_database = create_database ? rsc_output(subnetDatabase) : {}
 
 var filerType1 = ccswConfig.filesystem.shared.config.filertype
-var filerType2 = contains(ccswConfig.filesystem.additional.config, 'filertype') ? ccswConfig.filesystem.additional.config.filertype : 'none'
+var filerType2 = contains(ccswConfig.filesystem.?additional.?config ?? {}, 'filertype') ? ccswConfig.filesystem.additional.config.filertype : 'none'
 var need_filer1_subnet = filerType1 == 'aml' || filerType1 == 'anf'
 var need_filer2_subnet = filerType2 == 'aml' || (filerType2 == 'anf' && filerType1 != 'anf')
 var filer1 = need_filer1_subnet ? (filerType1 == 'anf' ? { anf: subnet_netapp } : { lustre: subnet_lustre }) : {}
