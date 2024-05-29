@@ -160,6 +160,8 @@ var nsg_rules = {
     //
     // INBOUND RULES
     //
+    // Allow https incoming connections
+    AllowHttpsIn: ['100', 'Inbound', 'Allow', 'Tcp', 'Https', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
 
     // Allow ssh from cyclecloud to compute
     AllowSshCyclecloudComputeIn: ['200', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'cyclecloud', 'subnet', 'compute']
@@ -239,6 +241,7 @@ var incomingSSHPort = 22 //todo FIX LATER
 var servicePorts = {
   All: ['0-65535']
   Bastion: (incomingSSHPort == 22) ? ['22'] : ['22', string(incomingSSHPort)]
+  Https: ['443']
   Web: ['443', '80']
   Ssh: ['22']
   HubSsh: [string(incomingSSHPort)]
