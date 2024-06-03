@@ -1,6 +1,7 @@
 targetScope = 'subscription'
 
-param location string 
+param location string
+param infrastructureOnly bool = false
 
 param adminUsername string
 @secure()
@@ -34,6 +35,7 @@ module makeCCSWresources 'ccsw.bicep' = {
   scope: ccswResourceGroup
   params: {
     location: location
+    infrastructureOnly: infrastructureOnly
     adminUsername: adminUsername
     adminPassword: adminPassword
     adminSshPublicKey: adminSshPublicKey

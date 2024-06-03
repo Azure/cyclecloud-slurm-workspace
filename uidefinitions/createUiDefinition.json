@@ -588,7 +588,7 @@
                   "regex": "^\/(?:[\\w-.]+\/)*[\\w-.]+$",
                   "validationMessage": "Must be an absolute path"
                 },
-                "visible": true
+                "visible": "[not(equals(steps('filesystem').additional.filertype, 'aml'))]"
               },
               {
                 "name": "mountOptions",
@@ -780,6 +780,26 @@
                   "required": true
                 },
                 "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox)]"
+              },
+              {
+                "name": "ccvm_existing_nsg",
+                "label": "Existing NSG for CycleCloud VM",
+                "type": "Microsoft.Solutions.ResourceSelector",
+                "resourceType": "Microsoft.Network/networkSecurityGroups",
+                "constraints": {
+                  "required": false
+                },
+                "visible": "[equals(steps('networking').newexisting,'existing')]"
+              },
+              {
+                "name": "ccvm_existing_asg",
+                "label": "Existing ASG for CycleCloud VM",
+                "type": "Microsoft.Solutions.ResourceSelector",
+                "resourceType": "Microsoft.Network/applicationSecurityGroups",
+                "constraints": {
+                  "required": false
+                },
+                "visible": "[equals(steps('networking').newexisting,'existing')]"
               },
               {
                 "name": "bastion",
@@ -1483,13 +1503,15 @@
               "lustre_capacity_in_tib": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.azurelustrecapacity,-1)]",
               "ip_address": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.ipAddress,'')]",
               "mount_path": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountPath, '')]",
-              "export_path": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.exportPath,'')]",
+              "export_path": "[if(and(not(equals(steps('filesystem').additional.filertype, 'aml')),equals(steps('filesystem').additional.newexisting,'existing')), steps('filesystem').additional.exportPath,'')]",
               "mount_options": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountOptions, '')]"
             }
           }
         },
         "network": {
-          "create_nsg": true,
+          "create_nsg": "[equals(steps('networking').newexisting,'new')]",
+          "existing_cc_nsg": "[steps('networking').networkSettings.ccvm_existing_nsg]",
+          "existing_cc_asg": "[steps('networking').networkSettings.ccvm_existing_asg]",
           "vnet": {
             "create": "[equals(steps('networking').newexisting,'new')]",
             "name": "[if(equals(steps('networking').newexisting,'new'),'hpc-vnet',steps('networking').networkSettings.networkSelector.name)]",

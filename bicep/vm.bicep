@@ -33,7 +33,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2022-07-01' = {
           }
       }
     ]
-    networkSecurityGroup: {
+    networkSecurityGroup: nsg.?id == null ? null : {
       id: nsg.id
     }
   }

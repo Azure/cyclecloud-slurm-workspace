@@ -7,6 +7,7 @@ param resourcePostfix string = uniqueString(resourceGroup().id)
 param subnetId string
 param serviceLevel string
 param sizeGB int
+param defaultMountOptions string
 
 resource anfAccount 'Microsoft.NetApp/netAppAccounts@2022-05-01' = {
   name: 'hpcanfaccount-${take(resourcePostfix,10)}'
@@ -63,14 +64,8 @@ resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2022-0
   }
 }
 
-output anf_account_name string = anfAccount.name
-output anf_pool_name string = anfPool.name
-output anf_volume_name string = anfVolume.name
-output anf_ip string = anfVolume.properties.mountTargets[0].ipAddress
-output anf_export_path string = '/${name}-path'
-output anf_opts string = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
 
 // Require fs_module outputs
 output ip_address string = anfVolume.properties.mountTargets[0].ipAddress
 output export_path string = '/${name}-path'
-output mount_options string = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
+output mount_options string = defaultMountOptions

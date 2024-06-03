@@ -1,6 +1,7 @@
 targetScope = 'resourceGroup'
 
 param location string = resourceGroup().location
+param infrastructureOnly bool
 
 param autogenerateSecrets bool
 param useEnteredKey bool 
@@ -20,9 +21,12 @@ param deploy_scheduler bool = false
 param databaseAdminPassword string
 param trash_for_arm_ttk object 
 
+
+var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
+
 //FIX: Autogenerate scenario does not work, see TODO in publicKey.bicep
 //TODO 
-module ccswPublicKey './publicKey.bicep' = if (!useEnteredKey) {
+module ccswPublicKey './publicKey.bicep' = if (!useEnteredKey && !infrastructureOnly) {
   name: 'ccswPublicKey'
   params: {
     location: location
@@ -31,7 +35,7 @@ module ccswPublicKey './publicKey.bicep' = if (!useEnteredKey) {
     storedKey: storedKey
   }
 }
-var publicKey = useEnteredKey ? adminSshPublicKey : ccswPublicKey.outputs.publicKey
+var publicKey = infrastructureOnly ? '' : (useEnteredKey ? adminSshPublicKey : ccswPublicKey.outputs.publicKey)
 
 var create_nat_gateway = ccswConfig.network.vnet.create_natgateway
 module natgateway './natgateway.bicep' = if (create_nat_gateway) {
@@ -46,7 +50,7 @@ var natGateawayId = create_nat_gateway ? natgateway.outputs.NATGatewayId : ''
 
 
 //FIX: Currently works as expected for creating Vnets for user, but not for BYOV
-module ccswNetwork './network-new.bicep' = {
+module ccswNetwork './network-new.bicep' = if(ccswConfig.network.vnet.create){
   name: 'ccswNetwork'
   params: {
     location: location
@@ -57,10 +61,16 @@ module ccswNetwork './network-new.bicep' = {
     natGatewayId: natGateawayId
   }
 }
-var nsg = ccswNetwork.outputs.nsg_ccsw
-var vnet = ccswNetwork.outputs.vnet_ccsw
-var subnets = ccswNetwork.outputs.subnets_ccsw
-var asgNameToIdLookup = reduce(ccswNetwork.outputs.asgIds, {}, (cur, next) => union(cur, next))
+
+var nsg = ccswConfig.network.vnet.create ? ccswNetwork.outputs.nsg_ccsw : {}
+var vnet = ccswConfig.network.vnet.create ? ccswNetwork.outputs.vnet_ccsw : {}
+var subnets = ccswConfig.network.vnet.create ? ccswNetwork.outputs.subnets_ccsw : {
+  cyclecloud: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.cyclecloudSubnet], '/')}
+  compute: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.computeSubnet], '/')}
+  filer1: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.filerSubnet1], '/')}
+  filer2: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.filerSubnet2], '/')}
+}
+var asgNameToIdLookup = ccswConfig.network.vnet.create ? reduce(ccswNetwork.outputs.asgIds, {}, (cur, next) => union(cur, next)) : (ccswConfig.network.?existing_cc_asg == null ? {} : {'asg-cyclecloud': ccswConfig.network.existing_cc_asg.id})
 output vnet object = vnet
 
 //TODO re-enable Bastion once security rules determined
@@ -79,7 +89,7 @@ module ccswBastion './bastion.bicep' = if (deploy_bastion) {
 
 param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:latest'
 
-var vms = {
+var vms = infrastructureOnly ? {cyclecloud: {outputs: {principalId: ''}}} : {
   cyclecloud : {
     //subnetId: subnets.cyclecloud.id
     name: 'ccsw-cyclecloud' //TODO: implement uniqueness
@@ -115,11 +125,12 @@ var vms = {
         'Contributor','Storage Account Contributor','Storage Blob Data Contributor'
       ]
     }
-    asgs: [ 'asg-cyclecloud' ]
+    asgs: createVnet ? [ 'asg-cyclecloud' ] : ['${ccswConfig.network.existing_cc_asg.name}']
+    nsg: createVnet ? {} : ccswConfig.network.existing_cc_nsg
   }
 }
 
-module ccswVM './vm.bicep' = [ for vm in items(vms): {
+module ccswVM './vm.bicep' = [ for vm in items(vms): if (!infrastructureOnly) {
   name: 'ccswVM-${vm.key}'
   params: {
     location: location
@@ -134,6 +145,7 @@ module ccswVM './vm.bicep' = [ for vm in items(vms): {
     adminSshPublicKey: publicKey
     asgIds: asgNameToIdLookup
     nsg: nsg
+    
   }
   dependsOn: [
     ccswNetwork
@@ -197,49 +209,43 @@ var filer_info = {
 
 
 //TODO: Make Lustre work with filer_info object
-var filer1_is_lustre = ccswConfig.filesystem.shared.config.filertype == 'aml'
 var filer2_is_lustre = contains(ccswConfig.filesystem.?additional.?config ?? {}, 'filertype') && ccswConfig.filesystem.additional.config.filertype == 'aml'
 
 //only use first set of Lustre settings configured by the user 
-var lustre_info = concat(
-  filer1_is_lustre ? [
-    union(
-      {subnet_name: (createVnet ? 'hpc-lustre-subnet' : ccswConfig.network.vnet.subnets.filerSubnet1)},
-      {config: {
-        sku: ccswConfig.filesystem.shared.config.lustre_tier
-        capacity: int(ccswConfig.filesystem.shared.config.lustre_capacity_in_tib)
-        filer: 'shared'
-        }
-      }
-    )
-  ] : [],
-  filer2_is_lustre && !filer1_is_lustre ? [
-    union(
+var lustre_info = filer2_is_lustre ? union(
       {subnet_name: (createVnet ? 'hpc-lustre-subnet' : ccswConfig.network.vnet.subnets.filerSubnet2)},
       {config: {
-        sku: ccswConfig.filesystem.?additional.?config.?lustre_tier
+        create_new: ccswConfig.filesystem.?additional.?create_new ?? false
+        sku: ccswConfig.filesystem.?additional.?config.?lustre_tier ?? ''
         capacity: int(ccswConfig.filesystem.?additional.?config.?lustre_capacity_in_tib ?? 0)
         filer: 'additional'
         }
       }
-    )
-  ] : []
-)
+    ) : null
 
-module ccswAMLFS 'amlfs.bicep' = [ for lustre in lustre_info: {
-  name: 'ccswAMLFS-${lustre.config.filer}'
+module ccswAMLFS 'amlfs.bicep' = [ for lustre in [lustre_info]: if (lustre != null && lustre.?config.?create_new) {
+  name: 'ccswAMLFS-${lustre!.?config.?filer}'
   params: {
     location: location
     tags: ccswConfig.tags['Microsoft.StorageCache/amlFileSystems']
     name: 'hpc-lustre'
-    subnetId: subnets.lustre.id //TODO change for BYOVnet scenario
-    sku: lustre.config.sku
-    capacity: lustre.config.capacity
+    subnetId: subnets.lustre.id
+    sku: lustre!.config.sku
+    capacity: lustre!.config.capacity
   }
   dependsOn: [
     ccswNetwork
   ]
 }]
+
+var ccswAMLFSExisting = (lustre_info != null && !lustre_info!.config.create_new ?? true)  ? {
+  name: 'ccswAMLFS-additional'
+  outputs: {
+    ip_address: filer_info.additional.ip_address
+    export_path: ''
+    mount_options: lustre_info.?mount_options ?? ''
+  }
+} : {}
 
 module ccswANF 'anf.bicep' = [ for filer in items(filer_info): if (filer.value.use && filer.value.create_new && filer.value.filertype == 'anf') {
   name: 'ccswANF-${filer.key}'
@@ -247,21 +253,45 @@ module ccswANF 'anf.bicep' = [ for filer in items(filer_info): if (filer.value.u
     location: location
     tags: ccswConfig.tags['Microsoft.NetApp/netAppAccounts']
     name: filer.key
-    subnetId: subnets.anf.id //TODO change for BYOVnet scenario
+    subnetId: subnets.anf.id
     serviceLevel: filer.value.anf_service_tier
     sizeGB: int(filer.value.anf_capacity_in_bytes)
+    defaultMountOptions: anfDefaultMountOptions
   }
   dependsOn: [
     ccswNetwork
   ]
 }]
-//NOTE: in ANF deployment loops, the bicep items() function alphabetizes the language elements of filer_info (i.e., index 0 references 'additional' and 1 references 'home' below)
-// Note we use duck typing here - each module has the same expected outputs - ip_address, export_path and mount_options.
-var fs_module_home = filer_info.home.create_new ? (filer_info.home.filertype == 'anf' ? ccswANF[1] : null) : null
 
-// TODO: if we restore creation of additional FS, we can use the same concept. It will probably break for two amlfs deployments, but ...
-// that is incredibly expensive as well.
-var fs_module_additional = (filer_info.additional.?create_new ?? false) ? (filer_info.?additional.?filertype == 'anf' ? ccswANF[0] : (filer_info.?additional.?filertype == 'aml' ? ccswAMLFS[0] : null)) : null
+// Duck typing for existing filers - make them have the same attributes as a filer module
+
+var ccswANFExistingHome = (!filer_info.home.create_new && filer_info.home.filertype == 'anf' ? {
+  outputs: {
+    ip_address: filer_info.home.ip_address
+    export_path: filer_info.home.export_path
+    mount_options: (filer_info.home.?mount_options ?? '') == '' ? anfDefaultMountOptions : filer_info.home.mount_options
+  }
+} : {})
+
+var ccswANFExistingAdditional = (!filer_info.additional.create_new && filer_info.additional.filertype == 'anf' ? {
+  outputs: {
+    ip_address: filer_info.additional.ip_address
+    export_path: filer_info.additional.?export_path ?? ''
+    mount_options: (filer_info.additional.?mount_options ?? '') == '' ? anfDefaultMountOptions : filer_info.additional.mount_options
+  }
+} : {})
+
+
+// NOTE: in ANF deployment loops, the bicep items() function alphabetizes the language elements of filer_info (i.e., index 0 references 'additional' and 1 references 'home' below)
+// Note we use duck typing here - each module has the same expected outputs - ip_address, export_path and mount_options.
+var is_home_anf = filer_info.home.filertype == 'anf'
+var is_home_new = filer_info.home.create_new
+var fs_module_home = is_home_anf ? (is_home_new ? ccswANF[1] : ccswANFExistingHome) : null
+
+var is_addl_new = filer_info.additional.?create_new ?? false
+var is_addl_anf = filer_info.?additional.?filertype == 'anf'
+var is_addl_aml = filer_info.?additional.?filertype == 'aml'
+var fs_module_additional = is_addl_anf ? (is_addl_new ? ccswANF[0] : ccswANFExistingAdditional) : (is_addl_aml ? (is_addl_new ? ccswAMLFS[0] : ccswAMLFSExisting) : null)
 
 var filer_info_final = {
   home: {
@@ -284,12 +314,12 @@ var filer_info_final = {
     export_path: fs_module_additional == null ? filer_info.?additional.?export_path : fs_module_additional!.outputs.export_path
     mount_options: fs_module_additional == null ? filer_info.?additional.?mount_options : fs_module_additional!.outputs.mount_options
     mount_path: filer_info.?additional.?mount_path
-    }
+  }
 }
 output filer_info_final object = filer_info_final
 
 
-output cyclecloudPrincipalId string = ccswVM[indexOf(map(items(vms), item => item.key), 'cyclecloud')].outputs.principalId
+output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccswVM[0].outputs.principalId
 
 //no keyvault
 
@@ -311,53 +341,16 @@ output ccswGlobalConfig object = union(
     publicKey                     : publicKey
     adminUsername                 : adminUsername
     adminPassword                 : pword
-    //global_config_file            : '/az-hop/config.yml'
-    //ad_join_user                  : config.domain.domain_join_user.username
-    //domain_name                   : config.domain.name
-    //ldap_server                   : '${config.domain.ldap_server}.${config.domain.name}'
     homedir_mountpoint            : '/nfshome' //FIX cribbed from AzHop, unsure if correct
-    //FIX we need second mount point for second dir, correct? 
-    //ondemand_fqdn                 : ccswVM[indexOf(map(items(vms), item => item.key), 'ondemand')].outputs.privateIp //TODO ask if needed
-    //ansible_ssh_private_key_file  : '${config.admin_user}_id_rsa'//TODO ask
     subscription_id               : subscription().subscriptionId
     tenant_id                     : subscription().tenantId
-    //key_vault                     : config.key_vault_name
-    //sig_name                      : (config.deploy_sig) ? 'azhop_${resourcePostfix}' : ''
     lustre_hsm_storage_account    : ccswStorage.outputs.storageAccountName
     lustre_hsm_storage_container  : 'lustre'
     database_fqdn                 : create_database ? mySQLccsw.outputs.fqdn : ''
     database_user                 : adminUsername
     azure_environment             : envNameToCloudMap[environment().name]
-    //key_vault_suffix              : substring(kvSuffix, 1, length(kvSuffix) - 1) // vault.azure.net - remove leading dot from env
     blob_storage_suffix           : 'blob.${environment().suffixes.storage}' // blob.core.windows.net
-    //jumpbox_ssh_port              : incomingSSHPort
   },
-  /*createComputeMI ? {
-    compute_mi_id                 : resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', computemi.name)
-  }: {},*/
-  /*!empty(existingComputeMIrg) ? {
-    compute_mi_id                 : resourceId(existingComputeMIrg,'Microsoft.ManagedIdentity/userAssignedIdentities', computeMIname)
-  }: {},*/
-  /*filer1_is_anf || filer2_is_anf ? {
-    anf_home_netad                : length(anf_info) != 0 ? ccswANF[0].outputs.nfs_home_ip : ''
-    anf_home_path                 : length(anf_info) != 0 ? ccswANF[0].outputs.nfs_home_path : ''
-    anf_home_opts                 : length(anf_info) != 0 ? ccswANF[0].outputs.nfs_home_opts : ''
-  } : {},
-  make_external_nfs && (filer1_is_nfs || filer2_is_nfs) ? {
-    nfs_home_netad                : length(nfs_info) != 0 ? ccswNfsFiles[0].outputs.nfs_home_ip : ''
-    nfs_home_path                 : length(nfs_info) != 0 ? ccswNfsFiles[0].outputs.nfs_home_path : ''
-    nfs_home_opts                 : length(nfs_info) != 0 ? ccswNfsFiles[0].outputs.nfs_home_opts : ''
-  } : {},
-  /*config.homedir_type == 'existing' ? { //TODO discuss
-    anf_home_ip                   : azhopConfig.mounts.home.server
-    anf_home_path                 : azhopConfig.mounts.home.export
-    anf_home_opts                 : azhopConfig.mounts.home.options
-  } : {},
-  filer1_is_lustre || filer2_is_lustre? {
-    lustre_ip                    : length(lustre_info) != 0 ? ccswAMLFS[0].outputs.lustre_mgs : ''
-    //lustre_home_path             : length(lustre_info) != 0 ? ccswAMLFS[0].outputs.lustre_path : '' //TODO confirm correct
-    lustre_home_opts             : length(lustre_info) != 0 ? ccswAMLFS[0].outputs.lustre_mountcommand : '' //TODO confirm correct
-  } : {}*/
   {}
 )
 //output lustre_object object = filer1_is_lustre || filer2_is_lustre ? ccswAMLFS[0] : {}
