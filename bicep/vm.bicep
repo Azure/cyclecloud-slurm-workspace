@@ -53,7 +53,6 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-11-01' = {
   identity: {
     type: 'SystemAssigned'
   }
-  zones: ['1']//TODO Remove later 
   properties: {
     hardwareProfile: {
       vmSize: vm.sku
