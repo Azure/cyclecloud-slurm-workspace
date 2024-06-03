@@ -27,6 +27,7 @@ resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2023-05-01' = {
   sku: {
     name: sku
   }
+  zones: [ '1' ]
   properties: {
     storageCapacityTiB: capacity
     filesystemSubnet: subnetId
