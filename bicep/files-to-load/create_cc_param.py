@@ -13,8 +13,11 @@ def get_json_dict(file_name):
 def set_params(params,outputs):
     params['Region'] = outputs['ccswConfig']['value']['location']
     #params['Credentials']
-    params['SubnetId'] = '/'.join([outputs['vnet']['value']['rg'],outputs['vnet']['value']['name'],outputs['ccswConfig']['value']['network']['vnet']['subnets']['computeSubnet'] ])
-    
+    if outputs['ccswConfig']['value']['network']['vnet']['create']:
+        params['SubnetId'] = outputs['ccswGlobalConfig']['value']['compute_subnetid']
+    else:
+        params['SubnetId'] = '/'.join([outputs['ccswConfig']['value']['network']['vnet']['id'], 'subnets', outputs['ccswConfig']['value']['network']['vnet']['subnets']['computeSubnet']])
+        
     #HTC
     params['HTCMachineType'] = outputs['ccswConfig']['value']['partition_settings']['htc']['htcVMSize']
     params['MaxHTCExecuteNodeCount'] = int(outputs['ccswConfig']['value']['partition_settings']['htc']['maxNodes'])

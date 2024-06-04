@@ -40,8 +40,6 @@ resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2023-05-01' = {
 
 //https://learn.microsoft.com/en-us/rest/api/storagecache/aml-filesystems/create-or-update?view=rest-storagecache-2023-05-01&tabs=HTTP
 output lustre_mgs string = fileSystem.properties.clientInfo.mgsAddress //ip address
-//output lustre_path string = fileSystem.properties.hsm.archiveStatus[0].filesystemPath
-//output lustre_path string = fileSystem.properties.hsm.settings.importPrefix
 output lustre_mountcommand string = fileSystem.properties.clientInfo.mountCommand
 
 // All fs modules must output ip_address, export_path and mount_options

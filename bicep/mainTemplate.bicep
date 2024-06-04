@@ -1,6 +1,7 @@
 targetScope = 'subscription'
 
-param location string 
+param location string
+param infrastructureOnly bool = false
 
 param adminUsername string
 @secure()
@@ -26,7 +27,7 @@ param trash_for_arm_ttk object
 resource ccswResourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: ccswConfig.resource_group
   location: ccswConfig.location
-  tags: ccswConfig.tags['Microsoft.Resources/resourceGroups']
+  tags: contains(ccswConfig.tags, 'Microsoft.Resources/resourceGroups') ? ccswConfig.tags['Microsoft.Resources/resourceGroups'] : {}
 }
 
 module makeCCSWresources 'ccsw.bicep' = {
@@ -34,6 +35,7 @@ module makeCCSWresources 'ccsw.bicep' = {
   scope: ccswResourceGroup
   params: {
     location: location
+    infrastructureOnly: infrastructureOnly
     adminUsername: adminUsername
     adminPassword: adminPassword
     adminSshPublicKey: adminSshPublicKey
