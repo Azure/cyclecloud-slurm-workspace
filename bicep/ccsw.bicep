@@ -68,8 +68,8 @@ var vnet = ccswConfig.network.vnet.create ? ccswNetwork.outputs.vnet_ccsw : {}
 var subnets = ccswConfig.network.vnet.create ? ccswNetwork.outputs.subnets_ccsw : {
   cyclecloud: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.cyclecloudSubnet], '/')}
   compute: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.computeSubnet], '/')}
-  filer1: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.filerSubnet1], '/')}
-  filer2: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.filerSubnet2], '/')}
+  home: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.filerSubnet1], '/')}
+  additional: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.filerSubnet2], '/')}
 }
 
 output vnet object = vnet
@@ -210,10 +210,10 @@ var filer_info = {
 
 
 //TODO: Make Lustre work with filer_info object
-var filer2_is_lustre = contains(ccswConfig.filesystem.?additional.?config ?? {}, 'filertype') && ccswConfig.filesystem.additional.config.filertype == 'aml'
+var addl_filer_is_lustre = contains(ccswConfig.filesystem.?additional.?config ?? {}, 'filertype') && ccswConfig.filesystem.additional.config.filertype == 'aml'
 
 //only use first set of Lustre settings configured by the user 
-var lustre_info = filer2_is_lustre ? union(
+var lustre_info = addl_filer_is_lustre ? union(
       {subnet_name: (createVnet ? 'hpc-lustre-subnet' : ccswConfig.network.vnet.subnets.filerSubnet2)},
       {config: {
         create_new: ccswConfig.filesystem.?additional.?create_new ?? false
@@ -230,7 +230,7 @@ module ccswAMLFS 'amlfs.bicep' = [ for lustre in [lustre_info]: if (lustre != nu
     location: location
     tags: getTags('Microsoft.StorageCache/amlFileSystems', ccswConfig)
     name: 'hpc-lustre'
-    subnetId: subnets.lustre.id
+    subnetId: subnets.additional.id
     sku: lustre!.config.sku
     capacity: lustre!.config.capacity
   }
@@ -239,14 +239,40 @@ module ccswAMLFS 'amlfs.bicep' = [ for lustre in [lustre_info]: if (lustre != nu
   ]
 }]
 
+type existing_filer_t = {
+  name: string
+  outputs: {
+    ip_address: {
+      value: string
+    }
+    export_path: {
+      value: string
+    }
+    mount_options: {
+      value: string
+    }
+  }
+}
+
+var emptyExistingFiler = {
+  name: 'null'
+  outputs: {
+    ip_address: {value: 'null'}
+    export_path: {value: 'null'}
+    mount_options: {value: 'null'}
+  }
+}
+output emptyExistingFiler existing_filer_t = emptyExistingFiler
+
 var ccswAMLFSExisting = (lustre_info != null && !lustre_info!.config.create_new ?? true)  ? {
   name: 'ccswAMLFS-additional'
   outputs: {
-    ip_address: filer_info.additional.ip_address
-    export_path: ''
-    mount_options: lustre_info.?mount_options ?? ''
+    ip_address: {value: filer_info.additional.ip_address}
+    export_path: {value: ''}
+    mount_options: {value: lustre_info.?mount_options ?? ''}
   }
-} : {}
+} : emptyExistingFiler
+
 
 module ccswANF 'anf.bicep' = [ for filer in items(filer_info): if (filer.value.use && filer.value.create_new && filer.value.filertype == 'anf') {
   name: 'ccswANF-${filer.key}'
@@ -254,7 +280,7 @@ module ccswANF 'anf.bicep' = [ for filer in items(filer_info): if (filer.value.u
     location: location
     tags: getTags('Microsoft.NetApp/netAppAccounts', ccswConfig)
     name: filer.key
-    subnetId: subnets.anf.id
+    subnetId: subnets[filer.key].id
     serviceLevel: filer.value.anf_service_tier
     sizeGB: int(filer.value.anf_capacity_in_bytes)
     defaultMountOptions: anfDefaultMountOptions
@@ -267,20 +293,27 @@ module ccswANF 'anf.bicep' = [ for filer in items(filer_info): if (filer.value.u
 // Duck typing for existing filers - make them have the same attributes as a filer module
 
 var ccswANFExistingHome = (!filer_info.home.create_new && filer_info.home.filertype == 'anf' ? {
+  name: 'ccswANF-home'
   outputs: {
-    ip_address: filer_info.home.ip_address
-    export_path: filer_info.home.export_path
-    mount_options: (filer_info.home.?mount_options ?? '') == '' ? anfDefaultMountOptions : filer_info.home.mount_options
+    ip_address: {value: filer_info.home.ip_address}
+    export_path: {value: filer_info.home.export_path}
+    mount_options: {value: (filer_info.home.?mount_options ?? '') == '' ? anfDefaultMountOptions : filer_info.home.mount_options}
   }
-} : {})
+} : emptyExistingFiler)
 
 var ccswANFExistingAdditional = (!filer_info.additional.create_new && filer_info.additional.filertype == 'anf' ? {
+  name: 'ccswANF-additional'
   outputs: {
     ip_address: filer_info.additional.ip_address
     export_path: filer_info.additional.?export_path ?? ''
     mount_options: (filer_info.additional.?mount_options ?? '') == '' ? anfDefaultMountOptions : filer_info.additional.mount_options
   }
-} : {})
+} : emptyExistingFiler)
+
+// TODO hack for type checking.
+output ccswANFExistingHome existing_filer_t = ccswANFExistingHome
+output ccswAMLFSExisting existing_filer_t = ccswAMLFSExisting
+output ccswANFExistingAdditional existing_filer_t = ccswANFExistingAdditional
 
 
 // NOTE: in ANF deployment loops, the bicep items() function alphabetizes the language elements of filer_info (i.e., index 0 references 'additional' and 1 references 'home' below)
@@ -294,6 +327,23 @@ var is_addl_anf = filer_info.?additional.?filertype == 'anf'
 var is_addl_aml = filer_info.?additional.?filertype == 'aml'
 var fs_module_additional = is_addl_anf ? (is_addl_new ? ccswANF[0] : ccswANFExistingAdditional) : (is_addl_aml ? (is_addl_new ? ccswAMLFS[0] : ccswAMLFSExisting) : null)
 
+type filertype_t = 'anf' | 'aml' | 'nfs'
+type filer_settings_t = {
+  use: bool
+  create_new: bool
+  filertype: filertype_t
+  nfs_capacity_in_gb: int
+  ip_address: string
+  export_path: string
+  mount_options: string
+  mount_path: string
+}
+
+type filer_info_t = {
+  home: filer_settings_t
+  additional: filer_settings_t
+}
+
 var filer_info_final = {
   home: {
     use: true
@@ -302,22 +352,23 @@ var filer_info_final = {
     nfs_capacity_in_gb: filer_info.home.nfs_capacity_in_gb
     // note the fs_module_home! - it really can't be null, but the linter does not handle the
     // ternary with a null properly
-    ip_address: fs_module_home == null ? filer_info.home.ip_address : fs_module_home!.outputs.ip_address
-    export_path: fs_module_home == null ? filer_info.home.export_path : fs_module_home!.outputs.export_path
-    mount_options: fs_module_home == null ? filer_info.home.mount_options : fs_module_home!.outputs.mount_options
-
+    ip_address: fs_module_home == null ? filer_info.home.ip_address : fs_module_home!.outputs.ip_address.value
+    export_path: fs_module_home == null ? filer_info.home.export_path : fs_module_home!.outputs.export_path.value
+    mount_options: fs_module_home == null ? filer_info.home.mount_options : fs_module_home!.outputs.mount_options.value
+    mount_path: '/shared'
   }
   additional: { 
     use: ccswConfig.filesystem.?additional.additional_filer ?? false
     create_new: filer_info.?additional.?create_new ?? false
     filertype: filer_info.?additional.?filertype
-    ip_address: fs_module_additional == null ? filer_info.?additional.?ip_address : fs_module_additional!.outputs.ip_address
-    export_path: fs_module_additional == null ? filer_info.?additional.?export_path : fs_module_additional!.outputs.export_path
-    mount_options: fs_module_additional == null ? filer_info.?additional.?mount_options : fs_module_additional!.outputs.mount_options
+    nfs_capacity_in_gb: filer_info.?additional.?nfs_capacity_in_gb ?? 0
+    ip_address: fs_module_additional == null ? filer_info.?additional.?ip_address : fs_module_additional!.outputs.ip_address.value
+    export_path: fs_module_additional == null ? filer_info.?additional.?export_path : fs_module_additional!.outputs.export_path.value
+    mount_options: fs_module_additional == null ? filer_info.?additional.?mount_options : fs_module_additional!.outputs.mount_options.value
     mount_path: filer_info.?additional.?mount_path
   }
 }
-output filer_info_final object = filer_info_final
+output filer_info_final filer_info_t = filer_info_final
 
 
 output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccswVM[0].outputs.principalId
@@ -354,7 +405,7 @@ output ccswGlobalConfig object = union(
   },
   {}
 )
-//output lustre_object object = filer1_is_lustre || filer2_is_lustre ? ccswAMLFS[0] : {}
+
 output param_script string = loadTextContent('./files-to-load/create_cc_param.py')
 output initial_param_json object = loadJsonContent('./files-to-load/initial_params.json')
 output trash object = trash_for_arm_ttk

@@ -419,17 +419,17 @@ resource subnetDatabase 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' e
 }
 var subnet_database = create_database ? rsc_output(subnetDatabase) : {}
 
-var filerType1 = ccswConfig.filesystem.shared.config.filertype
-var filerType2 = contains(ccswConfig.filesystem.?additional.?config ?? {}, 'filertype') ? ccswConfig.filesystem.additional.config.filertype : 'none'
-var need_filer1_subnet = filerType1 == 'aml' || filerType1 == 'anf'
-var need_filer2_subnet = filerType2 == 'aml' || (filerType2 == 'anf' && filerType1 != 'anf')
-var filer1 = need_filer1_subnet ? (filerType1 == 'anf' ? { anf: subnet_netapp } : { lustre: subnet_lustre }) : {}
-var filer2 = need_filer2_subnet ? (filerType2 == 'anf' ? { anf: subnet_netapp } : { lustre: subnet_lustre }) : {}
+var filerTypeHome = ccswConfig.filesystem.shared.config.filertype
+var filerTypeAddl = contains(ccswConfig.filesystem.?additional.?config ?? {}, 'filertype') ? ccswConfig.filesystem.additional.config.filertype : 'none'
+var output_home_subnet = filerTypeHome == 'aml' || filerTypeHome == 'anf'
+var output_addl_subnet = filerTypeAddl == 'aml' || filerTypeAddl == 'anf'
+var home_filer = output_home_subnet ? (filerTypeHome == 'anf' ? { home: subnet_netapp } : { home: subnet_lustre }) : {}
+var addl_filer = output_addl_subnet ? (filerTypeAddl == 'anf' ? { additional: subnet_netapp } : { additional: subnet_lustre }) : {}
 var subnets = union(
   { cyclecloud: subnet_cyclecloud },
   { compute: subnet_compute },
-  filer1,
-  filer2,
+  home_filer,
+  addl_filer,
   deploy_scheduler ? { scheduler: subnet_scheduler } : {},
   deploy_bastion ? { bastion: subnet_bastion } : {},
   create_database ? { database: subnet_database } : {}
