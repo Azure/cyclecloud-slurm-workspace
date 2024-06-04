@@ -792,16 +792,6 @@
                 "visible": "[equals(steps('networking').newexisting,'existing')]"
               },
               {
-                "name": "ccvm_existing_asg",
-                "label": "Existing ASG for CycleCloud VM",
-                "type": "Microsoft.Solutions.ResourceSelector",
-                "resourceType": "Microsoft.Network/applicationSecurityGroups",
-                "constraints": {
-                  "required": false
-                },
-                "visible": "[equals(steps('networking').newexisting,'existing')]"
-              },
-              {
                 "name": "bastion",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Create a Bastion for SSH connections",
@@ -1511,7 +1501,6 @@
         "network": {
           "create_nsg": "[equals(steps('networking').newexisting,'new')]",
           "existing_cc_nsg": "[steps('networking').networkSettings.ccvm_existing_nsg]",
-          "existing_cc_asg": "[steps('networking').networkSettings.ccvm_existing_asg]",
           "vnet": {
             "create": "[equals(steps('networking').newexisting,'new')]",
             "name": "[if(equals(steps('networking').newexisting,'new'),'hpc-vnet',steps('networking').networkSettings.networkSelector.name)]",

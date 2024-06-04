@@ -71,7 +71,7 @@ var subnets = ccswConfig.network.vnet.create ? ccswNetwork.outputs.subnets_ccsw 
   filer1: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.filerSubnet1], '/')}
   filer2: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.filerSubnet2], '/')}
 }
-var asgNameToIdLookup = ccswConfig.network.vnet.create ? reduce(ccswNetwork.outputs.asgIds, {}, (cur, next) => union(cur, next)) : (ccswConfig.network.?existing_cc_asg == null ? {} : {'asg-cyclecloud': ccswConfig.network.existing_cc_asg.id})
+
 output vnet object = vnet
 
 //TODO re-enable Bastion once security rules determined
@@ -126,7 +126,7 @@ var vms = infrastructureOnly ? {cyclecloud: {outputs: {principalId: ''}}} : {
         'Contributor','Storage Account Contributor','Storage Blob Data Contributor'
       ]
     }
-    asgs: createVnet ? [ 'asg-cyclecloud' ] : ['${ccswConfig.network.existing_cc_asg.name}']
+    asgs: []
     nsg: createVnet ? {} : ccswConfig.network.existing_cc_nsg
   }
 }
@@ -144,7 +144,7 @@ module ccswVM './vm.bicep' = [ for vm in items(vms): if (!infrastructureOnly) {
     adminUser: adminUsername
     adminPassword: adminPassword
     adminSshPublicKey: publicKey
-    asgIds: asgNameToIdLookup
+    asgIds: {}
     nsg: nsg
     
   }
