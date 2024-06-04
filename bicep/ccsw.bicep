@@ -24,6 +24,7 @@ param trash_for_arm_ttk object
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
 
+func getTags(resource_type string, config object) object => (contains(config.tags, resource_type) ? config.tags[resource_type] : {})
 //FIX: Autogenerate scenario does not work, see TODO in publicKey.bicep
 //TODO 
 module ccswPublicKey './publicKey.bicep' = if (!useEnteredKey && !infrastructureOnly) {
@@ -42,7 +43,7 @@ module natgateway './natgateway.bicep' = if (create_nat_gateway) {
   name: 'natgateway'
   params: {
     location: location
-    tags: ccswConfig.tags['Microsoft.Network/natGateways']
+    tags: getTags('Microsoft.Network/natGateways', ccswConfig)
     name: 'hpc-nat-gateway'
   }
 }
@@ -54,8 +55,8 @@ module ccswNetwork './network-new.bicep' = if(ccswConfig.network.vnet.create){
   name: 'ccswNetwork'
   params: {
     location: location
-    tags: ccswConfig.tags['Microsoft.Network/virtualNetworks']
-    nsgTags: ccswConfig.tags['Microsoft.Network/networkSecurityGroups']
+    tags: getTags('Microsoft.Network/virtualNetworks', ccswConfig)
+    nsgTags: getTags('Microsoft.Network/networkSecurityGroups', ccswConfig)
     ccswConfig: ccswConfig
     deploy_scheduler: deploy_scheduler
     natGatewayId: natGateawayId
@@ -81,7 +82,7 @@ module ccswBastion './bastion.bicep' = if (deploy_bastion) {
   scope: createVnet ? resourceGroup() : resourceGroup(split(ccswConfig.network.vnet.id,'/')[4])
   params: {
     location: location
-    tags: ccswConfig.tags['Microsoft.Network/bastionHosts']
+    tags: getTags('Microsoft.Network/bastionHosts', ccswConfig)
     subnetId: subnets.bastion.id
   }
 }
@@ -134,8 +135,8 @@ module ccswVM './vm.bicep' = [ for vm in items(vms): if (!infrastructureOnly) {
   name: 'ccswVM-${vm.key}'
   params: {
     location: location
-    tags: ccswConfig.tags['Microsoft.Compute/virtualMachines']
-    networkInterfacesTags: ccswConfig.tags['Microsoft.Network/networkInterfaces']
+    tags: getTags('Microsoft.Compute/virtualMachines', ccswConfig)
+    networkInterfacesTags: getTags('Microsoft.Network/networkInterfaces', ccswConfig)
     name: vm.value.name 
     vm: vm.value
     image: vm.value.image
@@ -170,7 +171,7 @@ module ccswStorage './storage.bicep' = {
   name: 'ccswStorage'
   params:{
     location: location
-    tags: ccswConfig.tags['Microsoft.Storage/storageAccounts']
+    tags: getTags('Microsoft.Storage/storageAccounts', ccswConfig)
     saName: 'ccswstorage${uniqueString(resourceGroup().id)}'
     lockDownNetwork: true // Restrict access to the storage account from compute and cyclecloud subnets
     allowableIps: []
@@ -186,7 +187,7 @@ module mySQLccsw './mysql.bicep' = if (create_database) {
   name: 'mySQLDB-ccsw'
   params: {
     location: location
-    tags: ccswConfig.tags['Microsoft.DBforMySQL/flexibleServers']
+    tags: getTags('Microsoft.DBforMySQL/flexibleServers', ccswConfig)
     Name: db_name
     adminUser: adminUsername
     adminPassword: db_password
@@ -227,7 +228,7 @@ module ccswAMLFS 'amlfs.bicep' = [ for lustre in [lustre_info]: if (lustre != nu
   name: 'ccswAMLFS-${lustre!.?config.?filer}'
   params: {
     location: location
-    tags: ccswConfig.tags['Microsoft.StorageCache/amlFileSystems']
+    tags: getTags('Microsoft.StorageCache/amlFileSystems', ccswConfig)
     name: 'hpc-lustre'
     subnetId: subnets.lustre.id
     sku: lustre!.config.sku
@@ -251,7 +252,7 @@ module ccswANF 'anf.bicep' = [ for filer in items(filer_info): if (filer.value.u
   name: 'ccswANF-${filer.key}'
   params: {
     location: location
-    tags: ccswConfig.tags['Microsoft.NetApp/netAppAccounts']
+    tags: getTags('Microsoft.NetApp/netAppAccounts', ccswConfig)
     name: filer.key
     subnetId: subnets.anf.id
     serviceLevel: filer.value.anf_service_tier

@@ -27,7 +27,7 @@ param trash_for_arm_ttk object
 resource ccswResourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: ccswConfig.resource_group
   location: ccswConfig.location
-  tags: ccswConfig.tags['Microsoft.Resources/resourceGroups']
+  tags: contains(ccswConfig.tags, 'Microsoft.Resources/resourceGroups') ? ccswConfig.tags['Microsoft.Resources/resourceGroups'] : {}
 }
 
 module makeCCSWresources 'ccsw.bicep' = {
