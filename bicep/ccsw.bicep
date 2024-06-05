@@ -68,8 +68,8 @@ var vnet = ccswConfig.network.vnet.create ? ccswNetwork.outputs.vnet_ccsw : {}
 var subnets = ccswConfig.network.vnet.create ? ccswNetwork.outputs.subnets_ccsw : {
   cyclecloud: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.cyclecloudSubnet], '/')}
   compute: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.computeSubnet], '/')}
-  home: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.filerSubnet1], '/')}
-  additional: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.filerSubnet2], '/')}
+  home: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.?filerSubnet1 ?? 'null'], '/')}
+  additional: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.?filerSubnet2 ?? 'null'], '/')}
 }
 
 output vnet object = vnet
@@ -327,7 +327,7 @@ var is_addl_anf = filer_info.?additional.?filertype == 'anf'
 var is_addl_aml = filer_info.?additional.?filertype == 'aml'
 var fs_module_additional = is_addl_anf ? (is_addl_new ? ccswANF[0] : ccswANFExistingAdditional) : (is_addl_aml ? (is_addl_new ? ccswAMLFS[0] : ccswAMLFSExisting) : null)
 
-type filertype_t = 'anf' | 'aml' | 'nfs'
+type filertype_t = 'anf' | 'aml' | 'nfs' | ''
 type filer_settings_t = {
   use: bool
   create_new: bool
