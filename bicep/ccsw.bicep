@@ -65,7 +65,6 @@ module ccswNetwork './network-new.bicep' = if(ccswConfig.network.vnet.create){
   }
 }
 
-var nsg = ccswConfig.network.vnet.create ? ccswNetwork.outputs.nsg_ccsw : {}
 var vnet = ccswConfig.network.vnet.create ? ccswNetwork.outputs.vnet_ccsw : {}
 var subnets = ccswConfig.network.vnet.create ? ccswNetwork.outputs.subnets_ccsw : {
   cyclecloud: {id: join([ccswConfig.network.vnet.id, 'subnets', ccswConfig.network.vnet.subnets.cyclecloudSubnet], '/')}
@@ -129,7 +128,6 @@ var vms = infrastructureOnly ? {cyclecloud: {outputs: {principalId: ''}}} : {
       ]
     }
     asgs: []
-    nsg: createVnet ? {} : ccswConfig.network.existing_cc_nsg
   }
 }
 
@@ -147,8 +145,6 @@ module ccswVM './vm.bicep' = [ for vm in items(vms): if (!infrastructureOnly) {
     adminPassword: adminPassword
     adminSshPublicKey: publicKey
     asgIds: {}
-    nsg: nsg
-    
   }
   dependsOn: [
     ccswNetwork
