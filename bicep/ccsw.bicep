@@ -221,6 +221,7 @@ var lustre_info = addl_filer_is_lustre ? union(
         sku: ccswConfig.filesystem.?additional.?config.?lustre_tier ?? ''
         capacity: int(ccswConfig.filesystem.?additional.?config.?lustre_capacity_in_tib ?? 0)
         filer: 'additional'
+        export_path: ccswConfig.filesystem.?additional.?config.?export_path ?? ''
         }
       }
     ) : null
@@ -234,6 +235,8 @@ module ccswAMLFS 'amlfs.bicep' = [ for lustre in [lustre_info]: if (lustre != nu
     subnetId: subnets.additional.id
     sku: lustre!.config.sku
     capacity: lustre!.config.capacity
+    infrastructureOnly: infrastructureOnly
+    exportPath: lustre!.config.export_path
   }
   dependsOn: [
     ccswNetwork
@@ -285,6 +288,8 @@ module ccswANF 'anf.bicep' = [ for filer in items(filer_info): if (filer.value.u
     serviceLevel: filer.value.anf_service_tier
     sizeGB: int(filer.value.anf_capacity_in_bytes)
     defaultMountOptions: anfDefaultMountOptions
+    infrastructureOnly: infrastructureOnly
+    
   }
   dependsOn: [
     ccswNetwork
@@ -374,8 +379,6 @@ output filer_info_final filer_info_t = filer_info_final
 
 output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccswVM[0].outputs.principalId
 
-//no keyvault
-
 output ccswConfig object = ccswConfig
 
 var envNameToCloudMap = {
@@ -407,7 +410,5 @@ output ccswGlobalConfig object = union(
   {}
 )
 
-output param_script string = loadTextContent('./files-to-load/create_cc_param.py')
-output initial_param_json object = loadJsonContent('./files-to-load/initial_params.json')
 output trash object = trash_for_arm_ttk
 output branch string = branch

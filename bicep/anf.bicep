@@ -8,13 +8,14 @@ param subnetId string
 param serviceLevel string
 param sizeGB int
 param defaultMountOptions string
+param infrastructureOnly bool = false
 
-resource anfAccount 'Microsoft.NetApp/netAppAccounts@2022-05-01' = {
+resource anfAccount 'Microsoft.NetApp/netAppAccounts@2022-05-01' = if(!infrastructureOnly){
   name: 'hpcanfaccount-${take(resourcePostfix,10)}'
   location: location
 }
 
-resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2022-05-01' = {
+resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2022-05-01' = if(!infrastructureOnly){
   name: '${name}-anf-pool'
   location: location
   tags: tags
@@ -25,7 +26,7 @@ resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2022-05-01' = {
   }
 }
 
-resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2022-05-01' = {
+resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2022-05-01' = if(!infrastructureOnly){
   name: '${name}-anf-volume'
   location: location
   tags: tags
@@ -66,6 +67,6 @@ resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2022-0
 
 
 // Require fs_module outputs
-output ip_address string = anfVolume.properties.mountTargets[0].ipAddress
+output ip_address string = infrastructureOnly ? '' :anfVolume.properties.mountTargets[0].ipAddress
 output export_path string = '/${name}-path'
 output mount_options string = defaultMountOptions
