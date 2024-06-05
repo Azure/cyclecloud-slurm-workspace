@@ -76,8 +76,6 @@ if [ "$cloudenv" == "azureusgovernmentcloud" ]; then
     echo "Running in Azure US Government Cloud"
     az cloud set --name AzureUSGovernment
 fi
-#FIX REMOVE SLEEP
-sleep 60
 # Add retry logic as it could take some delay to apply the Managed Identity
 timeout 360s bash -c 'until az login -i; do sleep 10; done'
 
@@ -117,7 +115,7 @@ python3 /opt/ccsw/cyclecloud_install.py --acceptTerms \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
     --storageAccount=${CYCLECLOUD_STORAGE} \
     --webServerPort=80 --webServerSslPort=443
-sleep 30
+
 echo "CC install script successful"
 # Configuring distribution_method
 cat > /tmp/ccsw_site_id.txt <<EOF
@@ -144,7 +142,15 @@ AutoUpgrade = false
 Name = "ccsw"
 EOF
 
-#sudo -i -u $CYCLECLOUD_USERNAME #TODO test this with CC initialize  
+echo Waiting for records to be imported
+timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep 10; done'
+
+echo Restarting cyclecloud so that new records take effect
+cycle_server stop
+cycle_server start --wait
+# this will block until CC responds
+curl -k https://localhost
+
 cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=ccsw
 echo "CC initialize successful"
 sleep 5
@@ -152,6 +158,9 @@ cyclecloud import_template Slurm-Workspace -f slurm-workspace.txt
 echo "CC import template successful"
 cyclecloud create_cluster Slurm-Workspace ccsw -p slurm_params.json
 echo "CC create_cluster successful"
+
+# ensure machine types are loaded ASAP
+cycle_server run_action 'Run:Application.Timer' -eq 'Name' 'plugin.azure.monitor_reference'
 
 # Wait for Azure.MachineType to be populated
 while ! (cycle_server execute 'select * from Azure.MachineType' | grep -q Standard); do
