@@ -768,7 +768,7 @@
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
-                "visible": "[equals(steps('networking').newexisting,'existing')]"
+                "visible": "[and(not(equals(steps('filesystem').shared.filertype, 'nfs')), equals(steps('networking').newexisting,'existing'))]"
               },
               {
                 "name": "filersubnet2",
