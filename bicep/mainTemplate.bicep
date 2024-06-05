@@ -21,6 +21,9 @@ param useStoredKey bool
 param storedKey object = {}
 @secure()
 param databaseAdminPassword string
+
+// build.sh will override this, but for development please set this yourself as a parameter
+param branch string = 'main'
 //param databaseAdminKeyphrase string
 param trash_for_arm_ttk object
 
@@ -46,6 +49,7 @@ module makeCCSWresources 'ccsw.bicep' = {
     ccVMSize: ccVMSize
     ccswConfig: ccswConfig
     databaseAdminPassword: databaseAdminPassword
+    branch: branch
     trash_for_arm_ttk: trash_for_arm_ttk
   }
 }

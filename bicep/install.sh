@@ -91,35 +91,20 @@ while deployment_state=$(az deployment group show -g $resource_group -n $deploym
     sleep 10
 done
 
-# echo "* Getting keys from keyvault"
-# kv=$(jq -r .keyvaultName.value azhopOutputs.json)
-#admin_pass=$(jq -r .ccswGlobalConfig.value.adminPassword $ccsw_root/ccswOutputs.json)
-# export admin_pass="$(az keyvault secret show --vault-name $kv -n ${adminuser}-password --query "value" -o tsv)"
-
-# echo "* Getting keys from keyvault"
-# az keyvault secret show --vault-name $kv -n ${adminuser}-pubkey --query "value" -o tsv > ../${adminuser}_id_rsa.pub
-# az keyvault secret show --vault-name $kv -n ${adminuser}-privkey --query "value" -o tsv > ../${adminuser}_id_rsa
-# chmod 600 ../${adminuser}_id_rsa
-# chmod 644 ../${adminuser}_id_rsa.pub
-
-#echo "* Generating config files from templates" #FIX change this
-#jq -r .ccswConfig.value $ccsw_root/ccswOutputs.json > $ccsw_root/config.json
-
 mkdir -p $ccsw_root/bin
-# jq -r .azhopGetSecretScript.value azhopOutputs.json > $ccsw_root/bin/get_secret
-# chmod +x $ccsw_root/bin/get_secret
-# FIX change this 
+
 # FOR TESTING PURPOSES
 pushd $ccsw_root
 az deployment group show -g $resource_group -n $deployment_name --query properties.outputs > ccswOutputs.json
-# TODO replace main by a release tag
-URI="https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/main/bicep/files-to-load"
 
-wget $URI/slurm-workspace.txt
-(echo -e "$(jq .param_script.value ccswOutputs.json)\\t    " | sed -e '1s/^.//' -e '$s/......$//') > create_cc_param.py
-(jq .initial_param_json.value ccswOutputs.json) > initial_params.json
+BRANCH=$(jq -r .branch.value ccswOutputs.json)
+URI="https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/$BRANCH/bicep/files-to-load"
 
-wget $URI/cyclecloud_install.py
+# we don't want slurm-workspace.txt.1 etc if someone reruns this script, so use -O to overwrite existing files
+wget -O slurm-workspace.txt $URI/slurm-workspace.txt
+wget -O create_cc_param.py $URI/create_cc_param.py
+wget -O initial_params.json $URI/initial_params.json
+wget -O cyclecloud_install.py $URI/cyclecloud_install.py
 (python3 create_cc_param.py) > slurm_params.json
 echo "Filework successful" 
 

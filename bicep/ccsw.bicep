@@ -19,6 +19,7 @@ param ccswConfig object
 param deploy_scheduler bool = false
 @secure()
 param databaseAdminPassword string
+param branch string
 param trash_for_arm_ttk object 
 
 
@@ -409,3 +410,4 @@ output ccswGlobalConfig object = union(
 output param_script string = loadTextContent('./files-to-load/create_cc_param.py')
 output initial_param_json object = loadJsonContent('./files-to-load/initial_params.json')
 output trash object = trash_for_arm_ttk
+output branch string = branch
