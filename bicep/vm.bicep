@@ -14,7 +14,6 @@ param adminPassword string
 @secure()
 param adminSshPublicKey string
 param asgIds object
-param nsg object
 
 resource nic 'Microsoft.Network/networkInterfaces@2022-07-01' = {
   name: '${name}-nic'
@@ -33,9 +32,6 @@ resource nic 'Microsoft.Network/networkInterfaces@2022-07-01' = {
           }
       }
     ]
-    networkSecurityGroup: nsg.?id == null ? null : {
-      id: nsg.id
-    }
   }
 }
 
