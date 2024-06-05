@@ -9,7 +9,7 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 if [ "$BRANCH" == "HEAD" ]; then 
     echo "Please check this out as a branch. If this is a tag, create a local branch with the same name"
-    echo "e.g. git checkout 2024.06.04 -b 2024.06.04"
+    echo "e.g. git checkout 2024.06.05 -b 2024.06.05"
     exit 2
 fi
 

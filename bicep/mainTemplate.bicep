@@ -25,7 +25,7 @@ param databaseAdminPassword string
 // build.sh will override this, but for development please set this yourself as a parameter
 param branch string = 'main'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
-param project_version string = '2024.06.04'
+param project_version string = '2024.06.05'
 
 //param databaseAdminKeyphrase string
 param trash_for_arm_ttk object
