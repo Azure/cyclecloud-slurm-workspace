@@ -88,7 +88,7 @@ module ccswBastion './bastion.bicep' = if (deploy_bastion) {
 }
 
 
-param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:latest'
+param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.6.220240605'
 
 var vms = infrastructureOnly ? {cyclecloud: {outputs: {principalId: ''}}} : {
   cyclecloud : {
