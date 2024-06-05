@@ -1,6 +1,7 @@
 #!/bin/bash
 set -eo pipefail
-
+# this is not set if you run this manually
+export PATH=$PATH:/usr/local/bin
 ccsw_root="/opt/ccsw"
 mkdir -p -m 777 $ccsw_root
 
@@ -53,6 +54,7 @@ if command -v apt; then
     #apt install -y 
 else
     retry_command "yum update -y"
+    retry_command "yum install -y wget jq"
     #yum install -y 
 fi
 printf "\n\n"
@@ -74,8 +76,6 @@ if [ "$cloudenv" == "azureusgovernmentcloud" ]; then
     echo "Running in Azure US Government Cloud"
     az cloud set --name AzureUSGovernment
 fi
-#FIX REMOVE SLEEP
-sleep 60
 # Add retry logic as it could take some delay to apply the Managed Identity
 timeout 360s bash -c 'until az login -i; do sleep 10; done'
 
@@ -89,35 +89,21 @@ while deployment_state=$(az deployment group show -g $resource_group -n $deploym
     sleep 10
 done
 
-# echo "* Getting keys from keyvault"
-# kv=$(jq -r .keyvaultName.value azhopOutputs.json)
-#admin_pass=$(jq -r .ccswGlobalConfig.value.adminPassword $ccsw_root/ccswOutputs.json)
-# export admin_pass="$(az keyvault secret show --vault-name $kv -n ${adminuser}-password --query "value" -o tsv)"
-
-# echo "* Getting keys from keyvault"
-# az keyvault secret show --vault-name $kv -n ${adminuser}-pubkey --query "value" -o tsv > ../${adminuser}_id_rsa.pub
-# az keyvault secret show --vault-name $kv -n ${adminuser}-privkey --query "value" -o tsv > ../${adminuser}_id_rsa
-# chmod 600 ../${adminuser}_id_rsa
-# chmod 644 ../${adminuser}_id_rsa.pub
-
-#echo "* Generating config files from templates" #FIX change this
-#jq -r .ccswConfig.value $ccsw_root/ccswOutputs.json > $ccsw_root/config.json
-
 mkdir -p $ccsw_root/bin
-# jq -r .azhopGetSecretScript.value azhopOutputs.json > $ccsw_root/bin/get_secret
-# chmod +x $ccsw_root/bin/get_secret
-# FIX change this 
+
 # FOR TESTING PURPOSES
 pushd $ccsw_root
 az deployment group show -g $resource_group -n $deployment_name --query properties.outputs > ccswOutputs.json
-# TODO replace main by a release tag
-URI="https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/main/bicep/files-to-load"
 
-wget $URI/slurm-workspace.txt
-(echo -e "$(jq .param_script.value ccswOutputs.json)\\t    " | sed -e '1s/^.//' -e '$s/......$//') > create_cc_param.py
-(jq .initial_param_json.value ccswOutputs.json) > initial_params.json
+BRANCH=$(jq -r .branch.value ccswOutputs.json)
+PROJECT_VERSION=$(jq -r .project_version.value ccswOutputs.json)
+URI="https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/$BRANCH/bicep/files-to-load"
 
-wget $URI/cyclecloud_install.py
+# we don't want slurm-workspace.txt.1 etc if someone reruns this script, so use -O to overwrite existing files
+wget -O slurm-workspace.txt $URI/slurm-workspace.txt
+wget -O create_cc_param.py $URI/create_cc_param.py
+wget -O initial_params.json $URI/initial_params.json
+wget -O cyclecloud_install.py $URI/cyclecloud_install.py
 (python3 create_cc_param.py) > slurm_params.json
 echo "Filework successful" 
 
@@ -130,7 +116,7 @@ python3 /opt/ccsw/cyclecloud_install.py --acceptTerms \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
     --storageAccount=${CYCLECLOUD_STORAGE} \
     --webServerPort=80 --webServerSslPort=443
-sleep 30
+
 echo "CC install script successful"
 # Configuring distribution_method
 cat > /tmp/ccsw_site_id.txt <<EOF
@@ -147,17 +133,24 @@ chmod 664 /tmp/ccsw_site_id.txt
 mv /tmp/ccsw_site_id.txt /opt/cycle_server/config/data/ccsw_site_id.txt
 
 # Create the project file
-# TODO: Add the version number in the Url
 cat > /opt/cycle_server/config/data/ccsw_project.txt <<EOF
 AdType = "Cloud.Project"
-Version = "1.0.0"
+Version = "$PROJECT_VERSION"
 ProjectType = "scheduler"
-Url = "https://github.com/Azure/cyclecloud-slurm-workspace"
+Url = "https://github.com/Azure/cyclecloud-slurm-workspace/releases/$PROJECT_VERSION"
 AutoUpgrade = false
 Name = "ccsw"
 EOF
 
-#sudo -i -u $CYCLECLOUD_USERNAME #TODO test this with CC initialize  
+echo Waiting for records to be imported
+timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep 10; done'
+
+echo Restarting cyclecloud so that new records take effect
+cycle_server stop
+cycle_server start --wait
+# this will block until CC responds
+curl -k https://localhost
+
 cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=ccsw
 echo "CC initialize successful"
 sleep 5
@@ -165,6 +158,9 @@ cyclecloud import_template Slurm-Workspace -f slurm-workspace.txt
 echo "CC import template successful"
 cyclecloud create_cluster Slurm-Workspace ccsw -p slurm_params.json
 echo "CC create_cluster successful"
+
+# ensure machine types are loaded ASAP
+cycle_server run_action 'Run:Application.Timer' -eq 'Name' 'plugin.azure.monitor_reference'
 
 # Wait for Azure.MachineType to be populated
 while ! (cycle_server execute 'select * from Azure.MachineType' | grep -q Standard); do

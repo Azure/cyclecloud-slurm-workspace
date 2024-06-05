@@ -19,8 +19,10 @@ The step sizes are dependent on the SKU.
 - AMLFS-Durable-Premium-500: 4TB
 ''')
 param capacity int
+param exportPath string
+param infrastructureOnly bool = false
 
-resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2023-05-01' = {
+resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2023-05-01' = if (!infrastructureOnly){
   name: '${name}-${uniqueString(resourceGroup().id,deployment().name)}'
   location: location
   tags: tags
@@ -38,13 +40,9 @@ resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2023-05-01' = {
   }
 }
 
-//https://learn.microsoft.com/en-us/rest/api/storagecache/aml-filesystems/create-or-update?view=rest-storagecache-2023-05-01&tabs=HTTP
-output lustre_mgs string = fileSystem.properties.clientInfo.mgsAddress //ip address
-output lustre_mountcommand string = fileSystem.properties.clientInfo.mountCommand
-
 // All fs modules must output ip_address, export_path and mount_options
-output ip_address string = fileSystem.properties.clientInfo.mgsAddress
+output ip_address string = infrastructureOnly ? '' : fileSystem.properties.clientInfo.mgsAddress
 // TODO we are fighting the chef cookbooks here by adding tcp:/lustrefs, as it simply prepends all paths
 // with tcp:/lustrefs
-output export_path string = ''
+output export_path string = exportPath
 output mount_options string = ''

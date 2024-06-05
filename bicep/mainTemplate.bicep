@@ -21,6 +21,12 @@ param useStoredKey bool
 param storedKey object = {}
 @secure()
 param databaseAdminPassword string
+
+// build.sh will override this, but for development please set this yourself as a parameter
+param branch string = 'main'
+// This needs to be updated on each release. Our Cloud.Project records require a release tag
+param project_version string = '2024.06.04'
+
 //param databaseAdminKeyphrase string
 param trash_for_arm_ttk object
 
@@ -46,6 +52,8 @@ module makeCCSWresources 'ccsw.bicep' = {
     ccVMSize: ccVMSize
     ccswConfig: ccswConfig
     databaseAdminPassword: databaseAdminPassword
+    branch: branch
+    project_version: project_version
     trash_for_arm_ttk: trash_for_arm_ttk
   }
 }
