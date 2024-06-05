@@ -1,6 +1,7 @@
 #!/bin/bash
 set -eo pipefail
-
+# this is not set if you run this manually
+export PATH=$PATH:/usr/local/bin
 ccsw_root="/opt/ccsw"
 mkdir -p -m 777 $ccsw_root
 
@@ -53,6 +54,7 @@ if command -v apt; then
     #apt install -y 
 else
     retry_command "yum update -y"
+    retry_command "yum install -y wget jq"
     #yum install -y 
 fi
 printf "\n\n"
