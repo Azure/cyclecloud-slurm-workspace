@@ -96,6 +96,7 @@ pushd $ccsw_root
 az deployment group show -g $resource_group -n $deployment_name --query properties.outputs > ccswOutputs.json
 
 BRANCH=$(jq -r .branch.value ccswOutputs.json)
+PROJECT_VERSION=$(jq -r .project_version.value ccswOutputs.json)
 URI="https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/$BRANCH/bicep/files-to-load"
 
 # we don't want slurm-workspace.txt.1 etc if someone reruns this script, so use -O to overwrite existing files
@@ -132,12 +133,11 @@ chmod 664 /tmp/ccsw_site_id.txt
 mv /tmp/ccsw_site_id.txt /opt/cycle_server/config/data/ccsw_site_id.txt
 
 # Create the project file
-# TODO: Add the version number in the Url
 cat > /opt/cycle_server/config/data/ccsw_project.txt <<EOF
 AdType = "Cloud.Project"
-Version = "1.0.0"
+Version = "$PROJECT_VERSION"
 ProjectType = "scheduler"
-Url = "https://github.com/Azure/cyclecloud-slurm-workspace"
+Url = "https://github.com/Azure/cyclecloud-slurm-workspace/releases/$PROJECT_VERSION"
 AutoUpgrade = false
 Name = "ccsw"
 EOF

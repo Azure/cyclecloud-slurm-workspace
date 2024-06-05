@@ -20,7 +20,8 @@ param deploy_scheduler bool = false
 @secure()
 param databaseAdminPassword string
 param branch string
-param trash_for_arm_ttk object 
+param project_version string
+param trash_for_arm_ttk object
 
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
@@ -412,3 +413,4 @@ output ccswGlobalConfig object = union(
 
 output trash object = trash_for_arm_ttk
 output branch string = branch
+output project_version string = project_version
