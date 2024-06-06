@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-# This script builds the ARM template and UI definition for the azhop marketplace solution
+# This script builds the ARM template and UI definition for the marketplace solution
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -42,4 +42,4 @@ pushd "$build_dir"
 zip -j "${GIT_ROOT}/build.zip" ./*
 popd
 
-#${THIS_DIR}/arm-ttk/arm-ttk/Test-AzTemplate.sh $build_dir # -Skip Parameter-Types-Should-Be-Consistent
+${THIS_DIR}/arm-ttk/arm-ttk/Test-AzTemplate.sh $build_dir # -Skip Parameter-Types-Should-Be-Consistent
