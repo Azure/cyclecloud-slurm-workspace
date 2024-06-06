@@ -283,20 +283,20 @@ var securityRules = [ for rule in nsgRules : {
     rule.value[7] == 'ips' ? { destinationAddressPrefixes: rule.value[8] } : {}
   )
 }]
-var asgNames = []
+//var asgNames = []
 
 var peering_enabled = ccswConfig.network.vnet.peering.enabled
 var peered_vnet_name = contains(ccswConfig.network.vnet.peering.vnet,'name') ? ccswConfig.network.vnet.peering.vnet.name : 'foo'
 var peered_vnet_resource_group = contains(ccswConfig.network.vnet.peering.vnet,'id') ? split(ccswConfig.network.vnet.peering.vnet.id,'/')[4] : 'foo'
 var peered_vnet_id = contains(ccswConfig.network.vnet.peering.vnet,'id') ? ccswConfig.network.vnet.peering.vnet.id : 'foo'
 
-resource asgs 'Microsoft.Network/applicationSecurityGroups@2022-07-01' = [ for name in asgNames: {
-  name: name
-  location: location
-  tags: nsgTags
-}]
+// resource asgs 'Microsoft.Network/applicationSecurityGroups@2022-07-01' = [ for name in asgNames: {
+//   name: name
+//   location: location
+//   tags: nsgTags
+// }]
 
-output asgIds array = [ for i in range(0, length(asgNames)): { '${asgs[i].name}': asgs[i].id } ]
+//output asgIds array = [ for i in range(0, length(asgNames)): { '${asgs[i].name}': asgs[i].id } ]
 
 resource ccswCommonNsg 'Microsoft.Network/networkSecurityGroups@2022-07-01' = {
   name: 'nsg-ccsw-common'
@@ -305,9 +305,9 @@ resource ccswCommonNsg 'Microsoft.Network/networkSecurityGroups@2022-07-01' = {
   properties: {
     securityRules: securityRules
   }
-  dependsOn: [
-    asgs
-  ]
+  // dependsOn: [
+  //   asgs
+  // ]
 }
 
 resource ccswVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-07-01' = {

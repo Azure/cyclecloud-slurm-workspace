@@ -127,7 +127,6 @@ var vms = infrastructureOnly ? {cyclecloud: {outputs: {principalId: ''}}} : {
         'Contributor','Storage Account Contributor','Storage Blob Data Contributor'
       ]
     }
-    asgs: []
   }
 }
 
@@ -142,7 +141,7 @@ module ccswVM './vm.bicep' = [ for vm in items(vms): if (!infrastructureOnly) {
     image: vm.value.image
     subnetId: vm.value.name == 'ccsw-cyclecloud' ? subnets.cyclecloud.id : subnets.scheduler.id
     adminUser: adminUsername
-    adminPassword: adminPassword
+//    adminPassword: adminPassword // Not used in the module
     adminSshPublicKey: publicKey
     asgIds: {}
   }

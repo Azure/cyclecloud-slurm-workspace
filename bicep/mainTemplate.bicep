@@ -30,7 +30,7 @@ param project_version string = '2024.06.05'
 //param databaseAdminKeyphrase string
 param trash_for_arm_ttk object
 
-resource ccswResourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
+resource ccswResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: ccswConfig.resource_group
   location: ccswConfig.location
   tags: contains(ccswConfig.tags, 'Microsoft.Resources/resourceGroups') ? ccswConfig.tags['Microsoft.Resources/resourceGroups'] : {}

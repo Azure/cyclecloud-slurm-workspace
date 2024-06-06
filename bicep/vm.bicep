@@ -9,8 +9,8 @@ param networkInterfacesTags object
 //param resourcePostfix string = '${uniqueString(subscription().subscriptionId, resourceGroup().id)}x'
 param subnetId string
 param adminUser string
-@secure()
-param adminPassword string
+// @secure()
+// param adminPassword string
 @secure()
 param adminSshPublicKey string
 param asgIds object
