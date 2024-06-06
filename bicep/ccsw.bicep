@@ -143,7 +143,7 @@ module ccswVM './vm.bicep' = [ for vm in items(vms): if (!infrastructureOnly) {
     adminUser: adminUsername
 //    adminPassword: adminPassword // Not used in the module
     adminSshPublicKey: publicKey
-    asgIds: {}
+//    asgIds: {}
   }
   dependsOn: [
     ccswNetwork
