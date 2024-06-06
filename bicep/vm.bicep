@@ -13,7 +13,7 @@ param adminUser string
 // param adminPassword string
 @secure()
 param adminSshPublicKey string
-param asgIds object
+//param asgIds object
 
 resource nic 'Microsoft.Network/networkInterfaces@2022-07-01' = {
   name: '${name}-nic'
@@ -24,7 +24,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2022-07-01' = {
       {
         name: '${name}-ipconfig'
         properties: {
-            applicationSecurityGroups: map(vm.asgs, asg => { id: asgIds[asg] })
+            //applicationSecurityGroups: map(vm.asgs, asg => { id: asgIds[asg] })
             subnet: {
               id: subnetId
             }
