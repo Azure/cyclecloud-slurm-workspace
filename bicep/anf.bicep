@@ -10,12 +10,12 @@ param sizeGB int
 param defaultMountOptions string
 param infrastructureOnly bool = false
 
-resource anfAccount 'Microsoft.NetApp/netAppAccounts@2022-05-01' = if(!infrastructureOnly){
+resource anfAccount 'Microsoft.NetApp/netAppAccounts@2023-07-01' = if(!infrastructureOnly){
   name: 'hpcanfaccount-${take(resourcePostfix,10)}'
   location: location
 }
 
-resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2022-05-01' = if(!infrastructureOnly){
+resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2023-07-01' = if(!infrastructureOnly){
   name: '${name}-anf-pool'
   location: location
   tags: tags
@@ -26,7 +26,7 @@ resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2022-05-01' = if
   }
 }
 
-resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2022-05-01' = if(!infrastructureOnly){
+resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2023-07-01' = if(!infrastructureOnly){
   name: '${name}-anf-volume'
   location: location
   tags: tags
