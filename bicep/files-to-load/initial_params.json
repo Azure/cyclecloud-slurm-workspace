@@ -56,7 +56,7 @@
     "configuration_slurm_shutdown_policy": "Terminate",
     "NodeNameIsHostname": true,
     "configuration_slurm_accounting_enabled": false,
-    "configuration_slurm_version": "23.02.7-1",
+    "configuration_slurm_version": "23.11.7-1",
     "NFSSharedMountOptions": null,
     "configuration_slurm_launch_parameters": null,
     "configuration_slurm_accounting_user": null,

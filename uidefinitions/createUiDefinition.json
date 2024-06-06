@@ -889,19 +889,19 @@
                 "name": "slurmVersion",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Slurm Version",
-                "defaultValue": "23.02.7",
+                "defaultValue": "23.11.7",
                 "toolTip": "Select the version of Slurm to use",
                 "constraints": {
                   "allowedValues": [
                     {
                       "label": "23.02.7",
-                      "description": "Version 22.05.9",
-                      "value": "23.02.7-1"
+                      "description": "Version 23.02.7",
+                      "value": "23.02.7-4"
                     },
                     {
-                      "label": "22.05.11",
-                      "description": "Version 22.05.11",
-                      "value": "22.05.11-1"
+                      "label": "23.11.7",
+                      "description": "Version 23.11.7",
+                      "value": "23.11.7-1"
                     }
                   ],
                   "required": true
