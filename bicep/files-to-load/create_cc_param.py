@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import json
-import os 
+import os
+import sys
+
 
 def get_json_dict(file_name):
     file_path = os.path.join(os.getcwd(),file_name)
@@ -10,13 +12,20 @@ def get_json_dict(file_name):
         data = json.loads(content)
     return data
 
-def set_params(params,outputs):
+
+def set_params(params, outputs):
     params['Region'] = outputs['ccswConfig']['value']['location']
     #params['Credentials']
     if outputs['ccswConfig']['value']['network']['vnet']['create']:
-        params['SubnetId'] = outputs['ccswGlobalConfig']['value']['compute_subnetid']
+        subnet_id = outputs['ccswGlobalConfig']['value']['compute_subnetid']
+        subnet_toks = subnet_id.split("/")
+        if len(subnet_toks) >= 11:
+            params['SubnetId'] = "/".join([subnet_toks[4], subnet_toks[8], subnet_toks[10]])
+        else:
+            print(f"Unexpected subnet id {subnet_id} - passing as SubnetId directly instead of resource_group/vnet_name/subnet_name", file=sys.stderr)
+            params['SubnetId'] = subnet_id
     else:
-        params['SubnetId'] = '/'.join([outputs['ccswConfig']['value']['network']['vnet']['id'], 'subnets', outputs['ccswConfig']['value']['network']['vnet']['subnets']['computeSubnet']])
+        params['SubnetId'] = '/'.join([outputs['ccswConfig']['value']['network']['vnet']['resourceGroup'], outputs['ccswConfig']['value']['network']['vnet']["name"], outputs['ccswConfig']['value']['network']['vnet']['subnets']['computeSubnet']])
         
     #HTC
     params['HTCMachineType'] = outputs['ccswConfig']['value']['partition_settings']['htc']['htcVMSize']
