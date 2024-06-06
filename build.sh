@@ -5,8 +5,11 @@ set -e
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
-
+if [ "$1" == "" ]; then
+  BRANCH=$(git rev-parse --abbrev-ref HEAD)
+else
+  BRANCH=$1
+fi
 if [ "$BRANCH" == "HEAD" ]; then 
     echo "Please check this out as a branch. If this is a tag, create a local branch with the same name"
     echo "e.g. git checkout 2024.06.06 -b 2024.06.06"
