@@ -30,7 +30,7 @@ cat > build_sh_python_tmp.py<<EOF
 import json
 with open("build/mainTemplate.json") as fr:
     mainTemplate = json.load(fr)
-mainTemplate["parameters"]["branch"] = {"defaultValue": "$BRANCH"}
+mainTemplate["parameters"]["branch"] = {"type": "string", "defaultValue": "$BRANCH"}
 with open("build/mainTemplate.json", "w") as fw:
     json.dump(mainTemplate, fw, indent=2)
 EOF
