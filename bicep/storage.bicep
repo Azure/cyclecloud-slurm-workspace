@@ -4,10 +4,10 @@ param location string
 param tags object
 param saName string
 param lockDownNetwork bool
-param allowableIps array
+// param allowableIps array
 param subnetIds array
 
-var ips = [ for ip in allowableIps : { value: ip } ]
+// var ips = [ for ip in allowableIps : { value: ip } ]
 var subIds = [ for id in subnetIds : { id: id } ]
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
@@ -26,7 +26,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
     lockDownNetwork ? {
       networkAcls: {
         defaultAction: 'Deny'
-        ipRules: ips
+        // ipRules: ips
           //map(allowableIps, ip => { value: ip })
         virtualNetworkRules: subIds
           //map(subnetIds, id => { id: id })

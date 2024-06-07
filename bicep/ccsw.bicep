@@ -171,7 +171,6 @@ module ccswStorage './storage.bicep' = {
     tags: getTags('Microsoft.Storage/storageAccounts', ccswConfig)
     saName: 'ccswstorage${uniqueString(resourceGroup().id)}'
     lockDownNetwork: true // Restrict access to the storage account from compute and cyclecloud subnets
-    allowableIps: []
     subnetIds: concat([subnets.compute.id], [subnets.cyclecloud.id])
   }
 }
