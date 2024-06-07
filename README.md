@@ -1,6 +1,19 @@
 # Azure CycleCloud Slurm Workspace
 
-Azure CycleCloud Slurm Workspace provides an end-to-end customer experience... 
+Azure CycleCloud Slurm Workspace is a new solution that simplifies and streamlines the creation and management of Slurm clusters on Azure. Azure CycleCloud Slurm Workspace is an Azure marketplace solution template that allows users to easily create and configure pre-defined Slurm clusters with Azure CycleCloud, without requiring any prior knowledge of the cloud or Slurm. Slurm clusters will be pre-configured with PMix v4, Pyxis and enroot to support containerized AI Slurm jobs. Users can access the provisioned login node using SSH or Visual Studio Code to perform common tasks like submitting and managing Slurm jobs.
+
+## How to deploy ?
+Search for **Slurm** in the Azure Marketplace and follow the steps to configure and deploy your Azure CycleCloud Slurm Workspace.
+Once deployed, if needed, establish your connection between your local machine and the VNET hosting your environment. This can be already delivered by your corporate VPN, or a point to point VPN or through the Azure Bastion.
+Connect to the CycleCloud web interface by browsing to https://<cycleccloud_ip>, and authenticate with the username and password provided during the deployment.
+Confirm that both the Scheduler and the Login node are running.
+
+## How to connect to the login node ?
+When using the bastion, use one of the utility script __util/ssh_thru_bastion.sh__ or __util/tunnel_thru_bastion.sh__ to connect.
+If not using a bastion, you have to establish the connectivity yourself.
+
+## NSG Rules
+If you bring your own VNET you will have to allow communication between subnets as defined in the [bicep/network-new.bicep](./bicep/network-new.bicep) file.
 
 ## Contributing
 
