@@ -1135,7 +1135,8 @@
                 "toolTip": "Select a VM Size for the HPC partition",
                 "recommendedSizes": [
                   "Standard_HB120rs_v3",
-                  "Standard_HB176rs_v4"
+                  "Standard_HB176rs_v4",
+                  "Standard_D4as_v4"
                 ],
                 "options": {
                   "hideDiskTypeFilter": true
