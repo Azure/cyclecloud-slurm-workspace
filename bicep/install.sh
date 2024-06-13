@@ -168,6 +168,21 @@ while ! (cycle_server execute 'select * from Azure.MachineType' | grep -q Standa
     sleep 10
 done
 
+# Enable accel networking on any nodearray that has a VM Size that supports it.
+/opt/cycle_server/./cycle_server execute \
+'SELECT AdType, ClusterName, Name, M.AcceleratedNetworkingEnabled AS EnableAcceleratedNetworking
+ FROM Cloud.Node
+ INNER JOIN Azure.MachineType M 
+ ON M.Name===MachineType && M.Location===Region
+ WHERE ClusterName=="ccsw"' > /tmp/accel_network.txt
+ mv /tmp/accel_network.txt /opt/cycle_server/config/data
+
+# it usually takes less than 2 seconds, so before starting the longer timeouts, optimistically sleep.
+sleep 2
+echo Waiting for accelerated network records to be imported
+timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep 10; done'
+
+
 cyclecloud start_cluster ccsw
 echo "CC start_cluster successful"
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
