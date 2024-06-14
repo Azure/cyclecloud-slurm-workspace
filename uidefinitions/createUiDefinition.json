@@ -1134,7 +1134,9 @@
                 "label": "Size",
                 "toolTip": "Select a VM Size for the HPC partition",
                 "recommendedSizes": [
-                  "Standard_HB120rs_v3"
+                  "Standard_HB120rs_v3",
+                  "Standard_HB176rs_v4",
+                  "Standard_D4as_v4"
                 ],
                 "options": {
                   "hideDiskTypeFilter": true
@@ -1206,7 +1208,11 @@
                 "label": "Size",
                 "toolTip": "Select a VM Size for the GPU partition",
                 "recommendedSizes": [
-                  "Standard_ND96asr_v4"
+                  "Standard_ND96asr_v4",
+                  "Standard_ND96amsr_A100_v4",
+                  "Standard_NC24ads_A100_v4",
+                  "Standard_ND96isr_H100_v5",
+                  "Standard_D4as_v4"
                 ],
                 "options": {
                   "hideDiskTypeFilter": true
