@@ -235,7 +235,7 @@
                   ],
                   "required": true
                 },
-                "visible": true
+                "visible": "[equals(steps('filesystem').shared.newexisting,'new')]"
               },
               {
                 "name": "anfInfoBox",
@@ -345,7 +345,7 @@
                 "name": "mountOptions",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Mount options",
-                "defaultValue": "",
+                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev",
                 "toolTip": "Mount options for the primary filer",
                 "constraints": {
                   "required": false,
@@ -412,14 +412,14 @@
                 "name": "filertype",
                 "type": "Microsoft.Common.DropDown",
                 "label": "File-system Type",
-                "defaultValue": "Azure Managed Lustre",
+                "defaultValue": "[if(equals(steps('filesystem').additional.newexisting,'new'),'Azure NetApp Files','External NFS')]",
                 "toolTip": "File-system type.",
                 "multiselect": false,
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Azure NetApp Files",
-                      "value": "anf"
+                      "label": "[if(equals(steps('filesystem').additional.newexisting,'new'),'Azure NetApp Files','External NFS')]",
+                      "value": "[if(equals(steps('filesystem').additional.newexisting,'new'),'anf','nfs')]"
                     },
                     {
                       "label": "Azure Managed Lustre",
@@ -594,7 +594,7 @@
                 "name": "mountOptions",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Mount options",
-                "defaultValue": "",
+                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev",
                 "toolTip": "Mount options for the additional filer.",
                 "constraints": {
                   "required": false,
@@ -1441,7 +1441,6 @@
               "Microsoft.Network/virtualNetworks",
               "Microsoft.Network/networkSecurityGroups",
               "Microsoft.Network/natGateways",
-              "Microsoft.Resources/resourceGroups",
               "Microsoft.DBforMySQL/flexibleServers",
               "Microsoft.StorageCache/amlFileSystems",
               "Microsoft.NetApp/netAppAccounts",
@@ -1469,7 +1468,7 @@
           "shared": {
             "create_new": "[equals(steps('filesystem').shared.newexisting,'new')]",
             "config": {
-              "filertype": "[steps('filesystem').shared.filertype]",
+              "filertype": "[if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs')]",
               "nfs_capacity_in_gb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),steps('filesystem').shared.nfscapacity,-1)]",
               "anf_service_tier": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,'')]",
               "anf_capacity_in_bytes": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anfcapacity,-1)]",
