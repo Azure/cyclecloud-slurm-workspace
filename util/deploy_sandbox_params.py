@@ -13,7 +13,7 @@ my-rg-a -> 10.1.0.0/24
 my-rg-b -> 10.2.0.0/24
 ...
 my-rg-z -> 10.26.0.0/24
-python3 deploy_sandbox_params.py -sandbox-ui-json raw-ui-parameters.json\
+python3 deploy_sandbox_params.py --sandbox-ui-json raw-ui-parameters.json\
                                  --location southcentralus\
                                  --execute-vm-size Standard_F2s_v2\
                                  --cc-and-sched-vm-size Standard_F8s_v2\
@@ -24,32 +24,37 @@ python3 deploy_sandbox_params.py -sandbox-ui-json raw-ui-parameters.json\
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("-j", "--sandbox-ui-json", required=True)
-    parser.add_argument("-l", "--location", required=True)
-    parser.add_argument("-r", "--resource-group", required=True)
+    parser.add_argument("-l", "--location")
+    parser.add_argument("-r", "--resource-group")
     parser.add_argument("-e", "--execute-vm-size")
     parser.add_argument("-v", "--cc-and-sched-vm-size", dest="vm_size")
     parser.add_argument("--dry-run", action="store_true", default=False)
 
 
     args = parser.parse_args()
-    if not args.resource_group[-2] == "-" and args.resource_group[-1].isalpha():
-        print("Please add a sufix of -{single_letter}, i.e. ryhamelccsw-a")
-        print("This suffix should be unique per running deployment, because we use it")
-        print("to set the vnet's address space. i.e. -a 10.1.0.0/24, -b 10.2.0.0/24 and so on")
-        sys.exit(1)
+
+    ui_params = json.load(open(args.sandbox_ui_json))
+
+    if args.resource_group:
+        if not args.resource_group[-2] == "-" and args.resource_group[-1].isalpha():
+            print("Please add a sufix of -{single_letter}, i.e. ryhamelccsw-a")
+            print("This suffix should be unique per running deployment, because we use it")
+            print("to set the vnet's address space. i.e. -a 10.1.0.0/24, -b 10.2.0.0/24 and so on")
+            sys.exit(1)
+        ui_params["ccswConfig"]["value"]["resource_group"] = args.resource_group
+
+        suffix = args.resource_group.split("-")[-1][0]
+        second_octal = ord(suffix) - ord("a") + 1
+        ui_params["ccswConfig"]["value"]["network"]["vnet"]["address_space"] = f"10.{second_octal}.0.0/24"
 
     branch =subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).decode().strip()
     assert branch != "HEAD", "No headless checkouts allowed. If this is a tag, git checkout TAG -b TAG"
 
-    ui_params = json.load(open(args.sandbox_ui_json))
     ui_params['branch'] = {'value': branch}
-    ui_params["location"]["value"] = args.location
-    ui_params["ccswConfig"]["value"]["location"] = args.location
-    ui_params["ccswConfig"]["value"]["resource_group"] = args.resource_group
 
-    suffix = args.resource_group.split("-")[-1][0]
-    second_octal = ord(suffix) - ord("a") + 1
-    ui_params["ccswConfig"]["value"]["network"]["vnet"]["address_space"] = f"10.{second_octal}.0.0/24"
+    if args.location:
+        ui_params["location"]["value"] = args.location
+        ui_params["ccswConfig"]["value"]["location"] = args.location
 
     if args.vm_size:
         ui_params["ccVMSize"]["value"] = args.vm_size
@@ -71,7 +76,9 @@ def main() -> None:
         "parameters": ui_params
     }, fw, indent=2)
 
-    cmd = f"az deployment sub create --location {args.location} --template-file ./bicep/mainTemplate.bicep --parameters util/testparam.json -n {args.resource_group}"
+    resource_group = ui_params["ccswConfig"]["value"]["resource_group"]
+    location = ui_params["location"]["value"]
+    cmd = f"az deployment sub create --location {location} --template-file ./bicep/mainTemplate.bicep --parameters util/testparam.json -n {resource_group}"
     if args.dry_run:
         print("DRY RUN")
         print(cmd)
