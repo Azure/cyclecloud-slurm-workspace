@@ -207,7 +207,7 @@
                       "value": "new"
                     },
                     {
-                      "label": "Use existing",
+                      "label": "Use existing external NFS",
                       "value": "existing"
                     }
                   ],
