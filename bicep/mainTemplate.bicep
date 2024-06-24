@@ -1,6 +1,6 @@
 targetScope = 'subscription'
 
-param location string
+param resourceLocation string
 param infrastructureOnly bool = false
 
 param adminUsername string
@@ -15,7 +15,7 @@ param ccVMSize string
 param ccswConfig object
 
 //force parameter files to work
-param autogenerateSecrets bool
+//param autogenerateSecrets bool
 param useEnteredKey bool 
 param useStoredKey bool
 param storedKey object = {}
@@ -32,7 +32,7 @@ param trash_for_arm_ttk object
 
 resource ccswResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: ccswConfig.resource_group
-  location: ccswConfig.location
+  location: ccswConfig.rgLocation
   tags: contains(ccswConfig.tags, 'Microsoft.Resources/resourceGroups') ? ccswConfig.tags['Microsoft.Resources/resourceGroups'] : {}
 }
 
@@ -40,12 +40,12 @@ module makeCCSWresources 'ccsw.bicep' = {
   name: 'pid-8d5b25bd-0ba7-49b9-90b3-3472bc08443e-partnercenter'
   scope: ccswResourceGroup
   params: {
-    location: location
+    location: resourceLocation
     infrastructureOnly: infrastructureOnly
     adminUsername: adminUsername
     adminPassword: adminPassword
     adminSshPublicKey: adminSshPublicKey
-    autogenerateSecrets: autogenerateSecrets
+    //autogenerateSecrets: autogenerateSecrets
     useEnteredKey: useEnteredKey
     useStoredKey: useStoredKey
     storedKey: storedKey

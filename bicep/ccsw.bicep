@@ -3,7 +3,7 @@ targetScope = 'resourceGroup'
 param location string = resourceGroup().location
 param infrastructureOnly bool
 
-param autogenerateSecrets bool
+//param autogenerateSecrets bool
 param useEnteredKey bool 
 param useStoredKey bool
 param adminUsername string
@@ -32,8 +32,8 @@ func getTags(resource_type string, config object) object => (contains(config.tag
 module ccswPublicKey './publicKey.bicep' = if (!useEnteredKey && !infrastructureOnly) {
   name: 'ccswPublicKey'
   params: {
-    location: location
-    autogenerateSecrets: autogenerateSecrets
+    //location: location
+    //autogenerateSecrets: autogenerateSecrets
     useStoredKey: useStoredKey
     storedKey: storedKey
   }
