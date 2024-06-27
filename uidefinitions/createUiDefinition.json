@@ -47,16 +47,16 @@
         "visible": true
       },
       {
-				"name": "rgExisting",
-				"type": "Microsoft.Common.DropDown",
-				"label": "Resource group",
-				"toolTip": "Resource group dropdown.",
-				"constraints": {
-					"allowedValues": "[map(basics('rgApi').value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.name,'~',item.location, '\"}')))]",
-					"required": true
-				},
-				"visible": "[equals(basics('newexisting'),'existing')]"
-			},
+        "name": "rgExisting",
+        "type": "Microsoft.Common.DropDown",
+        "label": "Resource group",
+        "toolTip": "Resource group dropdown.",
+        "constraints": {
+          "allowedValues": "[map(basics('rgApi').value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.name,'~',item.location, '\"}')))]",
+          "required": true
+        },
+        "visible": "[equals(basics('newexisting'),'existing')]"
+      },
       {
         "name": "rgNew",
         "type": "Microsoft.Common.TextBox",
@@ -439,7 +439,6 @@
                   "text": "NetApp Resource Provider must be registered for your subscription."
                 }
               },
-              
               {
                 "name": "anfInfoBoxSlurmHA",
                 "type": "Microsoft.Common.InfoBox",
@@ -922,7 +921,17 @@
                 "label": "Slurm job accounting",
                 "toolTip": "Select to enable Slurm job accounting in a managed mySQL instance",
                 "defaultValue": false,
-                "visible": false
+                "visible": true
+              },
+              {
+                "name": "databaseInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "CycleCloud Slurm Workspace currently only supports job accounting in existing mySQL instances. \nPlease visit the linked page to create a new mySQL instance prior to launching CycleCloud Slurm Workspace.",
+                  "uri": "https://portal.azure.com/#create/Microsoft.MySQLServer"
+                }
               },
               {
                 "name": "databaseAdminPassword",
@@ -940,7 +949,33 @@
                 "options": {
                   "hideConfirmation": false
                 },
-                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,not(equals(basics('autogeneratePasswordsAndKeys'),1)))]"
+                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
+              },
+              {
+                "name": "databaseURL",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Database FQDN (URL)",
+                "defaultValue": ".mysql.database.azure.com",
+                "toolTip": "Enter a FQDN (URL) for the mySQL database",
+                "constraints": {
+                  "required": true,
+                  "regex": "^[a-zA-Z0-9-]{3,63}\\.mysql\\.database\\.azure\\.com$",
+                  "validationMessage": "Please enter a valid mySQL database FQDN."
+                },
+                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
+              },
+              {
+                "name": "certificateURL",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Database FQDN (URL)",
+                "defaultValue": "",
+                "toolTip": "Enter a FQDN (URL) for the mySQL database",
+                "constraints": {
+                  "required": false,
+                  "regex": "^*\\.com$",
+                  "validationMessage": "Please enter a valid database SSL certificate URL."
+                },
+                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
               },
               {
                 "name": "useLoginNodes",
@@ -1523,7 +1558,9 @@
             "slurmVersion": "[steps('scheduler').schedulerSection.slurmVersion]",
             "canUseSlurmHA": "[and(not(equals(steps('filesystem').shared.filertype,'anf')),not(equals(steps('filesystem').additional.filertype,'anf')))]",
             "slurmHA": "[steps('scheduler').schedulerSection.slurmHA]",
-            "slurmAccounting": false
+            "slurmAccounting": "[steps('scheduler').schedulerSection.slurmAccounting]",
+            "databaseURL": "[steps('scheduler').schedulerSection.databaseURL]",
+            "certificateURL": "[steps('scheduler').schedulerSection.certificateURL]"
           },
           "login_nodes": {
             "loginVMSize": "[steps('scheduler').loginNodesSection.vmsize]",
