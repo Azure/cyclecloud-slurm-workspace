@@ -11,7 +11,7 @@ GIT_ROOT=$(git rev-parse --show-toplevel)
 sudo apt-get update
 
 # Install pre-requisite packages.
-sudo apt-get install -y wget
+sudo apt-get install -y wget unzip
 
 # TODO : Check if powershell is already installed before doing the following steps
 if ! dpkg -l powershell ; then
