@@ -965,19 +965,6 @@
                 "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
               },
               {
-                "name": "certificateURL",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Database FQDN (URL)",
-                "defaultValue": "",
-                "toolTip": "Enter a FQDN (URL) for the mySQL database",
-                "constraints": {
-                  "required": false,
-                  "regex": "^*\\.com$",
-                  "validationMessage": "Please enter a valid database SSL certificate URL."
-                },
-                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
-              },
-              {
                 "name": "useLoginNodes",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Use login nodes",
@@ -1559,8 +1546,7 @@
             "canUseSlurmHA": "[and(not(equals(steps('filesystem').shared.filertype,'anf')),not(equals(steps('filesystem').additional.filertype,'anf')))]",
             "slurmHA": "[steps('scheduler').schedulerSection.slurmHA]",
             "slurmAccounting": "[steps('scheduler').schedulerSection.slurmAccounting]",
-            "databaseURL": "[steps('scheduler').schedulerSection.databaseURL]",
-            "certificateURL": "[steps('scheduler').schedulerSection.certificateURL]"
+            "databaseURL": "[steps('scheduler').schedulerSection.databaseURL]"
           },
           "login_nodes": {
             "loginVMSize": "[steps('scheduler').loginNodesSection.vmsize]",
