@@ -348,7 +348,7 @@ resource ccsw_to_peer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@
   properties: {
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: false
-    useRemoteGateways: true 
+    useRemoteGateways: ccswConfig.network.vnet.peering.?allowGatewayTransit
     remoteVirtualNetwork: {
       id: peered_vnet_id
     }

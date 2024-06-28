@@ -831,6 +831,14 @@
                   "required": true
                 },
                 "visible": "[and(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.peering)]"
+              },
+              {
+                "name": "gateway",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Allow gateway transit",
+                "defaultValue": false,
+                "toolTip": "Enable if peering VNet has a gateway",
+                "visible": "[and(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.peering)]"
               }
             ],
             "visible": true
@@ -1510,7 +1518,8 @@
             "bastion": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.bastion,false)]",
             "peering": {
               "enabled": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.peering,false)]",
-              "vnet": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,'')]"
+              "vnet": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,'')]",
+              "allowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,false)]"
             },
             "create_natgateway": "[if(not(equals(steps('networking').newexisting,'new')),false,steps('networking').networkSettings.natgateway)]"
           }
