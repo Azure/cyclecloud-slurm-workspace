@@ -50,7 +50,8 @@
 				"name": "rgExisting",
 				"type": "Microsoft.Common.DropDown",
 				"label": "Resource group",
-				"toolTip": "Resource group dropdown.",
+				"toolTip": "Select or search for an existing resource group",
+        "filter": true,
 				"constraints": {
 					"allowedValues": "[map(basics('rgApi').value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.name,'~',item.location, '\"}')))]",
 					"required": true
