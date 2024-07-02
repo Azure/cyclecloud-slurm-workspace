@@ -959,7 +959,6 @@
                 "toolTip": "Enter a FQDN (URL) for the mySQL database",
                 "constraints": {
                   "required": true,
-                  "regex": "^[a-zA-Z0-9-]{3,63}\\.mysql\\.database\\.azure\\.com$",
                   "validationMessage": "Please enter a valid mySQL database FQDN."
                 },
                 "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"

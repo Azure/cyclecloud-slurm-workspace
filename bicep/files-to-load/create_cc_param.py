@@ -55,8 +55,7 @@ def set_params(params, outputs):
         params['configuration_slurm_accounting_user'] = outputs['ccswGlobalConfig']['value']['database_user']
         params['configuration_slurm_accounting_password'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['databaseAdminPassword']
         params['configuration_slurm_accounting_url'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['databaseURL']
-        if outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['certificateURL'] != "":
-            params['configuration_slurm_accounting_certificate_url'] = outputs['ccswConfig']['value']['slurm_settings']['scheduler_node']['certificateURL'] 
+         
 
     #params['EnableNodeHealthChecks'] #todo ask: which node???
 
