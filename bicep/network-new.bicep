@@ -298,7 +298,7 @@ var peered_vnet_id = contains(ccswConfig.network.vnet.peering.vnet,'id') ? ccswC
 
 //output asgIds array = [ for i in range(0, length(asgNames)): { '${asgs[i].name}': asgs[i].id } ]
 
-resource ccswCommonNsg 'Microsoft.Network/networkSecurityGroups@2022-07-01' = {
+resource ccswCommonNsg 'Microsoft.Network/networkSecurityGroups@2023-06-01' = {
   name: 'nsg-ccsw-common'
   location: location
   tags: nsgTags
@@ -310,7 +310,7 @@ resource ccswCommonNsg 'Microsoft.Network/networkSecurityGroups@2022-07-01' = {
   // ]
 }
 
-resource ccswVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-07-01' = {
+resource ccswVirtualNetwork 'Microsoft.Network/virtualNetworks@2023-06-01' = {
   name: vnet.name
   location: location
   tags: contains(vnet, 'tags') ? vnet.tags : tags
@@ -342,7 +342,7 @@ resource ccswVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-07-01' = {
   }
 }
 
-resource ccsw_to_peer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2022-07-01' = if (peering_enabled) {
+resource ccsw_to_peer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-06-01' = if (peering_enabled) {
   name: '${ccswVirtualNetwork.name}-to-${peered_vnet_name}-${uniqueString(resourceGroup().id)}'
   parent: ccswVirtualNetwork
   properties: {
