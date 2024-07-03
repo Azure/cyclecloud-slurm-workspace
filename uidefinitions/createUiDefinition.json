@@ -1284,157 +1284,6 @@
         ]
       },
       {
-        "name": "users",
-        "label": "Users",
-        "elements": [
-          {
-            "name": "disabledinfobox",
-            "type": "Microsoft.Common.InfoBox",
-            "visible": true,
-            "options": {
-              "icon": "Info",
-              "text": "This feature is currently under development."
-            }
-          },
-          {
-            "name": "infobox",
-            "type": "Microsoft.Common.InfoBox",
-            "visible": false,
-            "options": {
-              "icon": "Info",
-              "text": "Optionally create users in addition to the admin user created in the Basics section.\n\nIt is recommended that the admin user create a user account in order to run jobs.\n\nWhen first accessing Azure CycleCloud, these users should update their temporary passwords and set their public keys if not done so below."
-            }
-          },
-          {
-            "name": "usergrid",
-            "type": "Microsoft.Common.EditableGrid",
-            "ariaLabel": "Enter info for users",
-            "label": "People",
-            "visible": false,
-            "constraints": {
-              "width": "Full",
-              "rows": {
-                "count": {
-                  "min": 0,
-                  "max": 10
-                }
-              },
-              "columns": [
-                {
-                  "id": "colUsername",
-                  "header": "Username",
-                  "width": "1fr",
-                  "element": {
-                    "name": "username",
-                    "type": "Microsoft.Common.TextBox",
-                    "label": "Name",
-                    "defaultValue": "azureuser",
-                    "placeholder": "Enter username...",
-                    "toolTip": "Use only allowed characters",
-                    "multiLine": false,
-                    "constraints": {
-                      "required": true,
-                      "validations": [
-                        {
-                          "regex": "^[a-z0-9A-Z]{1,30}$",
-                          "message": "Only alphanumeric characters are allowed and the value must be 1-30 characters long."
-                        }
-                      ]
-                    },
-                    "visible": true
-                  }
-                },
-                {
-                  "id": "colPassword",
-                  "header": "Temp. Password",
-                  "width": "1fr",
-                  "element": {
-                    "name": "textBoxPassword",
-                    "type": "Microsoft.Common.TextBox",
-                    "toolTip": "foo",
-                    "placeholder": "Set temp. password...",
-                    "constraints": {
-                      "required": true,
-                      "regex": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_\\-+=[\\]{}|\\\\:'\",.?`~\";]).{8,123}$",
-                      "validationMessage": "Your password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character (@ # $ % ^ & * - _ ! + = [ ] { } | \\ : ' , . ? ` ~ \" ( ) ; )"
-                    },
-                    "visible": true
-                  }
-                },
-                {
-                  "id": "colRole",
-                  "header": "User Role",
-                  "width": "1fr",
-                  "element": {
-                    "name": "dropDownRole",
-                    "type": "Microsoft.Common.DropDown",
-                    "label": "User Role",
-                    "placeholder": "Select user role...",
-                    "toolTip": "foo",
-                    "constraints": {
-                      "allowedValues": [
-                        {
-                          "label": "Administrator",
-                          "value": "administrator"
-                        },
-                        {
-                          "label": "Cluster Administrator",
-                          "value": "clusteradmin"
-                        },
-                        {
-                          "label": "Cluster Creator",
-                          "value": "clustercreator"
-                        },
-                        {
-                          "label": "User",
-                          "value": "user"
-                        }
-                      ],
-                      "required": true
-                    },
-                    "visible": true
-                  }
-                },
-                {
-                  "id": "colUID",
-                  "header": "User ID (UID)",
-                  "width": "1fr",
-                  "element": {
-                    "name": "uid",
-                    "type": "Microsoft.Common.TextBox",
-                    "toolTip": "foo",
-                    "placeholder": "Optional",
-                    "constraints": {
-                      "required": false,
-                      "regex": "^\\d{5,}$",
-                      "validationMessage": "Invalid User ID (UID)."
-                    },
-                    "visible": true
-                  }
-                },
-                {
-                  "id": "colKey",
-                  "header": "SSH Public Key",
-                  "width": "1fr",
-                  "element": {
-                    "name": "key",
-                    "type": "Microsoft.Common.TextBox",
-                    "toolTip": "foo",
-                    "placeholder": "Optional",
-                    "constraints": {
-                      "required": false,
-                      "regex": "^ssh-rsa [A-Za-z0-9+/]+[=]{0,3}( .*)?$",
-                      "validationMessage": "Please enter a SSH public key in the proper base64 format."
-                    },
-                    "visible": true
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      },
-      {
         "name": "tags",
         "label": "Tags",
         "elements": [
@@ -1562,8 +1411,6 @@
             "use_spot": "[steps('slurmSettings').GPUSection.spotGPU]"
           }
         },
-        "users": "[steps('users').usergrid]",
-        "user_count_test": "[length(steps('users').usergrid)]",
         "tags": "[steps('tags').tagsByResource]"
       },
       "trash_for_arm_ttk": {
@@ -1572,8 +1419,7 @@
         "hpcVMSize": "[steps('slurmSettings').HPCSection.vmsize]",
         "gpuVMSize": "[steps('slurmSettings').GPUSection.vmsize]",
         "schedulerVMSize": "[steps('scheduler').schedulerSection.vmsize]",
-        "loginVMSize": "[steps('scheduler').loginNodesSection.vmsize]",
-        "users": "[steps('users').usergrid.colRole.dropDownRole]"
+        "loginVMSize": "[steps('scheduler').loginNodesSection.vmsize]"
       }
     }
   }
