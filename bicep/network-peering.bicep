@@ -16,7 +16,7 @@ resource peeredVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-07-01' exi
   name: vnetName
 }
 
-resource peering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2022-07-01' = {
+resource peering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-06-01' = {
   name: name
   parent: peeredVirtualNetwork
   properties: {

@@ -15,7 +15,7 @@ param adminUser string
 param adminSshPublicKey string
 //param asgIds object
 
-resource nic 'Microsoft.Network/networkInterfaces@2022-07-01' = {
+resource nic 'Microsoft.Network/networkInterfaces@2023-06-01' = {
   name: '${name}-nic'
   location: location
   tags: networkInterfacesTags
