@@ -1,7 +1,8 @@
 targetScope = 'resourceGroup'
+import {tags_t} from './types.bicep'
 
 param location string
-param tags object
+param tags tags_t
 param Name string
 param adminUser string
 @secure()
@@ -50,5 +51,5 @@ resource server 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' = {
   }
 }
 
-output fqdn string = reference(server.id, server.apiVersion, 'full').properties.fullyQualifiedDomainName
-output fqdn2 string = server.properties.fullyQualifiedDomainName
+//output fqdn string = reference(server.id, server.apiVersion, 'full').properties.fullyQualifiedDomainName
+output fqdn string = server.properties.fullyQualifiedDomainName

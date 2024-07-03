@@ -1,14 +1,18 @@
-param address string = ccswConfig.network.vnet.address_space
-param location string
-param tags object
-param nsgTags object
-param ccswConfig object
+import {shared_filesystem_t, additional_filesystem_t, vnet_t, tags_t} from './types.bicep'
 
-param create_anf bool = ccswConfig.filesystem.shared.config.filertype == 'anf' || (contains(ccswConfig.filesystem.?additional.?config ?? {},'filertype') && ccswConfig.filesystem.additional.config.filertype == 'anf')
-param lustre_count int = (ccswConfig.filesystem.shared.config.filertype == 'aml' ? 1 : 0) + ((contains(ccswConfig.filesystem.?additional.?config ?? {},'filertype') && ccswConfig.filesystem.additional.config.filertype == 'aml') ? 1 : 0)
-param create_lustre bool = lustre_count > 0
-param deploy_bastion bool = ccswConfig.network.vnet.bastion
-param create_database bool = ccswConfig.slurm_settings.scheduler_node.slurmAccounting
+param network vnet_t
+param address string = network.?address_space
+param location string
+param tags tags_t
+param nsgTags object
+param shared_filesystem shared_filesystem_t
+param additional_filesystem additional_filesystem_t 
+var filerTypes = [shared_filesystem.type, additional_filesystem.type]
+var create_anf = contains(filerTypes, 'anf-new')
+var create_anf_subnet = create_anf ? (shared_filesystem.type == 'anf-new' ? network.?sharedFilerSubnet : network.?additionalFilerSubnet) : null
+var create_lustre = additional_filesystem.type == 'aml-new'
+var deploy_bastion = network.?bastion ?? false
+var create_database = false //update once MySQL capacity is available
 param natGatewayId string 
 
 //TODO rename function, see if using exp/0 to throw error is possible 
@@ -72,17 +76,17 @@ func subnet_ranges(decomp_ip object, subnet object) object => {
   compute: '${decomp_ip.o1}.${decomp_ip.o2}.${decomp_ip.o3+subnet.compute.o3}.${decomp_ip.o4+subnet.compute.o4}/${subnet.compute.cidr}'
 }
 
-func subnet_config(ip string, lustre_count int) object => subnet_ranges(decompose_ip(ip),subnet_octets(get_cidr(ip)))
+func subnet_config(ip string) object => subnet_ranges(decompose_ip(ip),subnet_octets(get_cidr(ip)))
 
-param subnet_cidr object = subnet_config(address,lustre_count)
+param subnet_cidr object = subnet_config(address)
 
-param vnet object = {
-  name: ccswConfig.network.vnet.name
+var vnet  = {
+  name: network.?name ?? 'ccsw-vnet'
   cidr: address
   subnets: union(
     {
       cyclecloud: {
-        name: ccswConfig.network.vnet.subnets.cyclecloudSubnet
+        name: network.?cyclecloudSubnet ?? 'ccsw-cyclecloud-subnet'
         cidr: subnet_cidr.cyclecloud
         nat_gateway: true
         service_endpoints: [
@@ -91,7 +95,7 @@ param vnet object = {
         delegations: []
       }
       compute: {
-        name: ccswConfig.network.vnet.subnets.computeSubnet
+        name: network.?computeSubnet ?? 'ccsw-compute-subnet'
         cidr: subnet_cidr.compute
         nat_gateway : true 
         service_endpoints: [
@@ -102,7 +106,7 @@ param vnet object = {
     },
     create_anf ? {
       netapp: {
-        name: 'hpc-anf-subnet'
+        name: create_anf_subnet ?? 'ccsw-anf-subnet'
         cidr: subnet_cidr.netapp
         nat_gateway : false
         service_endpoints: []
@@ -113,7 +117,7 @@ param vnet object = {
     } : {},
     create_lustre ? {
       lustre: {
-        name: 'hpc-lustre-subnet'
+        name: network.?additionalFilerSubnet ?? 'ccsw-lustre-subnet'
         cidr: subnet_cidr.lustre
         nat_gateway : false
         service_endpoints: []
@@ -131,7 +135,7 @@ param vnet object = {
     } : {},
     create_database ? {
       database: {
-        name: 'hpc-database-subnet'
+        name: 'ccsw-database-subnet'
         cidr: subnet_cidr.database
         nat_gateway : false
         service_endpoints: []
@@ -273,18 +277,10 @@ var securityRules = [ for rule in nsgRules : {
 }]
 //var asgNames = []
 
-var peering_enabled = ccswConfig.network.vnet.peering.enabled
-var peered_vnet_name = contains(ccswConfig.network.vnet.peering.vnet,'name') ? ccswConfig.network.vnet.peering.vnet.name : 'foo'
-var peered_vnet_resource_group = contains(ccswConfig.network.vnet.peering.vnet,'id') ? split(ccswConfig.network.vnet.peering.vnet.id,'/')[4] : 'foo'
-var peered_vnet_id = contains(ccswConfig.network.vnet.peering.vnet,'id') ? ccswConfig.network.vnet.peering.vnet.id : 'foo'
-
-// resource asgs 'Microsoft.Network/applicationSecurityGroups@2022-07-01' = [ for name in asgNames: {
-//   name: name
-//   location: location
-//   tags: nsgTags
-// }]
-
-//output asgIds array = [ for i in range(0, length(asgNames)): { '${asgs[i].name}': asgs[i].id } ]
+var peering_enabled = contains(network, 'vnet_to_peer')
+var peered_vnet_name = peering_enabled ? network.?vnet_to_peer.name : 'foo'
+var peered_vnet_resource_group = peering_enabled ? split(network.?vnet_to_peer.id,'/')[4] : 'foo'
+var peered_vnet_id = peering_enabled ? network.?vnet_to_peer.id : 'foo'
 
 resource ccswCommonNsg 'Microsoft.Network/networkSecurityGroups@2023-11-01' = {
   name: 'nsg-ccsw-common'
@@ -293,15 +289,12 @@ resource ccswCommonNsg 'Microsoft.Network/networkSecurityGroups@2023-11-01' = {
   properties: {
     securityRules: securityRules
   }
-  // dependsOn: [
-  //   asgs
-  // ]
 }
 
 resource ccswVirtualNetwork 'Microsoft.Network/virtualNetworks@2023-06-01' = {
   name: vnet.name
   location: location
-  tags: contains(vnet, 'tags') ? vnet.tags : tags
+  tags: tags
   properties: {
     addressSpace: {
       addressPrefixes: [ vnet.cidr ]
@@ -336,7 +329,7 @@ resource ccsw_to_peer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@
   properties: {
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: false
-    useRemoteGateways: ccswConfig.network.vnet.peering.?allowGatewayTransit
+    useRemoteGateways: network.?peering_allowGatewayTransit
     remoteVirtualNetwork: {
       id: peered_vnet_id
     }
@@ -387,7 +380,8 @@ resource subnetLustre 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' exi
   name: contains(vnet.subnets,'lustre') ? vnet.subnets.lustre.name : 'foo'
   parent: ccswVirtualNetwork
 }
-var subnet_lustre = lustre_count > 0 ? rsc_output(subnetLustre) : {}
+//var subnet_lustre = lustre_count > 0 ? rsc_output(subnetLustre) : {}
+var subnet_lustre = create_lustre ? rsc_output(subnetLustre) : {}
 
 resource subnetBastion 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' existing = if (deploy_bastion) {
   name: contains(vnet.subnets,'bastion') ? vnet.subnets.bastion.name : 'foo'
@@ -401,12 +395,12 @@ resource subnetDatabase 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' e
 }
 var subnet_database = create_database ? rsc_output(subnetDatabase) : {}
 
-var filerTypeHome = ccswConfig.filesystem.shared.config.filertype
-var filerTypeAddl = contains(ccswConfig.filesystem.?additional.?config ?? {}, 'filertype') ? ccswConfig.filesystem.additional.config.filertype : 'none'
-var output_home_subnet = filerTypeHome == 'aml' || filerTypeHome == 'anf'
-var output_addl_subnet = filerTypeAddl == 'aml' || filerTypeAddl == 'anf'
-var home_filer = output_home_subnet ? (filerTypeHome == 'anf' ? { home: subnet_netapp } : { home: subnet_lustre }) : {}
-var addl_filer = output_addl_subnet ? (filerTypeAddl == 'anf' ? { additional: subnet_netapp } : { additional: subnet_lustre }) : {}
+var filerTypeHome = shared_filesystem.type
+var filerTypeAddl = additional_filesystem.type
+var output_home_subnet = filerTypeHome == 'anf-new' 
+var output_addl_subnet = contains(['aml-new','anf-new'],filerTypeAddl)
+var home_filer = output_home_subnet ? (filerTypeHome == 'anf-new' ? { home: subnet_netapp } : { home: subnet_lustre }) : {}
+var addl_filer = output_addl_subnet ? (filerTypeAddl == 'anf-new' ? { additional: subnet_netapp } : { additional: subnet_lustre }) : {}
 var subnets = union(
   { cyclecloud: subnet_cyclecloud },
   { compute: subnet_compute },

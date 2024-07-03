@@ -1,7 +1,8 @@
 targetScope = 'resourceGroup'
+import {tags_t} from './types.bicep'
 
 param location string
-param tags object
+param tags tags_t
 param name string
 
 

@@ -1,10 +1,13 @@
 targetScope = 'resourceGroup'
+import {tags_t} from './types.bicep'
 
 param name string
-param vm object
+param deployScript string 
+param osDiskSku string
+//param vm object
 param image object
 param location string
-param tags object
+param tags tags_t
 param networkInterfacesTags object
 //param resourcePostfix string = '${uniqueString(subscription().subscriptionId, resourceGroup().id)}x'
 param subnetId string
@@ -14,6 +17,9 @@ param adminUser string
 @secure()
 param adminSshPublicKey string
 //param asgIds object
+param vmSize string
+param dataDisks array
+param osDiskSize int = 0 //TODO: add to UI
 
 resource nic 'Microsoft.Network/networkInterfaces@2023-06-01' = {
   name: '${name}-nic'
@@ -35,8 +41,6 @@ resource nic 'Microsoft.Network/networkInterfaces@2023-06-01' = {
   }
 }
 
-var datadisks = contains(vm, 'datadisks') ? vm.datadisks : []
-
 resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-11-01' = {
   name: '${name}-vm'
   location: location
@@ -51,10 +55,10 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-11-01' = {
   }
   properties: {
     hardwareProfile: {
-      vmSize: vm.sku
+      vmSize: vmSize
     }
     storageProfile: {
-      dataDisks: [ for (disk, idx) in datadisks: union({
+      dataDisks: [ for (disk, idx) in dataDisks: union({
         name: disk.name
         managedDisk: {
           storageAccountType: disk.disksku
@@ -71,11 +75,11 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-11-01' = {
         {
           createOption: 'FromImage'
           managedDisk: {
-            storageAccountType: vm.osdisksku
+            storageAccountType: osDiskSku
           }
           caching: 'ReadWrite'
-        }, contains(vm, 'osdisksize') ? {
-          diskSizeGB: vm.osdisksize
+        }, osDiskSize > 0 ? {
+          diskSizeGB: osDiskSize
         } : {}
       )
       imageReference: image.ref
@@ -92,10 +96,10 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-11-01' = {
         computerName: name
         adminUsername: adminUser
       }, 
-      contains(vm, 'deploy_script') && vm.deploy_script != '' ? { // deploy script not empty
-        customData: base64(vm.deploy_script)
+      deployScript != '' ? { // deploy script not empty
+        customData: base64(deployScript)
       } : {}, 
-      !contains(vm, 'windows') || vm.windows == false ? { // linux
+      { // linux
         linuxConfiguration: {
           disablePasswordAuthentication: true
           ssh: {
@@ -107,9 +111,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-11-01' = {
             ]
           }
         }
-      } : {}, contains(vm, 'ahub') && vm.ahub == true ? { // ahub
-        licenseType: 'Windows_Server'
-      } : {}
+      }
     )
   }
 }
