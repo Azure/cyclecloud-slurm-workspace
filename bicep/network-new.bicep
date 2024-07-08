@@ -9,7 +9,6 @@ param lustre_count int = (ccswConfig.filesystem.shared.config.filertype == 'aml'
 param create_lustre bool = lustre_count > 0
 param deploy_bastion bool = ccswConfig.network.vnet.bastion
 param create_database bool = ccswConfig.slurm_settings.scheduler_node.slurmAccounting
-param deploy_scheduler bool
 param natGatewayId string 
 
 //TODO rename function, see if using exp/0 to throw error is possible 
@@ -101,17 +100,6 @@ param vnet object = {
         delegations: []
       }
     },
-    deploy_scheduler ? {
-      scheduler: {
-        name: ccswConfig.network.vnet.subnets.schedulerSubnet
-        cidr: subnet_cidr.scheduler
-        nat_gateway : true
-        service_endpoints: [
-          'Microsoft.Storage'
-        ]
-        delegations: []
-      } 
-    } : {},
     create_anf ? {
       netapp: {
         name: 'hpc-anf-subnet'
@@ -383,12 +371,6 @@ resource subnetCycleCloud 'Microsoft.Network/virtualNetworks/subnets@2023-06-01'
 }
 var subnet_cyclecloud = rsc_output(subnetCycleCloud)
 
-resource subnetScheduler 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' existing = if (deploy_scheduler) {
-  name: contains(vnet.subnets,'scheduler') ? vnet.subnets.scheduler.name : 'foo'
-  parent: ccswVirtualNetwork
-}
-var subnet_scheduler = deploy_scheduler ? rsc_output(subnetScheduler) : {}
-
 resource subnetCompute 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' existing = {
   name: vnet.subnets.compute.name
   parent: ccswVirtualNetwork
@@ -430,7 +412,6 @@ var subnets = union(
   { compute: subnet_compute },
   home_filer,
   addl_filer,
-  deploy_scheduler ? { scheduler: subnet_scheduler } : {},
   deploy_bastion ? { bastion: subnet_bastion } : {},
   create_database ? { database: subnet_database } : {}
 )

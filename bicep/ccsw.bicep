@@ -16,7 +16,6 @@ param storedKey object = {}
 param ccVMSize string
 
 param ccswConfig object
-param deploy_scheduler bool = false
 @secure()
 param databaseAdminPassword string
 param branch string
@@ -60,7 +59,6 @@ module ccswNetwork './network-new.bicep' = if(ccswConfig.network.vnet.create){
     tags: getTags('Microsoft.Network/virtualNetworks', ccswConfig)
     nsgTags: getTags('Microsoft.Network/networkSecurityGroups', ccswConfig)
     ccswConfig: ccswConfig
-    deploy_scheduler: deploy_scheduler
     natGatewayId: natGateawayId
   }
 }
