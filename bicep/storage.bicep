@@ -35,19 +35,4 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   )
 }
 
-resource blobServices 'Microsoft.Storage/storageAccounts/blobServices@2022-09-01' = {
-  name: 'default'
-  parent: storageAccount
-}
-
-// TODO: Need to remove as we can't attach a container to AMLFS in this version of the AMLFS RP
-// If so it has to be dependent on the AMLFS creation
-resource lustreArchive 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = {
-  name: 'lustre'
-  parent: blobServices
-  properties: {
-    publicAccess: 'None'
-  }
-}
-
 output storageAccountName string = storageAccount.name
