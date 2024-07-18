@@ -4,7 +4,7 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$script_dir/../files/common.sh" 
 read_os
 
-ENROOT_VERSION=3.4.1
+ENROOT_VERSION=3.5.0
 
 function install_enroot() {
     # Install or update enroot if necessary
