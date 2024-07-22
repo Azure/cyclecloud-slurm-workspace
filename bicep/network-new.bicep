@@ -179,15 +179,6 @@ var nsg_rules = {
     AllowInternetOutBound: ['3000', 'Outbound', 'Allow', 'Tcp', 'All', 'tag', 'VirtualNetwork', 'tag', 'Internet']
     DenyVnetOutbound: ['3100', 'Outbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
   }
-  // TODO: This rule is not applied, it should be removed
-//  internet: {
-//    AllowInternetHttpIn: ['210', 'Inbound', 'Allow', 'Tcp', 'Web', 'tag', 'Internet', 'subnet', 'frontend']
-//  }
-  // TODO: This rule is not applied, it should be removed
-//  hub: {
-//    AllowHubSshIn: ['200', 'Inbound', 'Allow', 'Tcp', 'HubSsh', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
-//    AllowHubHttpIn: ['210', 'Inbound', 'Allow', 'Tcp', 'Web', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
-//  }
   // TODO : Need to be validated
   mysql: {
     // Inbound
@@ -216,6 +207,7 @@ var nsg_rules = {
   bastion: {
     // This rule is to allow connectivity from Bastion to any VMs in the VNet
     AllowBastionIn: ['530', 'Inbound', 'Allow', 'Tcp', 'Bastion', 'subnet', 'bastion', 'tag', 'VirtualNetwork']
+    // TODO : Add Bastion rules
   }
 }
 
@@ -225,14 +217,12 @@ var nsgRules = items(union(
   create_anf ? nsg_rules.anf : {},
   create_lustre ? nsg_rules.lustre : {},
   create_database ? nsg_rules.mysql : {}))
-var incomingSSHPort = 22 //todo FIX LATER
 var servicePorts = {
   All: ['0-65535']
-  Bastion: (incomingSSHPort == 22) ? ['22'] : ['22', string(incomingSSHPort)]
+  Bastion: ['22']
   Https: ['443']
   Web: ['443', '80']
   Ssh: ['22']
-  HubSsh: [string(incomingSSHPort)]
   Dns: ['53']
   Lustre: ['988', '1019-1023']
   // 111: portmapper, 635: mountd, 2049: nfsd, 4045: nlockmgr, 4046: status, 4049: rquotad
@@ -313,7 +303,7 @@ resource ccswVirtualNetwork 'Microsoft.Network/virtualNetworks@2023-06-01' = {
         natGateway: (natGatewayId != '' && subnet.value.nat_gateway) ? {
           id: natGatewayId
         } : null
-        networkSecurityGroup: subnet.value.name == 'AzureBastionSubnet' ? null : {
+        networkSecurityGroup: {
           id: ccswCommonNsg.id
         }
         delegations: map(subnet.value.delegations, delegation => {
