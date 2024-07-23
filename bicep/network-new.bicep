@@ -124,7 +124,7 @@ param vnet object = {
       bastion: {
         name: 'AzureBastionSubnet'
         cidr: subnet_cidr.bastion
-        nat_gateway : false
+        nat_gateway : true
         service_endpoints: []
         delegations: []
       }
@@ -205,9 +205,19 @@ var nsg_rules = {
   }
   // See documentation in https://learn.microsoft.com/en-us/azure/bastion/bastion-nsg if we need to apply NSGs on the BastionSubnet
   bastion: {
+    // Inbound
+    AllowHttps_bastion_In: ['500', 'Inbound', 'Allow', 'Tcp', 'Https', 'tag', 'Internet', 'subnet', 'bastion']
+    AllowGatewayManager_bastion_In: ['502', 'Inbound', 'Allow', 'Tcp', 'Https', 'tag', 'GatewayManager', 'tag', '*']
+    AllowAzureLoadBalancer_bastion_In: ['504', 'Inbound', 'Allow', 'Tcp', 'Https', 'tag', 'AzureLoadBalancer', 'tag', '*']
+    AllowBastionHostCommunication_bastion_In: ['506', 'Inbound', 'Allow', 'Tcp', 'Bastion', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
     // This rule is to allow connectivity from Bastion to any VMs in the VNet
-    AllowBastionIn: ['530', 'Inbound', 'Allow', 'Tcp', 'Bastion', 'subnet', 'bastion', 'tag', 'VirtualNetwork']
-    // TODO : Add Bastion rules
+    AllowSsh_bastion_In: ['530', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'bastion', 'tag', 'VirtualNetwork']
+    // Outbound
+    AllowSsh_bastion_Out: ['500', 'Outbound', 'Allow', 'Tcp', 'SshRdp', 'tag', '*', 'tag', 'VirtualNetwork']
+    AllowAzureCloud_bastion_Out: ['502', 'Outbound', 'Allow', 'Tcp', 'Https', 'tag', '*', 'tag', 'AzureCloud']
+    AllowBastionHostCommunication_bastion_Out: ['504', 'Outbound', 'Allow', 'Tcp', 'Bastion', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
+    AllowHttp_bastion_Out: ['506', 'Outbound', 'Allow', 'Tcp', 'Http', 'tag', '*', 'tag', 'Internet']
+    
   }
 }
 
@@ -219,17 +229,17 @@ var nsgRules = items(union(
   create_database ? nsg_rules.mysql : {}))
 var servicePorts = {
   All: ['0-65535']
-  Bastion: ['22']
+  Bastion: ['8080,5701']
   Https: ['443']
-  Web: ['443', '80']
+  Http: ['80']
   Ssh: ['22']
-  Dns: ['53']
   Lustre: ['988', '1019-1023']
   // 111: portmapper, 635: mountd, 2049: nfsd, 4045: nlockmgr, 4046: status, 4049: rquotad
   Nfs: ['111', '635', '2049', '4045', '4046', '4049']
   // HTTPS, AMQP
   CycleCloud: ['9443', '5672']
   MySQL: ['3306', '33060']
+  SshRdp: ['22', '3389']
 }
 var securityRules = [ for rule in nsgRules : {
   name: rule.key
@@ -276,7 +286,7 @@ var peered_vnet_id = contains(ccswConfig.network.vnet.peering.vnet,'id') ? ccswC
 
 //output asgIds array = [ for i in range(0, length(asgNames)): { '${asgs[i].name}': asgs[i].id } ]
 
-resource ccswCommonNsg 'Microsoft.Network/networkSecurityGroups@2023-06-01' = {
+resource ccswCommonNsg 'Microsoft.Network/networkSecurityGroups@2023-11-01' = {
   name: 'nsg-ccsw-common'
   location: location
   tags: nsgTags
