@@ -229,7 +229,7 @@ var nsgRules = items(union(
   create_database ? nsg_rules.mysql : {}))
 var servicePorts = {
   All: ['0-65535']
-  Bastion: ['8080,5701']
+  Bastion: ['8080','5701']
   Https: ['443']
   Http: ['80']
   Ssh: ['22']
