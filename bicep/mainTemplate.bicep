@@ -6,8 +6,8 @@ param adminUsername string
 @secure()
 param adminPassword string
 //param adminKeyphrase string
-param adminSshPublicKey string = '' //TODO - consider removing default value
-param storedKey object = {} //TODO - consider removing default value
+param adminSshPublicKey string = '' 
+param storedKey object = {} //TODO: make type
 param ccVMSize string
 param resource_group string
 param shared_filesystem types.shared_filesystem_t

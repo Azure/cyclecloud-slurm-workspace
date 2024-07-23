@@ -15,7 +15,7 @@ var deploy_bastion = network.?bastion ?? false
 var create_database = false //update once MySQL capacity is available
 param natGatewayId string 
 
-//TODO rename function, see if using exp/0 to throw error is possible 
+//purpose: calculate 2^n for n between 0 and 3 or return 0 if n is -1, otherwise -1
 func pow2_or_0 (exp int) int => 
   (exp == -1) ? 0 : (exp == 0) ? 1 : (exp == 1) ? 2 : (exp == 2) ? 4 : (exp == 3) ? 8 : -1000
 

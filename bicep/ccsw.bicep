@@ -217,7 +217,6 @@ module ccswANF 'anf.bicep' = [
   }
 ]
 
-//TODO: review mount options esp. re: anf, aml
 output filer_info_final object = {
   home: {
     type: shared_filesystem.type

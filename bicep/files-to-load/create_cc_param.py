@@ -55,7 +55,7 @@ def set_params(params, outputs):
         params['configuration_slurm_accounting_user'] = outputs['ccswGlobalConfig']['value']['database_user']
     if params['configuration_slurm_accounting_enabled']:
         params['configuration_slurm_accounting_password'] = outputs['slurmSettings']['value']['databaseAdminPassword']
-    #params['configuration_slurm_accounting_url'] #TODO ask: is this the FDQN of the database???
+    #params['configuration_slurm_accounting_url'] 
     #params['configuration_slurm_accounting_certificate_url']
 
     #login node(s)
