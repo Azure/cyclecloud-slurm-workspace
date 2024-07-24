@@ -41,11 +41,11 @@ def main() -> None:
             print("This suffix should be unique per running deployment, because we use it")
             print("to set the vnet's address space. i.e. -a 10.1.0.0/24, -b 10.2.0.0/24 and so on")
             sys.exit(1)
-        ui_params["ccswConfig"]["value"]["resource_group"] = args.resource_group
+        ui_params["resourceGroup"]["value"] = args.resource_group
 
         suffix = args.resource_group.split("-")[-1][0]
         second_octal = ord(suffix) - ord("a") + 1
-        ui_params["ccswConfig"]["value"]["network"]["vnet"]["address_space"] = f"10.{second_octal}.0.0/24"
+        ui_params["network"]["value"]["addressSpace"] = f"10.{second_octal}.0.0/24"
 
     branch =subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).decode().strip()
     assert branch != "HEAD", "No headless checkouts allowed. If this is a tag, git checkout TAG -b TAG"
@@ -54,20 +54,15 @@ def main() -> None:
 
     if args.location:
         ui_params["location"]["value"] = args.location
-        ui_params["ccswConfig"]["value"]["location"] = args.location
 
     if args.vm_size:
         ui_params["ccVMSize"]["value"] = args.vm_size
-        ui_params["ccswConfig"]["value"]["slurm_settings"]["scheduler_node"]["schedulerVMSize"] = args.vm_size
-        ui_params["trash_for_arm_ttk"]["value"]["schedulerVMSize"] = args.vm_size
+        ui_params["schedulerNode"]["value"]["vmSize"] = args.vm_size
 
     if args.execute_vm_size:
-        ui_params["ccswConfig"]["value"]["partition_settings"]["hpc"]["hpcVMSize"] = args.execute_vm_size
-        ui_params["ccswConfig"]["value"]["partition_settings"]["htc"]["htcVMSize"] = args.execute_vm_size
-        ui_params["ccswConfig"]["value"]["partition_settings"]["gpu"]["gpuVMSize"] = args.execute_vm_size
-        ui_params["trash_for_arm_ttk"]["value"]["htcVMSize"] = args.execute_vm_size
-        ui_params["trash_for_arm_ttk"]["value"]["hpcVMSize"] = args.execute_vm_size
-        ui_params["trash_for_arm_ttk"]["value"]["gpuVMSize"] = args.execute_vm_size
+        ui_params["hpc"]["value"]["vmSize"] = args.execute_vm_size
+        ui_params["htc"]["value"]["vmSize"] = args.execute_vm_size
+        ui_params["gpu"]["value"]["vmSize"] = args.execute_vm_size
 
     with open("util/testparam.json", "w") as fw:
         json.dump({
@@ -76,7 +71,7 @@ def main() -> None:
         "parameters": ui_params
     }, fw, indent=2)
 
-    resource_group = ui_params["ccswConfig"]["value"]["resource_group"]
+    resource_group = ui_params["resourceGroup"]["value"]
     location = ui_params["location"]["value"]
     cmd = f"az deployment sub create --location {location} --template-file ./bicep/mainTemplate.bicep --parameters util/testparam.json -n {resource_group}"
     if args.dry_run:

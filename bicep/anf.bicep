@@ -69,6 +69,6 @@ resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2023-0
 
 
 // Require fs_module outputs
-output ip_address string = infrastructureOnly ? '' :anfVolume.properties.mountTargets[0].ipAddress
-output export_path string = '/${name}-path'
-output mount_options string = defaultMountOptions
+output ipAddress string = infrastructureOnly ? '' :anfVolume.properties.mountTargets[0].ipAddress
+output exportPath string = '/${name}-path'
+output mountOptions string = defaultMountOptions

@@ -1311,52 +1311,51 @@
       "adminSshPublicKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
       "storedKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'stored'),basics('keySelector'),basics('nullValue'))]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
-      "resource_group": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
-      "shared_filesystem": {
-        "create_new": "[equals(steps('filesystem').shared.newexisting,'new')]",
+      "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
+      "sharedFilesystem": {
         "type": "[concat(if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs'),'-',steps('filesystem').shared.newexisting)]",
-        "nfs_capacity_in_gb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),steps('filesystem').shared.nfscapacity,basics('nullValue'))]",
-        "anf_service_tier": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,basics('nullValue'))]",
-        "anf_capacity_in_bytes": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anfcapacity,basics('nullValue'))]",
-        "ip_address": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,basics('nullValue'))]",
-        "export_path": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,basics('nullValue'))]",
-        "mount_options": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.mountOptions,basics('nullValue'))]"
+        "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),steps('filesystem').shared.nfscapacity,basics('nullValue'))]",
+        "anfServiceTier": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,basics('nullValue'))]",
+        "anfCapacityInBytes": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anfcapacity,basics('nullValue'))]",
+        "ipAddress": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,basics('nullValue'))]",
+        "exportPath": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,basics('nullValue'))]",
+        "mountOptions": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.mountOptions,basics('nullValue'))]"
       },
-      "additional_filesystem": {
+      "additionalFilesystem": {
         "type": "[if(steps('filesystem').additionalCheck.checkbox,concat(steps('filesystem').additional.filertype,'-',steps('filesystem').additional.newexisting),'disabled')]",
-        "anf_service_tier": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,basics('nullValue'))]",
-        "anf_capacity_in_bytes": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anfcapacity,basics('nullValue'))]",
-        "lustre_tier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,basics('nullValue'))]",
-        "lustre_capacity_in_tib": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.azurelustrecapacity,basics('nullValue'))]",
-        "ip_address": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.ipAddress,basics('nullValue'))]",
-        "mount_path": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountPath, basics('nullValue'))]",
-        "export_path": "[if(or(and(equals(steps('filesystem').additional.filertype, 'anf'),equals(steps('filesystem').additional.newexisting,'new')),and(equals(steps('filesystem').additional.filertype, 'nfs'),equals(steps('filesystem').additional.newexisting,'existing'))), steps('filesystem').additional.exportPath,basics('nullValue'))]",
-        "mount_options": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountOptions, basics('nullValue'))]"
+        "anfServiceTier": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,basics('nullValue'))]",
+        "anfCapacityInBytes": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anfcapacity,basics('nullValue'))]",
+        "lustreTier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,basics('nullValue'))]",
+        "lustreCapacityInTib": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.azurelustrecapacity,basics('nullValue'))]",
+        "ipAddress": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.ipAddress,basics('nullValue'))]",
+        "mountPath": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountPath, basics('nullValue'))]",
+        "exportPath": "[if(or(and(equals(steps('filesystem').additional.filertype, 'anf'),equals(steps('filesystem').additional.newexisting,'new')),and(equals(steps('filesystem').additional.filertype, 'nfs'),equals(steps('filesystem').additional.newexisting,'existing'))), steps('filesystem').additional.exportPath,basics('nullValue'))]",
+        "mountOptions": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountOptions, basics('nullValue'))]"
       },
       "network": {
         "type": "[steps('networking').newexisting]",
         "name": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.networkSelector.name)]",
-        "address_space": "[if(equals(steps('networking').newexisting,'new'),concat(steps('networking').networkSettings.baseIpAddress,steps('networking').networkSettings.cidrPrefix),basics('nullValue'))]",
+        "addressSpace": "[if(equals(steps('networking').newexisting,'new'),concat(steps('networking').networkSettings.baseIpAddress,steps('networking').networkSettings.cidrPrefix),basics('nullValue'))]",
         "id": "[if(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.networkSelector.id,basics('nullValue'))]",
         "cyclecloudSubnet": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.ccsubnet)]",
         "computeSubnet": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.computesubnet)]",
         "sharedFilerSubnet": "[if(equals(steps('filesystem').shared.filertype,'anf'),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.filersubnet1),basics('nullValue'))]",
         "additionalFilerSubnet": "[if(and(steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new')),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.filersubnet2),basics('nullValue'))]",
         "bastion": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.bastion,basics('nullValue'))]",
-        "create_nat_gateway": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.natgateway,basics('nullValue'))]",
-        "vnet_to_peer": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,basics('nullValue'))]",
-        "peering_allowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]"
+        "createNatGateway": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.natgateway,basics('nullValue'))]",
+        "vnetToPeer": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,basics('nullValue'))]",
+        "peeringAllowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]"
       },
       "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
       "slurmSettings": {
         "version": "[steps('scheduler').schedulerSection.slurmVersion]",
         "healthCheckEnabled": "[steps('scheduler').schedulerSection.healthCheck]"
       },
-      "scheduler_node": {
+      "schedulerNode": {
         "vmSize": "[steps('scheduler').schedulerSection.vmsize]",
         "image": "[steps('scheduler').schedulerSection.ImageName]"
       },
-      "login_nodes": {
+      "loginNodes": {
         "vmSize": "[steps('scheduler').loginNodesSection.vmsize]",
         "image": "[steps('scheduler').loginNodesSection.ImageName]",
         "initialNodes": "[steps('scheduler').loginNodesSection.initialNodes]",

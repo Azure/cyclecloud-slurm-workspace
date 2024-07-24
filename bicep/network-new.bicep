@@ -1,16 +1,16 @@
-import {shared_filesystem_t, additional_filesystem_t, vnet_t, tags_t} from './types.bicep'
+import * as types from './types.bicep'
 
-param network vnet_t
-param address string = network.?address_space
+param network types.vnet_t
+param address string = network.?addressSpace
 param location string
-param tags tags_t
-param nsgTags object
-param shared_filesystem shared_filesystem_t
-param additional_filesystem additional_filesystem_t 
-var filerTypes = [shared_filesystem.type, additional_filesystem.type]
+param tags types.tags_t
+param nsgTags types.tags_t
+param sharedFilesystem types.sharedFilesystem_t
+param additionalFilesystem types.additionalFilesystem_t 
+var filerTypes = [sharedFilesystem.type, additionalFilesystem.type]
 var create_anf = contains(filerTypes, 'anf-new')
-var create_anf_subnet = create_anf ? (shared_filesystem.type == 'anf-new' ? network.?sharedFilerSubnet : network.?additionalFilerSubnet) : null
-var create_lustre = additional_filesystem.type == 'aml-new'
+var create_anf_subnet = create_anf ? (sharedFilesystem.type == 'anf-new' ? network.?sharedFilerSubnet : network.?additionalFilerSubnet) : null
+var create_lustre = additionalFilesystem.type == 'aml-new'
 var deploy_bastion = network.?bastion ?? false
 var create_database = false //update once MySQL capacity is available
 param natGatewayId string 
@@ -78,7 +78,7 @@ func subnet_ranges(decomp_ip object, subnet object) object => {
 
 func subnet_config(ip string) object => subnet_ranges(decompose_ip(ip),subnet_octets(get_cidr(ip)))
 
-param subnet_cidr object = subnet_config(address)
+var subnet_cidr = subnet_config(address)
 
 var vnet  = {
   name: network.?name ?? 'ccsw-vnet'
@@ -277,10 +277,10 @@ var securityRules = [ for rule in nsgRules : {
 }]
 //var asgNames = []
 
-var peering_enabled = contains(network, 'vnet_to_peer')
-var peered_vnet_name = peering_enabled ? network.?vnet_to_peer.name : 'foo'
-var peered_vnet_resource_group = peering_enabled ? split(network.?vnet_to_peer.id,'/')[4] : 'foo'
-var peered_vnet_id = peering_enabled ? network.?vnet_to_peer.id : 'foo'
+var peeringEnabled = network.?vnetToPeer ?? false
+var peeredVnetName = peeringEnabled ? network.?vnetToPeer.name : 'foo'
+var peeredVnetResourceGroup = peeringEnabled ? split(network.?vnetToPeer.id,'/')[4] : 'foo'
+var peeredVnetId = peeringEnabled ? network.?vnetToPeer.id : 'foo'
 
 resource ccswCommonNsg 'Microsoft.Network/networkSecurityGroups@2023-11-01' = {
   name: 'nsg-ccsw-common'
@@ -323,26 +323,26 @@ resource ccswVirtualNetwork 'Microsoft.Network/virtualNetworks@2023-06-01' = {
   }
 }
 
-resource ccsw_to_peer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-06-01' = if (peering_enabled) {
-  name: '${ccswVirtualNetwork.name}-to-${peered_vnet_name}-${uniqueString(resourceGroup().id)}'
+resource ccsw_to_peer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-06-01' = if (peeringEnabled) {
+  name: '${ccswVirtualNetwork.name}-to-${peeredVnetName}-${uniqueString(resourceGroup().id)}'
   parent: ccswVirtualNetwork
   properties: {
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: false
-    useRemoteGateways: network.?peering_allowGatewayTransit
+    useRemoteGateways: network.?peeringAllowGatewayTransit
     remoteVirtualNetwork: {
-      id: peered_vnet_id
+      id: peeredVnetId
     }
   }
 }
 
 //module necessary due to change in scope
-module peer_to_ccsw './network-peering.bicep' = if (peering_enabled) {
+module peer_to_ccsw './network-peering.bicep' = if (peeringEnabled) {
   name: 'peer_to_ccsw'
-  scope: resourceGroup(peered_vnet_resource_group)
+  scope: resourceGroup(peeredVnetResourceGroup)
   params: {
-    name: '${peered_vnet_name}-to-${ccswVirtualNetwork.name}-${uniqueString(resourceGroup().id)}'
-    vnetName: peered_vnet_name
+    name: '${peeredVnetName}-to-${ccswVirtualNetwork.name}-${uniqueString(resourceGroup().id)}'
+    vnetName: peeredVnetName
     vnetId: ccswVirtualNetwork.id
   }
 }
@@ -351,11 +351,9 @@ module peer_to_ccsw './network-peering.bicep' = if (peering_enabled) {
 func fetch_rsc_id(subId string, rg string, rscId string) string =>
   '/subscriptions/${subId}/resourceGroups/${rg}/providers/${rscId}'
 func fetch_rsc_name(rscId string) string => last(split(rscId, '/'))
-func rsc_output(rsc object) object => {
+func rsc_output(rsc object) types.rsc_t => {
   id: fetch_rsc_id(rsc.subscriptionId, rsc.resourceGroupName, rsc.resourceId)
   name: fetch_rsc_name(rsc.resourceId)
-  rg: rsc.resourceGroupName
-  rsc_info: rsc
 }
 
 resource subnetCycleCloud 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' existing = {
@@ -395,8 +393,8 @@ resource subnetDatabase 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' e
 }
 var subnet_database = create_database ? rsc_output(subnetDatabase) : {}
 
-var filerTypeHome = shared_filesystem.type
-var filerTypeAddl = additional_filesystem.type
+var filerTypeHome = sharedFilesystem.type
+var filerTypeAddl = additionalFilesystem.type
 var output_home_subnet = filerTypeHome == 'anf-new' 
 var output_addl_subnet = contains(['aml-new','anf-new'],filerTypeAddl)
 var home_filer = output_home_subnet ? (filerTypeHome == 'anf-new' ? { home: subnet_netapp } : { home: subnet_lustre }) : {}
@@ -410,6 +408,6 @@ var subnets = union(
   create_database ? { database: subnet_database } : {}
 )
 
-output nsg_ccsw object = rsc_output(ccswCommonNsg)
-output vnet_ccsw object = rsc_output(ccswVirtualNetwork)
-output subnets_ccsw object = subnets
+output nsgCCSW types.rsc_t = rsc_output(ccswCommonNsg)
+output vnetCCSW types.rsc_t = rsc_output(ccswVirtualNetwork)
+output subnetsCCSW types.subnets_t = subnets

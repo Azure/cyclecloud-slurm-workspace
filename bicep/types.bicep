@@ -1,53 +1,53 @@
 type shared_nfs_new_t = {
   type: 'nfs-new'
-  capacity: int
+  nfsCapacityInGb: int
 }
 
 type shared_nfs_existing_t = {
   type: 'nfs-existing'
-  ip_address: string
-  export_path: string
-  mount_options: string?
+  ipAddress: string
+  exportPath: string
+  mountOptions: string?
 }
 
 type shared_anf_new_t = {
   type: 'anf-new'
-  anf_service_tier: string
-  anf_capacity_in_bytes: int
+  anfServiceTier: string
+  anfCapacityInBytes: int
 }
 
 @discriminator('type')
 @export()
-type shared_filesystem_t = shared_nfs_new_t | shared_nfs_existing_t | shared_anf_new_t
+type sharedFilesystem_t = shared_nfs_new_t | shared_nfs_existing_t | shared_anf_new_t
 
 type additional_anf_new_t = {
   type: 'anf-new'
-  anf_service_tier: string
-  anf_capacity_in_bytes: int
-  mount_path: string
-  export_path: string
+  anfServiceTier: string
+  anfCapacityInBytes: int
+  mountPath: string
+  exportPath: string
 }
 
 type additional_nfs_existing_t = {
   type: 'nfs-existing'
-  ip_address: string
-  mount_path: string
-  export_path: string
-  mount_options: string?
+  ipAddress: string
+  mountPath: string
+  exportPath: string
+  mountOptions: string?
 }
 
 type additional_aml_new_t = {
   type: 'aml-new'
-  lustre_tier: string
-  lustre_capacity_in_tib: int
-  mount_path: string
+  lustreTier: string
+  lustreCapacityInTib: int
+  mountPath: string
 }
 
 type additional_aml_existing_t = {
   type: 'aml-existing'
-  ip_address: string
-  mount_path: string
-  mount_options: string?
+  ipAddress: string
+  mountPath: string
+  mountOptions: string?
 }
 
 type additional_none_t = {
@@ -56,10 +56,29 @@ type additional_none_t = {
 
 @discriminator('type')
 @export()
-type additional_filesystem_t = additional_anf_new_t | additional_nfs_existing_t | additional_aml_new_t | additional_aml_existing_t | additional_none_t
+type additionalFilesystem_t = additional_anf_new_t | additional_nfs_existing_t | additional_aml_new_t | additional_aml_existing_t | additional_none_t
+
+@export()
+type filerInfo_t = {
+  home: {
+    type: string
+    nfsCapacityInGb: int
+    ipAddress: string
+    exportPath: string
+    mountOptions: string
+    mountPath: string
+  }
+  additional: {
+    type: string
+    ipAddress: string
+    exportPath: string
+    mountOptions: string
+    mountPath: string
+  }
+}
 
 //note to self: can we make an additional filer type that covers both nfs and aml? 
-//we can infer based on the presence of export_path
+//we can infer based on the presence of exportPath
 
 type peered_vnet_t = {
   id: string
@@ -70,15 +89,15 @@ type peered_vnet_t = {
 type vnet_autocreate_t = {
   type: 'new'
   name: string?
-  address_space: string
+  addressSpace: string
   cyclecloudSubnet: string?
   computeSubnet: string?
   sharedFilerSubnet: string?
   additionalFilerSubnet: string?
   bastion: bool?
-  create_nat_gateway: bool?
-  vnet_to_peer: peered_vnet_t?
-  peering_allowGatewayTransit: bool?
+  createNatGateway: bool?
+  vnetToPeer: peered_vnet_t?
+  peeringAllowGatewayTransit: bool?
 }
 
 type vnet_existing_t = {
@@ -95,13 +114,30 @@ type vnet_existing_t = {
 @export()
 type vnet_t = vnet_autocreate_t | vnet_existing_t
 
-type inner_tags_t = {
-  *: string
+@export()
+type subnets_t = {
+  cyclecloud: string
+  compute: string
+  home: string?
+  additional: string?
+  bastion: string?
+  database: string?
+}
+
+@export()
+type rsc_t = {
+  id: string 
+  name: string
 }
 
 @export()
 type tags_t = {
-  *: inner_tags_t
+  *: string
+}
+
+@export()
+type resource_tags_t = {
+  *: tags_t
 }
 
 @export()

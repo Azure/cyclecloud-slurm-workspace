@@ -1,22 +1,17 @@
 targetScope = 'resourceGroup'
-import {tags_t} from './types.bicep'
+import * as types from './types.bicep'
 
 param name string
 param deployScript string 
 param osDiskSku string
-//param vm object
-param image object
+param image object //TODO: find a way to type this
 param location string
-param tags tags_t
-param networkInterfacesTags object
-//param resourcePostfix string = '${uniqueString(subscription().subscriptionId, resourceGroup().id)}x'
+param tags types.tags_t
+param networkInterfacesTags types.tags_t
 param subnetId string
 param adminUser string
-// @secure()
-// param adminPassword string
 @secure()
 param adminSshPublicKey string
-//param asgIds object
 param vmSize string
 param dataDisks array
 param osDiskSize int = 0 //TODO: add to UI

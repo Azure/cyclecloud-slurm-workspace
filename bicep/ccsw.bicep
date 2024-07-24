@@ -1,11 +1,11 @@
 targetScope = 'resourceGroup'
 import * as types from './types.bicep'
 
-param location string = resourceGroup().location
+param location string = az.resourceGroup().location
 param infrastructureOnly bool
 
 param branch string
-param project_version string
+param projectVersion string
 
 param adminUsername string
 @secure()
@@ -14,26 +14,26 @@ param adminPassword string
 param adminSshPublicKey string
 param storedKey types.storedKey_t
 param ccVMSize string
-param resource_group string //
-param shared_filesystem types.shared_filesystem_t
-param additional_filesystem types.additional_filesystem_t = { type: 'disabled' }
+param resourceGroup string //
+param sharedFilesystem types.sharedFilesystem_t
+param additionalFilesystem types.additionalFilesystem_t = { type: 'disabled' }
 param network types.vnet_t = {
   type: 'new'
-  address_space: '10.0.0.0/24'
+  addressSpace: '10.0.0.0/24'
 }
 param slurmSettings types.slurmSettings_t = { version: '23.11.7-1', healthCheckEnabled: false}
-param scheduler_node types.scheduler_t
-param login_nodes types.login_t
+param schedulerNode types.scheduler_t
+param loginNodes types.login_t
 param htc types.htc_t
 param hpc types.hpc_t
 param gpu types.hpc_t
-param tags types.tags_t
+param tags types.resource_tags_t
 @secure()
 param databaseAdminPassword string
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
 
-func getTags(resource_type string, tags object) object => tags[?resource_type] ?? {}
+func getTags(resource_type string, tags types.resource_tags_t) types.tags_t => tags[?resource_type] ?? {}
 
 var useEnteredKey = adminSshPublicKey != ''
 module ccswPublicKey './publicKey.bicep' = if (!useEnteredKey && !infrastructureOnly) {
@@ -44,8 +44,8 @@ module ccswPublicKey './publicKey.bicep' = if (!useEnteredKey && !infrastructure
 }
 var publicKey = infrastructureOnly ? '' : (useEnteredKey ? adminSshPublicKey : ccswPublicKey.outputs.publicKey)
 
-var create_nat_gateway = contains(network, 'create_nat_gateway')
-module natgateway './natgateway.bicep' = if (create_nat_gateway) {
+var createNatGateway = network.?createNatGateway ?? false
+module natgateway './natgateway.bicep' = if (createNatGateway) {
   name: 'natgateway'
   params: {
     location: location
@@ -53,7 +53,7 @@ module natgateway './natgateway.bicep' = if (create_nat_gateway) {
     name: 'ccsw-nat-gateway'
   }
 }
-var natGateawayId = create_nat_gateway ? natgateway.outputs.NATGatewayId : ''
+var natGateawayId = createNatGateway ? natgateway.outputs.NATGatewayId : ''
 
 var create_new_vnet = network.type == 'new'
 module ccswNetwork './network-new.bicep' = if (create_new_vnet) {
@@ -64,14 +64,18 @@ module ccswNetwork './network-new.bicep' = if (create_new_vnet) {
     nsgTags: getTags('Microsoft.Network/networkSecurityGroups', tags)
     network: network
     natGatewayId: natGateawayId
-    shared_filesystem: shared_filesystem
-    additional_filesystem: additional_filesystem
+    sharedFilesystem: sharedFilesystem
+    additionalFilesystem: additionalFilesystem
   }
 }
 
-var vnet = create_new_vnet ? ccswNetwork.outputs.vnet_ccsw : {}
+var vnetOutput = create_new_vnet ? ccswNetwork.outputs.vnetCCSW : {
+  id: network.id
+  name: network.name
+}
+
 var subnets = create_new_vnet
-  ? ccswNetwork.outputs.subnets_ccsw
+  ? ccswNetwork.outputs.subnetsCCSW
   : {
       cyclecloud: { id: join([network.?id, 'subnets', network.?cyclecloudSubnet], '/') }
       compute: { id: join([network.?id, 'subnets', network.?computeSubnet], '/') }
@@ -79,12 +83,12 @@ var subnets = create_new_vnet
       additional: { id: join([network.?id, 'subnets', network.?additionalFilerSubnet ?? 'null'], '/') }
     }
 
-output vnet object = vnet
+output vnet types.rsc_t = vnetOutput
 
 var deploy_bastion = network.?bastion ?? false
 module ccswBastion './bastion.bicep' = if (deploy_bastion) {
   name: 'ccswBastion'
-  scope: create_new_vnet ? resourceGroup() : resourceGroup(split(network.?existing_vnet_id, '/')[4])
+  scope: create_new_vnet ? az.resourceGroup() : az.resourceGroup(split(network.?existing_vnet_id, '/')[4])
   params: {
     location: location
     tags: getTags('Microsoft.Network/bastionHosts', tags)
@@ -105,7 +109,7 @@ module ccswVM './vm.bicep' =  if (!infrastructureOnly) {
       deployScript: loadTextContent('./install.sh')
       osDiskSku: 'StandardSSD_LRS'
       image: {
-        plan: 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2'
+        plan: cyclecloudBaseImage
         ref: contains(cyclecloudBaseImage, '/')
           ? {
               id: cyclecloudBaseImage
@@ -142,7 +146,7 @@ module ccswRolesAssignments './roleAssignments.bicep' =  if (!infrastructureOnly
     scope: subscription()
     params: {
       name: vmName
-      rgID: resourceGroup().id
+      rgID: az.resourceGroup().id
       roles: [
         'Contributor'
         'Storage Account Contributor'
@@ -160,14 +164,14 @@ module ccswStorage './storage.bicep' = {
   params: {
     location: location
     tags: getTags('Microsoft.Storage/storageAccounts', tags)
-    saName: 'ccswstorage${uniqueString(resourceGroup().id)}'
+    saName: 'ccswstorage${uniqueString(az.resourceGroup().id)}'
     lockDownNetwork: true // Restrict access to the storage account from compute and cyclecloud subnets
     subnetIds: concat([subnets.compute.id], [subnets.cyclecloud.id])
   }
 }
 
 var create_database = contains(slurmSettings, 'databaseAdminPassword')
-var db_name = 'ccsw-mysqldb-${uniqueString(resourceGroup().id)}'
+var db_name = 'ccsw-mysqldb-${uniqueString(az.resourceGroup().id)}'
 
 module mySQLccsw './mysql.bicep' = if (create_database) {
   name: 'MySQLDB-ccsw'
@@ -181,15 +185,15 @@ module mySQLccsw './mysql.bicep' = if (create_database) {
   }
 }
 
-module ccswAMLFS 'amlfs.bicep' = if (additional_filesystem.type == 'aml-new') {
+module ccswAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
   name: 'ccswAMLFS-additional'
   params: {
     location: location
     tags: getTags('Microsoft.StorageCache/amlFileSystems', tags)
     name: 'ccsw-lustre'
-    subnetId: subnets.additional.id
-    sku: additional_filesystem.?lustre_tier
-    capacity: additional_filesystem.?lustre_capacity_in_tib
+    subnetId: subnets.?additional.id
+    sku: additionalFilesystem.?lustreTier
+    capacity: additionalFilesystem.?lustreCapacityInTib
     infrastructureOnly: infrastructureOnly
   }
   dependsOn: [
@@ -198,15 +202,15 @@ module ccswAMLFS 'amlfs.bicep' = if (additional_filesystem.type == 'aml-new') {
 }
 
 module ccswANF 'anf.bicep' = [
-  for filer in items({home: shared_filesystem, additional: additional_filesystem}): if (filer.value.type == 'anf-new') {
+  for filer in items({home: sharedFilesystem, additional: additionalFilesystem}): if (filer.value.type == 'anf-new') {
     name: 'ccswANF-${filer.key}'
     params: {
       location: location
       tags: getTags('Microsoft.NetApp/netAppAccounts', tags)
       name: filer.key
       subnetId: subnets[filer.key].id
-      serviceLevel: filer.value.anf_service_tier
-      sizeGB: int(filer.value.anf_capacity_in_bytes)
+      serviceLevel: filer.value.anfServiceTier
+      sizeGB: int(filer.value.anfCapacityInBytes)
       defaultMountOptions: anfDefaultMountOptions
       infrastructureOnly: infrastructureOnly
     }
@@ -216,25 +220,25 @@ module ccswANF 'anf.bicep' = [
   }
 ]
 
-output filer_info_final object = {
+output filerInfoFinal types.filerInfo_t = {
   home: {
-    type: shared_filesystem.type
-    nfs_capacity_in_gb: shared_filesystem.?nfs_capacity_in_gb ?? ''
-    ip_address: shared_filesystem.type == 'anf-new' ? ccswANF[1].outputs.ip_address : shared_filesystem.?ip_address ?? ''
-    export_path: shared_filesystem.type == 'anf-new' ? ccswANF[1].outputs.export_path : shared_filesystem.?export_path ?? ''
-    mount_options: shared_filesystem.type == 'anf-new' ? ccswANF[1].outputs.mount_options : shared_filesystem.?mount_options ?? ''
-    mount_path: '/shared'
+    type: sharedFilesystem.type
+    nfsCapacityInGb: sharedFilesystem.?nfsCapacityInGb ?? ''
+    ipAddress: sharedFilesystem.type == 'anf-new' ? ccswANF[1].outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
+    exportPath: sharedFilesystem.type == 'anf-new' ? ccswANF[1].outputs.exportPath : sharedFilesystem.?exportPath ?? ''
+    mountOptions: sharedFilesystem.type == 'anf-new' ? ccswANF[1].outputs.mountOptions : sharedFilesystem.?mountOptions ?? ''
+    mountPath: '/shared'
   }
   additional: {
-    type: additional_filesystem.type
-    ip_address: additional_filesystem.type == 'anf-new'
-      ? ccswANF[0].outputs.ip_address
-      : additional_filesystem.type == 'aml-new' ? ccswAMLFS.outputs.ip_address : additional_filesystem.?ip_address ?? ''
-    export_path: additional_filesystem.?export_path ?? ''
-    mount_options: additional_filesystem.type == 'anf-new'
-      ? ccswANF[0].outputs.mount_options
-      : additional_filesystem.?mount_options ?? ''
-    mount_path: additional_filesystem.?mount_path ?? ''
+    type: additionalFilesystem.type
+    ipAddress: additionalFilesystem.type == 'anf-new'
+      ? ccswANF[0].outputs.ipAddress
+      : additionalFilesystem.type == 'aml-new' ? ccswAMLFS.outputs.ipAddress : additionalFilesystem.?ipAddress ?? ''
+    exportPath: additionalFilesystem.?exportPath ?? ''
+    mountOptions: additionalFilesystem.type == 'anf-new'
+      ? ccswANF[0].outputs.mountOptions
+      : additionalFilesystem.?mountOptions ?? ''
+    mountPath: additionalFilesystem.?mountPath ?? ''
   }
 }
 
@@ -242,9 +246,9 @@ output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccswVM.outputs.p
 
 output slurmSettings types.slurmSettings_t = slurmSettings
 
-output schedulerNode types.scheduler_t = scheduler_node
+output schedulerNode types.scheduler_t = schedulerNode
 
-output loginNodes types.login_t = login_nodes
+output loginNodes types.login_t = loginNodes
 
 output partitions types.partitions_t = {
   htc: {
@@ -265,28 +269,17 @@ var envNameToCloudMap = {
 }
 var pword = split('foo-${adminPassword}-foo', '-')[1] //workaround linter & arm-ttk
 
-//FIX: remove old comments and clean up
-output ccswGlobalConfig object = union(
-  {
-    resourceGroup: resource_group
-    location: location
-    global_cc_storage: ccswStorage.outputs.storageAccountName
-    computeSubnetID: subnets.compute.id
-    publicKey: publicKey
-    adminUsername: adminUsername
-    adminPassword: pword
-    homedir_mountpoint: '/nfshome' //FIX cribbed from AzHop, unsure if correct
-    subscription_id: subscription().subscriptionId
-    tenant_id: subscription().tenantId
-    lustre_hsm_storage_account: ccswStorage.outputs.storageAccountName
-    lustre_hsm_storage_container: 'lustre'
-    database_fqdn: create_database ? mySQLccsw.outputs.fqdn : ''
-    database_user: adminUsername
-    azure_environment: envNameToCloudMap[environment().name]
-    blob_storage_suffix: 'blob.${environment().suffixes.storage}' // blob.core.windows.net
-  },
-  {}
-)
+output resourceGroup string = resourceGroup
+output location string = location
+output storageAccountName string = ccswStorage.outputs.storageAccountName
+output computeSubnetID string = subnets.compute.id
+output publicKey string = publicKey
+output adminUsername string = adminUsername
+output keyVault object = {pword: pword}
+output subscriptionId string = subscription().subscriptionId
+output tenantId string = subscription().tenantId
+output databaseFQDN string = create_database ? mySQLccsw.outputs.fqdn : ''
+output azureEnvironment string = envNameToCloudMap[environment().name]
 
 output branch string = branch
-output project_version string = project_version
+output projectVersion string = projectVersion
