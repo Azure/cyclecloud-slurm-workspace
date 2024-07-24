@@ -65,6 +65,11 @@ Autoscale = $Autoscale
         # May be used to identify the ID in cluster-init scripts
         cluster.identities.default = $ManagedIdentity
 
+        # Monitoring
+        monitoring.enabled = $EnableMonitoring
+        monitoring.identity_client_id = $MonitoringClientId
+        monitoring.ingestion_endpoint = $MetricsIngestionEndpoint
+
         [[[cluster-init cyclecloud/slurm:default:3.0.7]]]
         Optional = true
 
@@ -873,6 +878,26 @@ Order = 20
         ParameterType = Boolean
         DefaultValue = false
 	
+    [[parameters Monitoring]]
+        [[[parameter EnableMonitoring]]]
+        Label = Enable Monitoring
+        DefaultValue = false
+        ParameterType = Boolean
+        Config.Label = Enable monitoring for Scheduler, Login and compute nodes
+
+        [[[parameter MonitoringClientId]]]
+        Label = Managed Identity Client ID
+        Description = Client ID of the Managed Identity with Monitoring Metrics Publisher role
+        DefaultValue = ''
+        ParameterType = String
+        Conditions.Excluded := EnableMonitoring isnt true
+
+        [[[parameter MetricsIngestionEndpoint]]]
+        Label = Metrics Ingestion Endpoint
+        Description = The Azure Monitor Workspace in which to push metrics
+        DefaultValue = ''
+        ParameterType = String
+        Conditions.Excluded := EnableMonitoring isnt true
 
     [[parameters Advanced Networking]]
 
