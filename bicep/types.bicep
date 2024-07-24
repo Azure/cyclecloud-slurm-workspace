@@ -153,3 +153,10 @@ type partitions_t = {
   hpc: hpc_t //if any property becomes optional, create a *_output_t type
   gpu: hpc_t //if any property becomes optional, create a *_output_t type
 }
+
+@export()
+type storedKey_t = {
+  id: string
+  location: string
+  name: string
+}

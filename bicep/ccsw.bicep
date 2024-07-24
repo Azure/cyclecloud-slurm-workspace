@@ -1,5 +1,4 @@
 targetScope = 'resourceGroup'
-//import {shared_filesystem_t, additional_filesystem_t, vnet_t, tags_t, slurmSettings_t, login_t, htc_t, hpc_t, htc_output_t} from './types.bicep'
 import * as types from './types.bicep'
 
 param location string = resourceGroup().location
@@ -13,7 +12,7 @@ param adminUsername string
 param adminPassword string
 //param adminKeyphrase string
 param adminSshPublicKey string
-param storedKey object
+param storedKey types.storedKey_t
 param ccVMSize string
 param resource_group string //
 param shared_filesystem types.shared_filesystem_t

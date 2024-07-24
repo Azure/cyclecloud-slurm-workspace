@@ -1,7 +1,5 @@
-//param location string
-//param useStoredKey bool
-param storedKey object
-
+import {storedKey_t} from './types.bicep'
+param storedKey storedKey_t
 
 //TODO: Add autogenerate public key logic via REST API call in uidefinition file
 /*

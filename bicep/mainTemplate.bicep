@@ -7,7 +7,7 @@ param adminUsername string
 param adminPassword string
 //param adminKeyphrase string
 param adminSshPublicKey string = '' 
-param storedKey object = {} //TODO: make type
+param storedKey types.storedKey_t = {id: '', location: '', name:''}
 param ccVMSize string
 param resource_group string
 param shared_filesystem types.shared_filesystem_t
