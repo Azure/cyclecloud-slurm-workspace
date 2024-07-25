@@ -13,7 +13,7 @@ type shared_nfs_existing_t = {
 type shared_anf_new_t = {
   type: 'anf-new'
   anfServiceTier: string
-  anfCapacityInBytes: int
+  anfCapacityInTiB: int
 }
 
 @discriminator('type')
@@ -23,7 +23,7 @@ type sharedFilesystem_t = shared_nfs_new_t | shared_nfs_existing_t | shared_anf_
 type additional_anf_new_t = {
   type: 'anf-new'
   anfServiceTier: string
-  anfCapacityInBytes: int
+  anfCapacityInTiB: int
   mountPath: string
   exportPath: string
 }
