@@ -16,8 +16,8 @@ def get_json_dict(file_name):
 def set_params(params, outputs):
     params['Region'] = outputs['location']['value']
     #params['Credentials']
-    if outputs['network']['value']['type'] == 'new':
-        subnetID = outputs['computeSubnetID']['value']
+    if outputs['vnet']['value']['type'] == 'new':
+        subnetID = outputs['vnet']['value']['computeSubnetId']
         subnet_toks = subnetID.split("/")
         if len(subnet_toks) >= 11:
             params['SubnetId'] = "/".join([subnet_toks[4], subnet_toks[8], subnet_toks[10]])
@@ -25,27 +25,27 @@ def set_params(params, outputs):
             print(f"Unexpected subnet id {subnetID} - passing as SubnetId directly instead of resource_group/vnet_name/subnet_name", file=sys.stderr)
             params['SubnetId'] = subnetID
     else:
-        params['SubnetId'] = '/'.join([outputs['ccswConfig']['value']['network']['vnet']['resourceGroup'], outputs['ccswConfig']['value']['network']['vnet']["name"], outputs['ccswConfig']['value']['network']['vnet']['subnets']['computeSubnet']])
+        params['SubnetId'] = '/'.join([outputs['vnet']['value']['rg'], outputs['vnet']['value']['name'], outputs['vnet']['value']['computeSubnetName']])
         
     #HTC
-    params['HTCMachineType'] = outputs['partitions']['value']['htc']['vmSize']
+    params['HTCMachineType'] = outputs['partitions']['value']['htc']['sku']
     params['MaxHTCExecuteNodeCount'] = int(outputs['partitions']['value']['htc']['maxNodes'])
     params['HTCImageName'] = outputs['partitions']['value']['htc']['image']
-    params['HTCUseLowPrio'] = outputs['partitions']['value']['htc']['use_spot']
+    params['HTCUseLowPrio'] = outputs['partitions']['value']['htc']['useSpot']
 
     #HPC
-    params['HPCMachineType'] = outputs['partitions']['value']['hpc']['vmSize']
+    params['HPCMachineType'] = outputs['partitions']['value']['hpc']['sku']
     params['MaxHPCExecuteNodeCount'] = int(outputs['partitions']['value']['hpc']['maxNodes'])
     params['HPCImageName'] = outputs['partitions']['value']['hpc']['image']
 
     #GPU
-    params['GPUMachineType'] = outputs['partitions']['value']['gpu']['vmSize']
+    params['GPUMachineType'] = outputs['partitions']['value']['gpu']['sku']
     params['MaxGPUExecuteNodeCount'] = int(outputs['partitions']['value']['gpu']['maxNodes'])
     params['GPUImageName'] = outputs['partitions']['value']['gpu']['image']
 
     #scheduler node
     #params['slurm'] #is this the slurm version??? no, so what is it?
-    params['SchedulerMachineType'] = outputs['schedulerNode']['value']['vmSize']
+    params['SchedulerMachineType'] = outputs['schedulerNode']['value']['sku']
     params['SchedulerImageName'] = outputs['schedulerNode']['value']['image']
     params['configuration_slurm_version'] = outputs['slurmSettings']['value']['version']
     # if outputs['slurmSettings']['value']['canUseSlurmHA']:
@@ -59,7 +59,7 @@ def set_params(params, outputs):
     #params['configuration_slurm_accounting_certificate_url']
 
     #login node(s)
-    params['loginMachineType'] = (outputs['loginNodes']['value']['vmSize']).strip()
+    params['loginMachineType'] = (outputs['loginNodes']['value']['sku']).strip()
     params['NumberLoginNodes'] = int(outputs['loginNodes']['value']['initialNodes'])
     params['LoginImageName'] = outputs['loginNodes']['value']['image']
     params['EnableNodeHealthChecks'] = outputs['slurmSettings']['value']['healthCheckEnabled']

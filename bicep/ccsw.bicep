@@ -21,7 +21,7 @@ param network types.vnet_t = {
   type: 'new'
   addressSpace: '10.0.0.0/24'
 }
-param slurmSettings types.slurmSettings_t = { version: '23.11.7-1', healthCheckEnabled: false}
+param slurmSettings types.slurmSettings_t = { version: '23.11.7-1', healthCheckEnabled: false }
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
 param htc types.htc_t
@@ -69,11 +69,6 @@ module ccswNetwork './network-new.bicep' = if (create_new_vnet) {
   }
 }
 
-var vnetOutput = create_new_vnet ? ccswNetwork.outputs.vnetCCSW : {
-  id: network.id
-  name: network.name
-}
-
 var subnets = create_new_vnet
   ? ccswNetwork.outputs.subnetsCCSW
   : {
@@ -83,7 +78,20 @@ var subnets = create_new_vnet
       additional: { id: join([network.?id, 'subnets', network.?additionalFilerSubnet ?? 'null'], '/') }
     }
 
-output vnet types.rsc_t = vnetOutput
+output vnet types.networkOutput_t = union(
+  create_new_vnet
+    ? ccswNetwork.outputs.vnetCCSW
+    : {
+        id: network.?existing_vnet_id
+        name: network.?name
+        rg: split(network.?existing_vnet_id, '/')[4]
+      },
+  {
+    type: network.type
+    computeSubnetName: network.?computeSubnet ?? 'ccsw-compute-subnet'
+    computeSubnetId: subnets.compute.id
+  }
+)
 
 var deploy_bastion = network.?bastion ?? false
 module ccswBastion './bastion.bicep' = if (deploy_bastion) {
@@ -99,65 +107,64 @@ module ccswBastion './bastion.bicep' = if (deploy_bastion) {
 param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.6.220240605'
 
 var vmName = 'ccsw-cyclecloud'
-module ccswVM './vm.bicep' =  if (!infrastructureOnly) {
-    name: 'ccswVM-cyclecloud'
-    params: {
-      location: location
-      tags: getTags('Microsoft.Compute/virtualMachines', tags)
-      networkInterfacesTags: getTags('Microsoft.Network/networkInterfaces', tags)
-      name: vmName
-      deployScript: loadTextContent('./install.sh')
-      osDiskSku: 'StandardSSD_LRS'
-      image: {
-        plan: cyclecloudBaseImage
-        ref: contains(cyclecloudBaseImage, '/')
-          ? {
-              id: cyclecloudBaseImage
-            }
-          : {
-              publisher: split(cyclecloudBaseImage, ':')[0]
-              offer: split(cyclecloudBaseImage, ':')[1]
-              sku: split(cyclecloudBaseImage, ':')[2]
-              version: split(cyclecloudBaseImage, ':')[3]
-            }
+module ccswVM './vm.bicep' = if (!infrastructureOnly) {
+  name: 'ccswVM-cyclecloud'
+  params: {
+    location: location
+    tags: getTags('Microsoft.Compute/virtualMachines', tags)
+    networkInterfacesTags: getTags('Microsoft.Network/networkInterfaces', tags)
+    name: vmName
+    deployScript: loadTextContent('./install.sh')
+    osDiskSku: 'StandardSSD_LRS'
+    image: {
+      plan: cyclecloudBaseImage
+      ref: contains(cyclecloudBaseImage, '/')
+        ? {
+            id: cyclecloudBaseImage
+          }
+        : {
+            publisher: split(cyclecloudBaseImage, ':')[0]
+            offer: split(cyclecloudBaseImage, ':')[1]
+            sku: split(cyclecloudBaseImage, ':')[2]
+            version: split(cyclecloudBaseImage, ':')[3]
+          }
+    }
+    subnetId: subnets.cyclecloud.id
+    adminUser: adminUsername
+    adminSshPublicKey: publicKey
+    vmSize: ccVMSize
+    dataDisks: [
+      {
+        name: 'ccsw-cyclecloud-vm-datadisk0'
+        disksku: 'Premium_LRS'
+        size: split(cyclecloudBaseImage, ':')[0] == 'azurecyclecloud' ? 0 : 128
+        caching: 'ReadWrite'
+        createOption: split(cyclecloudBaseImage, ':')[0] == 'azurecyclecloud' ? 'FromImage' : 'Empty'
       }
-      subnetId: subnets.cyclecloud.id 
-      adminUser: adminUsername
-      adminSshPublicKey: publicKey
-      vmSize: ccVMSize
-      dataDisks: [
-        {
-          name: 'ccsw-cyclecloud-vm-datadisk0'
-          disksku: 'Premium_LRS'
-          size: split(cyclecloudBaseImage, ':')[0] == 'azurecyclecloud' ? 0 : 128
-          caching: 'ReadWrite'
-          createOption: split(cyclecloudBaseImage, ':')[0] == 'azurecyclecloud' ? 'FromImage' : 'Empty'
-        }
-      ]
-
-    }
-    dependsOn: [
-      ccswNetwork
     ]
   }
+  dependsOn: [
+    ccswNetwork
+  ]
+}
 
-module ccswRolesAssignments './roleAssignments.bicep' =  if (!infrastructureOnly) {
-    name: 'ccswRoleFor-${vmName}-${location}'
-    scope: subscription()
-    params: {
-      name: vmName
-      rgID: az.resourceGroup().id
-      roles: [
-        'Contributor'
-        'Storage Account Contributor'
-        'Storage Blob Data Contributor'
-      ]
-      principalId: ccswVM.outputs.principalId
-    }
-    dependsOn: [
-      ccswVM
+module ccswRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
+  name: 'ccswRoleFor-${vmName}-${location}'
+  scope: subscription()
+  params: {
+    name: vmName
+    rgID: az.resourceGroup().id
+    roles: [
+      'Contributor'
+      'Storage Account Contributor'
+      'Storage Blob Data Contributor'
     ]
+    principalId: ccswVM.outputs.principalId
   }
+  dependsOn: [
+    ccswVM
+  ]
+}
 
 module ccswStorage './storage.bicep' = {
   name: 'ccswStorage'
@@ -181,7 +188,7 @@ module mySQLccsw './mysql.bicep' = if (create_database) {
     Name: db_name
     adminUser: adminUsername
     adminPassword: databaseAdminPassword
-    subnetId: subnets.database.id 
+    subnetId: subnets.database.id
   }
 }
 
@@ -202,7 +209,7 @@ module ccswAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
 }
 
 module ccswANF 'anf.bicep' = [
-  for filer in items({home: sharedFilesystem, additional: additionalFilesystem}): if (filer.value.type == 'anf-new') {
+  for filer in items({ home: sharedFilesystem, additional: additionalFilesystem }): if (filer.value.type == 'anf-new') {
     name: 'ccswANF-${filer.key}'
     params: {
       location: location
@@ -226,7 +233,9 @@ output filerInfoFinal types.filerInfo_t = {
     nfsCapacityInGb: sharedFilesystem.?nfsCapacityInGb ?? -1
     ipAddress: sharedFilesystem.type == 'anf-new' ? ccswANF[1].outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
     exportPath: sharedFilesystem.type == 'anf-new' ? ccswANF[1].outputs.exportPath : sharedFilesystem.?exportPath ?? ''
-    mountOptions: sharedFilesystem.type == 'anf-new' ? ccswANF[1].outputs.mountOptions : sharedFilesystem.?mountOptions ?? ''
+    mountOptions: sharedFilesystem.type == 'anf-new'
+      ? ccswANF[1].outputs.mountOptions
+      : sharedFilesystem.?mountOptions ?? ''
     mountPath: '/shared'
   }
   additional: {
@@ -272,10 +281,9 @@ var pword = split('foo-${adminPassword}-foo', '-')[1] //workaround linter & arm-
 output resourceGroup string = resourceGroup
 output location string = location
 output storageAccountName string = ccswStorage.outputs.storageAccountName
-output computeSubnetID string = subnets.compute.id
 output publicKey string = publicKey
 output adminUsername string = adminUsername
-output keyVault object = {pword: pword}
+output keyVault object = { pword: pword }
 output subscriptionId string = subscription().subscriptionId
 output tenantId string = subscription().tenantId
 output databaseFQDN string = create_database ? mySQLccsw.outputs.fqdn : ''
