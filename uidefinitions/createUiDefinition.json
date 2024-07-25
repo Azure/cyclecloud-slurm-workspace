@@ -296,7 +296,7 @@
                 "label": "Capacity",
                 "toolTip": "Capacity of the Azure NetApp Files volume.",
                 "subLabel": "TiB",
-                "defaultValue": 4,
+                "defaultValue": "4",
                 "constraints": {
                   "required": true,
                   "regex": "^(?:[1-9]\\d{0,2}|1000)$",
@@ -310,9 +310,7 @@
                 "label": "Capacity",
                 "toolTip": "Capacity of the NFS volume.",
                 "subLabel": "GB",
-                "defaultValue": 1024,
-                "min": 100,
-                "max": 102400,
+                "defaultValue": "1024",
                 "constraints": {
                   "required": true,
                   "regex": "^(100|10[0-1]\\d{3}|[1-9]\\d{2}|[1-9]\\d{3}|[1-9]\\d{4}|102400)$",
@@ -489,7 +487,7 @@
                 "label": "Capacity",
                 "toolTip": "Capacity of the Azure NetApp Files volume.",
                 "subLabel": "TiB",
-                "defaultValue": 4,
+                "defaultValue": "4",
                 "constraints": {
                   "required": true,
                   "regex": "^(?:[1-9]\\d{0,2}|1000)$",
@@ -547,7 +545,7 @@
                 "label": "Capacity",
                 "toolTip": "Capacity of the Azure Managed Lustre volume.",
                 "subLabel": "TiB",
-                "defaultValue": 48,
+                "defaultValue": "48",
                 "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]",
                 "constraints": {
                   "required": true,
@@ -1007,7 +1005,7 @@
                 "name": "initialNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Initial number of login nodes",
-                "defaultValue": 1,
+                "defaultValue": "1",
                 "toolTip": "Enter a number between 0 and 1000",
                 "constraints": {
                   "required": true,
@@ -1020,7 +1018,7 @@
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Max number of nodes",
-                "defaultValue": 1,
+                "defaultValue": "1",
                 "toolTip": "Enter a number between 1 and 1000",
                 "constraints": {
                   "required": true,
@@ -1082,7 +1080,7 @@
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Max number of nodes",
-                "defaultValue": 100,
+                "defaultValue": "100",
                 "toolTip": "Enter an integer between 1 and 1000",
                 "constraints": {
                   "required": true,
@@ -1155,7 +1153,7 @@
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Max number of nodes",
-                "defaultValue": 100,
+                "defaultValue": "100",
                 "toolTip": "Enter an integer between 1 and 1000",
                 "constraints": {
                   "required": true,
@@ -1231,7 +1229,7 @@
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Max number of nodes",
-                "defaultValue": 100,
+                "defaultValue": "100",
                 "toolTip": "Enter an integer between 1 and 1000",
                 "constraints": {
                   "required": true,
@@ -1314,7 +1312,7 @@
       "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
       "sharedFilesystem": {
         "type": "[concat(if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs'),'-',steps('filesystem').shared.newexisting)]",
-        "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),steps('filesystem').shared.nfscapacity,basics('nullValue'))]",
+        "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),int(steps('filesystem').shared.nfscapacity),basics('nullValue'))]",
         "anfServiceTier": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anfcapacity,basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,basics('nullValue'))]",
@@ -1326,7 +1324,7 @@
         "anfServiceTier": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anfcapacity,basics('nullValue'))]",
         "lustreTier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,basics('nullValue'))]",
-        "lustreCapacityInTib": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.azurelustrecapacity,basics('nullValue'))]",
+        "lustreCapacityInTib": "[if(equals(steps('filesystem').additional.filertype,'aml'),int(steps('filesystem').additional.azurelustrecapacity),basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.ipAddress,basics('nullValue'))]",
         "mountPath": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountPath, basics('nullValue'))]",
         "exportPath": "[if(or(and(equals(steps('filesystem').additional.filertype, 'anf'),equals(steps('filesystem').additional.newexisting,'new')),and(equals(steps('filesystem').additional.filertype, 'nfs'),equals(steps('filesystem').additional.newexisting,'existing'))), steps('filesystem').additional.exportPath,basics('nullValue'))]",
@@ -1358,23 +1356,23 @@
       "loginNodes": {
         "sku": "[steps('scheduler').loginNodesSection.vmsize]",
         "image": "[steps('scheduler').loginNodesSection.ImageName]",
-        "initialNodes": "[steps('scheduler').loginNodesSection.initialNodes]",
-        "maxNodes": "[steps('scheduler').loginNodesSection.maxNodes]"
+        "initialNodes": "[int(steps('scheduler').loginNodesSection.initialNodes)]",
+        "maxNodes": "[int(steps('scheduler').loginNodesSection.maxNodes)]"
       },
       "htc": {
         "sku": "[steps('slurmSettings').HTCSection.vmsize]",
-        "maxNodes": "[steps('slurmSettings').HTCSection.maxNodes]",
+        "maxNodes": "[int(steps('slurmSettings').HTCSection.maxNodes)]",
         "image": "[steps('slurmSettings').HTCSection.ImageName]",
         "useSpot": "[steps('slurmSettings').HTCSection.spotHTC]"
       },
       "hpc": {
         "sku": "[steps('slurmSettings').HPCSection.vmsize]",
-        "maxNodes": "[steps('slurmSettings').HPCSection.maxNodes]",
+        "maxNodes": "[int(steps('slurmSettings').HPCSection.maxNodes)]",
         "image": "[steps('slurmSettings').HPCSection.ImageName]"
       },
       "gpu": {
         "sku": "[steps('slurmSettings').GPUSection.vmsize]",
-        "maxNodes": "[steps('slurmSettings').GPUSection.maxNodes]",
+        "maxNodes": "[int(steps('slurmSettings').GPUSection.maxNodes)]",
         "image": "[steps('slurmSettings').GPUSection.ImageName]"
       },
       "tags": "[steps('tags').tagsByResource]"
