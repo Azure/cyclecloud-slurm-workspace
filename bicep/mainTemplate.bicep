@@ -1,39 +1,39 @@
 targetScope = 'subscription'
+import * as types from './types.bicep'
 
 param location string
-param infrastructureOnly bool = false
-
 param adminUsername string
 @secure()
 param adminPassword string
 //param adminKeyphrase string
-param adminSshPublicKey string = ''
-
-//cc vm parameters
+param adminSshPublicKey string = '' 
+param storedKey types.storedKey_t = {id: 'foo', location: 'foo', name:'foo'}
 param ccVMSize string
-
-param ccswConfig object
-
-//force parameter files to work
-param autogenerateSecrets bool
-param useEnteredKey bool 
-param useStoredKey bool
-param storedKey object = {}
+param resourceGroup string
+param sharedFilesystem types.sharedFilesystem_t
+param additionalFilesystem types.additionalFilesystem_t 
+param network types.vnet_t
+param slurmSettings types.slurmSettings_t
+param schedulerNode types.scheduler_t
+param loginNodes types.login_t
+param htc types.htc_t
+param hpc types.hpc_t
+param gpu types.hpc_t
+param tags types.resource_tags_t 
 @secure()
-param databaseAdminPassword string
+param databaseAdminPassword string = ''
+
+param infrastructureOnly bool = false
 
 // build.sh will override this, but for development please set this yourself as a parameter
 param branch string = 'main'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
-param project_version string = '2024.06.06'
-
-//param databaseAdminKeyphrase string
-param trash_for_arm_ttk object
+param projectVersion string = '2024.06.06'
 
 resource ccswResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
-  name: ccswConfig.resource_group
-  location: ccswConfig.location
-  tags: contains(ccswConfig.tags, 'Microsoft.Resources/resourceGroups') ? ccswConfig.tags['Microsoft.Resources/resourceGroups'] : {}
+  name: resourceGroup
+  location: location
+  tags: tags[?'Microsoft.Resources/resourceGroups'] ?? {}
 }
 
 module makeCCSWresources 'ccsw.bicep' = {
@@ -45,15 +45,21 @@ module makeCCSWresources 'ccsw.bicep' = {
     adminUsername: adminUsername
     adminPassword: adminPassword
     adminSshPublicKey: adminSshPublicKey
-    autogenerateSecrets: autogenerateSecrets
-    useEnteredKey: useEnteredKey
-    useStoredKey: useStoredKey
+    sharedFilesystem: sharedFilesystem
+    additionalFilesystem: additionalFilesystem
+    network: network
+    slurmSettings: slurmSettings
+    schedulerNode: schedulerNode
+    loginNodes: loginNodes
+    htc: htc
+    hpc: hpc
+    gpu: gpu
     storedKey: storedKey
     ccVMSize: ccVMSize
-    ccswConfig: ccswConfig
+    resourceGroup: resourceGroup
+    tags: tags
     databaseAdminPassword: databaseAdminPassword
     branch: branch
-    project_version: project_version
-    trash_for_arm_ttk: trash_for_arm_ttk
+    projectVersion: projectVersion
   }
 }

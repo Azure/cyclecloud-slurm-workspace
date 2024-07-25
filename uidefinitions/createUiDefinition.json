@@ -47,17 +47,17 @@
         "visible": true
       },
       {
-				"name": "rgExisting",
-				"type": "Microsoft.Common.DropDown",
-				"label": "Resource group",
-				"toolTip": "Select or search for an existing resource group",
+        "name": "rgExisting",
+        "type": "Microsoft.Common.DropDown",
+        "label": "Resource group",
+        "toolTip": "Select or search for an existing resource group",
         "filter": true,
-				"constraints": {
-					"allowedValues": "[map(basics('rgApi').value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.name,'~',item.location, '\"}')))]",
-					"required": true
-				},
-				"visible": "[equals(basics('newexisting'),'existing')]"
-			},
+        "constraints": {
+          "allowedValues": "[map(basics('rgApi').value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.name,'~',item.location, '\"}')))]",
+          "required": true
+        },
+        "visible": "[equals(basics('newexisting'),'existing')]"
+      },
       {
         "name": "rgNew",
         "type": "Microsoft.Common.TextBox",
@@ -129,11 +129,11 @@
           "allowedValues": [
             {
               "label": "Use existing public key",
-              "value": 2
+              "value": "entered"
             },
             {
               "label": "Use key stored in Azure",
-              "value": 3
+              "value": "stored"
             }
           ],
           "required": true
@@ -145,11 +145,11 @@
         "label": "Admin SSH Public Key",
         "toolTip": "SSH-RSA Public Key for the Virtual Machines.",
         "constraints": {
-          "required": "[equals(basics('autogeneratePasswordsAndKeys'),2)]",
+          "required": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]",
           "regex": "^ssh-rsa AAAAB3NzaC1yc2[0-9A-Za-z+/]+[=]{0,3}(\\s.*)?$",
           "validationMessage": "Invalid ssh-rsa public key"
         },
-        "visible": "[equals(basics('autogeneratePasswordsAndKeys'),2)]"
+        "visible": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]"
       },
       {
         "name": "keySelector",
@@ -168,7 +168,15 @@
           "required": true,
           "validationMessage": "Please select a stored SSH key."
         },
-        "visible": "[equals(basics('autogeneratePasswordsAndKeys'),3)]"
+        "visible": "[equals(basics('autogeneratePasswordsAndKeys'),'stored')]"
+      },
+      {
+        "name": "nullValue",
+        "type": "Microsoft.Common.CheckBox",
+        "label": "Null Value",
+        "toolTip": "Null Value",
+        "defaultValue": false,
+        "visible": false
       }
     ],
     "steps": [
@@ -440,7 +448,6 @@
                   "text": "NetApp Resource Provider must be registered for your subscription."
                 }
               },
-              
               {
                 "name": "anfInfoBoxSlurmHA",
                 "type": "Microsoft.Common.InfoBox",
@@ -540,7 +547,7 @@
                 "label": "Capacity",
                 "toolTip": "Capacity of the Azure Managed Lustre volume.",
                 "subLabel": "TiB",
-                "defaultValue": "48",
+                "defaultValue": 48,
                 "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]",
                 "constraints": {
                   "required": true,
@@ -791,17 +798,6 @@
                 "visible": "[equals(steps('networking').newexisting,'new')]"
               },
               {
-                "name": "bastionsubnet",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Select subnet for Bastion",
-                "toolTip": "Select subnet for Bastion",
-                "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
-                  "required": true
-                },
-                "visible": false
-              },
-              {
                 "name": "natgateway",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Create a NAT Gateway",
@@ -1011,7 +1007,7 @@
                 "name": "initialNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Initial number of login nodes",
-                "defaultValue": "1",
+                "defaultValue": 1,
                 "toolTip": "Enter a number between 0 and 1000",
                 "constraints": {
                   "required": true,
@@ -1024,7 +1020,7 @@
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Max number of nodes",
-                "defaultValue": "1",
+                "defaultValue": 1,
                 "toolTip": "Enter a number between 1 and 1000",
                 "constraints": {
                   "required": true,
@@ -1086,7 +1082,7 @@
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Max number of nodes",
-                "defaultValue": "100",
+                "defaultValue": 100,
                 "toolTip": "Enter an integer between 1 and 1000",
                 "constraints": {
                   "required": true,
@@ -1159,7 +1155,7 @@
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Max number of nodes",
-                "defaultValue": "100",
+                "defaultValue": 100,
                 "toolTip": "Enter an integer between 1 and 1000",
                 "constraints": {
                   "required": true,
@@ -1235,7 +1231,7 @@
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Max number of nodes",
-                "defaultValue": "100",
+                "defaultValue": 100,
                 "toolTip": "Enter an integer between 1 and 1000",
                 "constraints": {
                   "required": true,
@@ -1312,116 +1308,76 @@
       "location": "[location()]",
       "adminUsername": "[basics('adminUser')]",
       "adminPassword": "[basics('adminPasswordBox')]",
-      "autogenerateSecrets": "[equals(basics('autogeneratePasswordsAndKeys'),1)]",
-      "useEnteredKey": "[equals(basics('autogeneratePasswordsAndKeys'),2)]",
-      "adminSshPublicKey": "[basics('adminSshPublicKey')]",
-      "useStoredKey": "[equals(basics('autogeneratePasswordsAndKeys'),3)]",
-      "storedKey": "[basics('keySelector')]",
+      "adminSshPublicKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
+      "storedKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'stored'),basics('keySelector'),basics('nullValue'))]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
-      "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,'foo')]",
-      "ccswConfig": {
-        "resource_group": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
-        "location": "[if(equals(basics('newexisting'),'existing'),last(split(basics('rgExisting'),'~')),location())]",
-        "filesystem": {
-          "shared": {
-            "create_new": "[equals(steps('filesystem').shared.newexisting,'new')]",
-            "config": {
-              "filertype": "[if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs')]",
-              "nfs_capacity_in_gb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),steps('filesystem').shared.nfscapacity,-1)]",
-              "anf_service_tier": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,'')]",
-              "anf_capacity_in_bytes": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anfcapacity,-1)]",
-              "ip_address": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,'')]",
-              "export_path": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,'')]",
-              "mount_options": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.mountOptions,'')]"
-            }
-          },
-          "additional": {
-            "additional_filer": "[steps('filesystem').additionalCheck.checkbox]",
-            "create_new": "[equals(steps('filesystem').additional.newexisting,'new')]",
-            "config": {
-              "filertype": "[if(steps('filesystem').additionalCheck.checkbox,steps('filesystem').additional.filertype,'')]",
-              "anf_service_tier": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,'')]",
-              "anf_capacity_in_bytes": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anfcapacity,-1)]",
-              "lustre_tier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,'')]",
-              "lustre_capacity_in_tib": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.azurelustrecapacity,-1)]",
-              "ip_address": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.ipAddress,'')]",
-              "mount_path": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountPath, '')]",
-              "export_path": "[if(and(not(equals(steps('filesystem').additional.filertype, 'aml')),equals(steps('filesystem').additional.newexisting,'existing')), steps('filesystem').additional.exportPath,'')]",
-              "mount_options": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountOptions, '')]"
-            }
-          }
-        },
-        "network": {
-          "create_nsg": "[equals(steps('networking').newexisting,'new')]",
-          "vnet": {
-            "create": "[equals(steps('networking').newexisting,'new')]",
-            "name": "[if(equals(steps('networking').newexisting,'new'),'hpc-vnet',steps('networking').networkSettings.networkSelector.name)]",
-            "address_space": "[if(equals(steps('networking').newexisting,'new'),concat(steps('networking').networkSettings.baseIpAddress,steps('networking').networkSettings.cidrPrefix),'foo')]",
-            "id": "[if(equals(steps('networking').newexisting,'new'),'foo',steps('networking').networkSettings.networkSelector.id)]",
-            "subnets": {
-              "cyclecloudSubnet": "[if(equals(steps('networking').newexisting,'new'),'hpc-cyclecloud-subnet',steps('networking').networkSettings.ccsubnet)]",
-              "computeSubnet": "[if(equals(steps('networking').newexisting,'new'),'hpc-compute-subnet',steps('networking').networkSettings.computesubnet)]",
-              "filerSubnet1": "[if(equals(steps('networking').newexisting,'new'),'foo',steps('networking').networkSettings.filersubnet1)]",
-              "filerSubnet2": "[if(equals(steps('networking').newexisting,'new'),'foo',if(not(steps('filesystem').additionalCheck.checkbox),'foo',steps('networking').networkSettings.filersubnet2))]",
-              "bastionSubnet": "[if(equals(steps('networking').newexisting,'new'),'AzureBastionSubnet',if(steps('networking').networkSettings.bastion,steps('networking').networkSettings.bastionsubnet,''))]"
-            },
-            "bastion": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.bastion,false)]",
-            "peering": {
-              "enabled": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.peering,false)]",
-              "vnet": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,'')]",
-              "allowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,false)]"
-            },
-            "create_natgateway": "[if(not(equals(steps('networking').newexisting,'new')),false,steps('networking').networkSettings.natgateway)]"
-          }
-        },
-        "slurm_settings": {
-          "health_check": "[steps('scheduler').healthCheck]",
-          "scheduler_node": {
-            "schedulerVMSize": "[steps('scheduler').schedulerSection.vmsize]",
-            "schedulerImage": "[steps('scheduler').schedulerSection.ImageName]",
-            "slurmVersion": "[steps('scheduler').schedulerSection.slurmVersion]",
-            "canUseSlurmHA": "[and(not(equals(steps('filesystem').shared.filertype,'anf')),not(equals(steps('filesystem').additional.filertype,'anf')))]",
-            "slurmHA": "[steps('scheduler').schedulerSection.slurmHA]",
-            "slurmAccounting": false
-          },
-          "login_nodes": {
-            "loginVMSize": "[steps('scheduler').loginNodesSection.vmsize]",
-            "loginImage": "[steps('scheduler').loginNodesSection.ImageName]",
-            "initialNodes": "[steps('scheduler').loginNodesSection.initialNodes]",
-            "maxNodes": "[steps('scheduler').loginNodesSection.maxNodes]",
-            "use_login_nodes": "[not(equals(steps('scheduler').loginNodesSection.initialNodes,0))]"
-          }
-        },
-        "partition_settings": {
-          "htc": {
-            "htcVMSize": "[steps('slurmSettings').HTCSection.vmsize]",
-            "maxNodes": "[steps('slurmSettings').HTCSection.maxNodes]",
-            "image": "[steps('slurmSettings').HTCSection.ImageName]",
-            "use_spot": "[steps('slurmSettings').HTCSection.spotHTC]"
-          },
-          "hpc": {
-            "hpcVMSize": "[steps('slurmSettings').HPCSection.vmsize]",
-            "maxNodes": "[steps('slurmSettings').HPCSection.maxNodes]",
-            "image": "[steps('slurmSettings').HPCSection.ImageName]",
-            "use_spot": "[steps('slurmSettings').HPCSection.spotHPC]"
-          },
-          "gpu": {
-            "gpuVMSize": "[steps('slurmSettings').GPUSection.vmsize]",
-            "maxNodes": "[steps('slurmSettings').GPUSection.maxNodes]",
-            "image": "[steps('slurmSettings').GPUSection.ImageName]",
-            "use_spot": "[steps('slurmSettings').GPUSection.spotGPU]"
-          }
-        },
-        "tags": "[steps('tags').tagsByResource]"
+      "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
+      "sharedFilesystem": {
+        "type": "[concat(if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs'),'-',steps('filesystem').shared.newexisting)]",
+        "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),steps('filesystem').shared.nfscapacity,basics('nullValue'))]",
+        "anfServiceTier": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,basics('nullValue'))]",
+        "anfCapacityInBytes": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anfcapacity,basics('nullValue'))]",
+        "ipAddress": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,basics('nullValue'))]",
+        "exportPath": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,basics('nullValue'))]",
+        "mountOptions": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.mountOptions,basics('nullValue'))]"
       },
-      "trash_for_arm_ttk": {
-        "foo": "bar",
-        "htcVMSize": "[steps('slurmSettings').HTCSection.vmsize]",
-        "hpcVMSize": "[steps('slurmSettings').HPCSection.vmsize]",
-        "gpuVMSize": "[steps('slurmSettings').GPUSection.vmsize]",
-        "schedulerVMSize": "[steps('scheduler').schedulerSection.vmsize]",
-        "loginVMSize": "[steps('scheduler').loginNodesSection.vmsize]"
-      }
+      "additionalFilesystem": {
+        "type": "[if(steps('filesystem').additionalCheck.checkbox,concat(steps('filesystem').additional.filertype,'-',steps('filesystem').additional.newexisting),'disabled')]",
+        "anfServiceTier": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,basics('nullValue'))]",
+        "anfCapacityInBytes": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anfcapacity,basics('nullValue'))]",
+        "lustreTier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,basics('nullValue'))]",
+        "lustreCapacityInTib": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.azurelustrecapacity,basics('nullValue'))]",
+        "ipAddress": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.ipAddress,basics('nullValue'))]",
+        "mountPath": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountPath, basics('nullValue'))]",
+        "exportPath": "[if(or(and(equals(steps('filesystem').additional.filertype, 'anf'),equals(steps('filesystem').additional.newexisting,'new')),and(equals(steps('filesystem').additional.filertype, 'nfs'),equals(steps('filesystem').additional.newexisting,'existing'))), steps('filesystem').additional.exportPath,basics('nullValue'))]",
+        "mountOptions": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountOptions, basics('nullValue'))]"
+      },
+      "network": {
+        "type": "[steps('networking').newexisting]",
+        "name": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.networkSelector.name)]",
+        "addressSpace": "[if(equals(steps('networking').newexisting,'new'),concat(steps('networking').networkSettings.baseIpAddress,steps('networking').networkSettings.cidrPrefix),basics('nullValue'))]",
+        "id": "[if(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.networkSelector.id,basics('nullValue'))]",
+        "cyclecloudSubnet": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.ccsubnet)]",
+        "computeSubnet": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.computesubnet)]",
+        "sharedFilerSubnet": "[if(equals(steps('filesystem').shared.filertype,'anf'),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.filersubnet1),basics('nullValue'))]",
+        "additionalFilerSubnet": "[if(and(steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new')),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.filersubnet2),basics('nullValue'))]",
+        "bastion": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.bastion,basics('nullValue'))]",
+        "createNatGateway": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.natgateway,basics('nullValue'))]",
+        "vnetToPeer": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,basics('nullValue'))]",
+        "peeringAllowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]"
+      },
+      "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
+      "slurmSettings": {
+        "version": "[steps('scheduler').schedulerSection.slurmVersion]",
+        "healthCheckEnabled": "[steps('scheduler').healthCheck]"
+      },
+      "schedulerNode": {
+        "sku": "[steps('scheduler').schedulerSection.vmsize]",
+        "image": "[steps('scheduler').schedulerSection.ImageName]"
+      },
+      "loginNodes": {
+        "sku": "[steps('scheduler').loginNodesSection.vmsize]",
+        "image": "[steps('scheduler').loginNodesSection.ImageName]",
+        "initialNodes": "[steps('scheduler').loginNodesSection.initialNodes]",
+        "maxNodes": "[steps('scheduler').loginNodesSection.maxNodes]"
+      },
+      "htc": {
+        "sku": "[steps('slurmSettings').HTCSection.vmsize]",
+        "maxNodes": "[steps('slurmSettings').HTCSection.maxNodes]",
+        "image": "[steps('slurmSettings').HTCSection.ImageName]",
+        "useSpot": "[steps('slurmSettings').HTCSection.spotHTC]"
+      },
+      "hpc": {
+        "sku": "[steps('slurmSettings').HPCSection.vmsize]",
+        "maxNodes": "[steps('slurmSettings').HPCSection.maxNodes]",
+        "image": "[steps('slurmSettings').HPCSection.ImageName]"
+      },
+      "gpu": {
+        "sku": "[steps('slurmSettings').GPUSection.vmsize]",
+        "maxNodes": "[steps('slurmSettings').GPUSection.maxNodes]",
+        "image": "[steps('slurmSettings').GPUSection.ImageName]"
+      },
+      "tags": "[steps('tags').tagsByResource]"
     }
   }
 }

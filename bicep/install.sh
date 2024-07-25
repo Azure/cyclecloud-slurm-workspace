@@ -107,10 +107,10 @@ wget -O cyclecloud_install.py $URI/cyclecloud_install.py
 (python3 create_cc_param.py) > slurm_params.json
 echo "Filework successful" 
 
-CYCLECLOUD_USERNAME=$(jq -r .ccswGlobalConfig.value.adminUsername ccswOutputs.json)
-CYCLECLOUD_PASSWORD=$(jq -r .ccswGlobalConfig.value.adminPassword ccswOutputs.json)
-CYCLECLOUD_USER_PUBKEY=$(jq -r .ccswGlobalConfig.value.publicKey ccswOutputs.json)
-CYCLECLOUD_STORAGE="$(jq -r .ccswGlobalConfig.value.global_cc_storage ccswOutputs.json)"
+CYCLECLOUD_USERNAME=$(jq -r .adminUsername.value ccswOutputs.json)
+CYCLECLOUD_PASSWORD=$(jq -r .keyVault.value.pword ccswOutputs.json)
+CYCLECLOUD_USER_PUBKEY=$(jq -r .publicKey.value ccswOutputs.json)
+CYCLECLOUD_STORAGE="$(jq -r .storageAccountName.value ccswOutputs.json)"
 python3 /opt/ccsw/cyclecloud_install.py --acceptTerms \
     --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
