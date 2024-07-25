@@ -7,10 +7,10 @@ param tags tags_t
 param resourcePostfix string = uniqueString(resourceGroup().id)
 param subnetId string
 param serviceLevel string
-param sizeGB int
+param sizeTiB int
 param defaultMountOptions string
 param infrastructureOnly bool = false
-var capacity = sizeGB * 1024 * 1024 * 1024 * 1024
+var capacity = sizeTiB * 1024 * 1024 * 1024 * 1024
 
 resource anfAccount 'Microsoft.NetApp/netAppAccounts@2023-07-01' = if(!infrastructureOnly){
   name: 'hpcanfaccount-${take(resourcePostfix,10)}'
