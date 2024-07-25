@@ -39,23 +39,21 @@ retry_command() {
 }
 read_os
 
-# echo "* apt updating"
-# retry_command "apt update"
-
-# replaces retry_command "./toolset/scripts/install.sh"
+echo "* Installing azcopy"
 curl -L -o /tmp/azcopy_linux.tar.gz 'https://aka.ms/downloadazcopy-v10-linux'
 tar xzf /tmp/azcopy_linux.tar.gz -C /tmp/ 
 mv /tmp/azcopy_linux*/azcopy /usr/local/bin/azcopy 
 rm -rf /tmp/azcopy_linux*
-# curl -L -o /usr/local/bin/yq 'https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64'
-# chmod a+x /usr/local/bin/yq
+
+echo "* Updating the system"
 if command -v apt; then
+    apt-mark hold cyclecloud8
+    apt-mark hold jetpack8
     retry_command "apt update -y"
     #apt install -y 
 else
-    retry_command "yum update -y"
+    retry_command "yum update -y --exclude=cyclecloud*"
     retry_command "yum install -y wget jq"
-    #yum install -y 
 fi
 printf "\n\n"
 printf "Applications installed\n"
@@ -92,6 +90,7 @@ done
 mkdir -p $ccsw_root/bin
 
 # FOR TESTING PURPOSES
+echo "* Extracting deployment output"
 pushd $ccsw_root
 az deployment group show -g $resource_group -n $deployment_name --query properties.outputs > ccswOutputs.json
 
