@@ -277,7 +277,7 @@ var securityRules = [ for rule in nsgRules : {
 }]
 //var asgNames = []
 
-var peeringEnabled = network.?vnetToPeer ?? false
+var peeringEnabled = contains(network,'vnetToPeer')
 var peeredVnetName = peeringEnabled ? network.?vnetToPeer.name : 'foo'
 var peeredVnetResourceGroup = peeringEnabled ? split(network.?vnetToPeer.id,'/')[4] : 'foo'
 var peeredVnetId = peeringEnabled ? network.?vnetToPeer.id : 'foo'

@@ -191,7 +191,7 @@ module ccswAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
     location: location
     tags: getTags('Microsoft.StorageCache/amlFileSystems', tags)
     name: 'ccsw-lustre'
-    subnetId: subnets.?additional.id
+    subnetId: subnets.?additional.id ?? ''
     sku: additionalFilesystem.?lustreTier
     capacity: additionalFilesystem.?lustreCapacityInTib
     infrastructureOnly: infrastructureOnly
@@ -223,7 +223,7 @@ module ccswANF 'anf.bicep' = [
 output filerInfoFinal types.filerInfo_t = {
   home: {
     type: sharedFilesystem.type
-    nfsCapacityInGb: sharedFilesystem.?nfsCapacityInGb ?? ''
+    nfsCapacityInGb: sharedFilesystem.?nfsCapacityInGb ?? -1
     ipAddress: sharedFilesystem.type == 'anf-new' ? ccswANF[1].outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
     exportPath: sharedFilesystem.type == 'anf-new' ? ccswANF[1].outputs.exportPath : sharedFilesystem.?exportPath ?? ''
     mountOptions: sharedFilesystem.type == 'anf-new' ? ccswANF[1].outputs.mountOptions : sharedFilesystem.?mountOptions ?? ''
@@ -252,7 +252,7 @@ output loginNodes types.login_t = loginNodes
 
 output partitions types.partitions_t = {
   htc: {
-    vmSize: htc.vmSize
+    sku: htc.sku
     maxNodes: htc.maxNodes
     image: htc.image
     useSpot: htc.?useSpot ?? false

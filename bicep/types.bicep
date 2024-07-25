@@ -115,19 +115,19 @@ type vnet_existing_t = {
 type vnet_t = vnet_autocreate_t | vnet_existing_t
 
 @export()
-type subnets_t = {
-  cyclecloud: string
-  compute: string
-  home: string?
-  additional: string?
-  bastion: string?
-  database: string?
-}
-
-@export()
 type rsc_t = {
   id: string 
   name: string
+}
+
+@export()
+type subnets_t = {
+  cyclecloud: rsc_t
+  compute: rsc_t
+  home: rsc_t?
+  additional: rsc_t?
+  bastion: rsc_t?
+  database: rsc_t?
 }
 
 @export()
@@ -148,13 +148,13 @@ type slurmSettings_t = {
 
 @export()
 type scheduler_t = {
-  vmSize: string
+  sku: string
   image: string
 }
 
 @export()
 type login_t = {
-  vmSize: string
+  sku: string
   image: string
   initialNodes: int
   maxNodes: int
@@ -162,7 +162,7 @@ type login_t = {
 
 @export()
 type htc_t = {
-  vmSize: string
+  sku: string
   image: string
   maxNodes: int
   useSpot: bool?
@@ -170,7 +170,7 @@ type htc_t = {
 
 @export()
 type htc_output_t = {
-  vmSize: string
+  sku: string
   image: string
   maxNodes: int
   useSpot: bool
@@ -178,7 +178,7 @@ type htc_output_t = {
 
 @export()
 type hpc_t = {
-  vmSize: string
+  sku: string
   image: string
   maxNodes: int
 }

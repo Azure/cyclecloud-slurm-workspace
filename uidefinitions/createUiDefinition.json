@@ -1349,31 +1349,31 @@
       "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
       "slurmSettings": {
         "version": "[steps('scheduler').schedulerSection.slurmVersion]",
-        "healthCheckEnabled": "[steps('scheduler').schedulerSection.healthCheck]"
+        "healthCheckEnabled": "[steps('scheduler').healthCheck]"
       },
       "schedulerNode": {
-        "vmSize": "[steps('scheduler').schedulerSection.vmsize]",
+        "sku": "[steps('scheduler').schedulerSection.vmsize]",
         "image": "[steps('scheduler').schedulerSection.ImageName]"
       },
       "loginNodes": {
-        "vmSize": "[steps('scheduler').loginNodesSection.vmsize]",
+        "sku": "[steps('scheduler').loginNodesSection.vmsize]",
         "image": "[steps('scheduler').loginNodesSection.ImageName]",
         "initialNodes": "[steps('scheduler').loginNodesSection.initialNodes]",
         "maxNodes": "[steps('scheduler').loginNodesSection.maxNodes]"
       },
       "htc": {
-        "vmSize": "[steps('slurmSettings').HTCSection.vmsize]",
+        "sku": "[steps('slurmSettings').HTCSection.vmsize]",
         "maxNodes": "[steps('slurmSettings').HTCSection.maxNodes]",
         "image": "[steps('slurmSettings').HTCSection.ImageName]",
         "useSpot": "[steps('slurmSettings').HTCSection.spotHTC]"
       },
       "hpc": {
-        "vmSize": "[steps('slurmSettings').HPCSection.vmsize]",
+        "sku": "[steps('slurmSettings').HPCSection.vmsize]",
         "maxNodes": "[steps('slurmSettings').HPCSection.maxNodes]",
         "image": "[steps('slurmSettings').HPCSection.ImageName]"
       },
       "gpu": {
-        "vmSize": "[steps('slurmSettings').GPUSection.vmsize]",
+        "sku": "[steps('slurmSettings').GPUSection.vmsize]",
         "maxNodes": "[steps('slurmSettings').GPUSection.maxNodes]",
         "image": "[steps('slurmSettings').GPUSection.ImageName]"
       },

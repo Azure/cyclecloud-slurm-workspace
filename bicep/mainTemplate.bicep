@@ -19,7 +19,7 @@ param loginNodes types.login_t
 param htc types.htc_t
 param hpc types.hpc_t
 param gpu types.hpc_t
-param tags types.tags_t 
+param tags types.resource_tags_t 
 @secure()
 param databaseAdminPassword string = ''
 
