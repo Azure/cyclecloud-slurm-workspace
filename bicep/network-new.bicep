@@ -354,6 +354,7 @@ func fetch_rsc_name(rscId string) string => last(split(rscId, '/'))
 func rsc_output(rsc object) types.rsc_t => {
   id: fetch_rsc_id(rsc.subscriptionId, rsc.resourceGroupName, rsc.resourceId)
   name: fetch_rsc_name(rsc.resourceId)
+  rg: rsc.resourceGroupName
 }
 
 resource subnetCycleCloud 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' existing = {

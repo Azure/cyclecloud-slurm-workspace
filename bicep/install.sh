@@ -95,7 +95,7 @@ pushd $ccsw_root
 az deployment group show -g $resource_group -n $deployment_name --query properties.outputs > ccswOutputs.json
 
 BRANCH=$(jq -r .branch.value ccswOutputs.json)
-PROJECT_VERSION=$(jq -r .project_version.value ccswOutputs.json)
+PROJECT_VERSION=$(jq -r .projectVersion.value ccswOutputs.json)
 URI="https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/$BRANCH/bicep/files-to-load"
 
 # we don't want slurm-workspace.txt.1 etc if someone reruns this script, so use -O to overwrite existing files

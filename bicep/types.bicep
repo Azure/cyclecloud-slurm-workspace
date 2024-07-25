@@ -118,6 +118,17 @@ type vnet_t = vnet_autocreate_t | vnet_existing_t
 type rsc_t = {
   id: string 
   name: string
+  rg: string
+}
+
+@export()
+type networkOutput_t = {
+  id: string
+  name: string
+  rg: string
+  type: string
+  computeSubnetName: string
+  computeSubnetId: string
 }
 
 @export()
