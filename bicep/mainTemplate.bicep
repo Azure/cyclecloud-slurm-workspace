@@ -33,7 +33,7 @@ param projectVersion string = '2024.06.06'
 resource ccswResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: resourceGroup
   location: location
-  tags: tags[?'Microsoft.Resources/resourceGroups'] ?? {}
+  tags: tags[?'Resource group'] ?? {}
 }
 
 module makeCCSWresources 'ccsw.bicep' = {

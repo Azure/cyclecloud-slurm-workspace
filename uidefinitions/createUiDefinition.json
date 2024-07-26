@@ -1293,10 +1293,10 @@
               "Microsoft.Network/virtualNetworks",
               "Microsoft.Network/networkSecurityGroups",
               "Microsoft.Network/natGateways",
-              "Microsoft.DBforMySQL/flexibleServers",
               "Microsoft.StorageCache/amlFileSystems",
               "Microsoft.NetApp/netAppAccounts",
-              "Microsoft.Network/bastionHosts"
+              "Microsoft.Network/bastionHosts",
+              "Resource group"
             ]
           }
         ]
