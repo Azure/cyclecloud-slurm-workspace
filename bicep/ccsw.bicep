@@ -217,7 +217,7 @@ module ccswANF 'anf.bicep' = [
       name: filer.key
       subnetId: subnets[filer.key].id
       serviceLevel: filer.value.anfServiceTier
-      sizeTiB: int(filer.value.anfCapacityInTiB)
+      sizeTiB: filer.value.anfCapacityInTiB
       defaultMountOptions: anfDefaultMountOptions
       infrastructureOnly: infrastructureOnly
     }
