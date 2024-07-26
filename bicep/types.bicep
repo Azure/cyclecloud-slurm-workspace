@@ -25,7 +25,6 @@ type additional_anf_new_t = {
   anfServiceTier: string
   anfCapacityInTiB: int
   mountPath: string
-  exportPath: string
 }
 
 type additional_nfs_existing_t = {

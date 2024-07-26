@@ -594,7 +594,7 @@
                   "regex": "^\/(?:[\\w-.]+\/)*[\\w-.]+$",
                   "validationMessage": "Must be an absolute path"
                 },
-                "visible": "[not(equals(steps('filesystem').additional.filertype, 'aml'))]"
+                "visible": "[equals(steps('filesystem').additional.newexisting, 'existing')]"
               },
               {
                 "name": "mountOptions",
@@ -1327,7 +1327,7 @@
         "lustreCapacityInTib": "[if(equals(steps('filesystem').additional.filertype,'aml'),int(steps('filesystem').additional.azurelustrecapacity),basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.ipAddress,basics('nullValue'))]",
         "mountPath": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountPath, basics('nullValue'))]",
-        "exportPath": "[if(or(and(equals(steps('filesystem').additional.filertype, 'anf'),equals(steps('filesystem').additional.newexisting,'new')),and(equals(steps('filesystem').additional.filertype, 'nfs'),equals(steps('filesystem').additional.newexisting,'existing'))), steps('filesystem').additional.exportPath,basics('nullValue'))]",
+        "exportPath": "[if(or(and(equals(steps('filesystem').additional.filertype, 'anf'),equals(steps('filesystem').additional.newexisting,'existing')),and(equals(steps('filesystem').additional.filertype, 'nfs'),equals(steps('filesystem').additional.newexisting,'existing'))), steps('filesystem').additional.exportPath,basics('nullValue'))]",
         "mountOptions": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountOptions, basics('nullValue'))]"
       },
       "network": {
