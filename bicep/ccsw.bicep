@@ -243,7 +243,9 @@ output filerInfoFinal types.filerInfo_t = {
     ipAddress: additionalFilesystem.type == 'anf-new'
       ? ccswANF[0].outputs.ipAddress
       : additionalFilesystem.type == 'aml-new' ? ccswAMLFS.outputs.ipAddress : additionalFilesystem.?ipAddress ?? ''
-    exportPath: additionalFilesystem.?exportPath ?? ''
+    exportPath: additionalFilesystem.type == 'anf-new'
+      ? ccswANF[0].outputs.exportPath
+      :additionalFilesystem.?exportPath ?? ''
     mountOptions: additionalFilesystem.type == 'anf-new'
       ? ccswANF[0].outputs.mountOptions
       : additionalFilesystem.?mountOptions ?? ''

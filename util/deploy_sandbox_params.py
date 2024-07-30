@@ -29,6 +29,7 @@ def main() -> None:
     parser.add_argument("-e", "--execute-vm-size")
     parser.add_argument("-v", "--cc-and-sched-vm-size", dest="vm_size")
     parser.add_argument("--dry-run", action="store_true", default=False)
+    parser.add_argument("-b", "--branch")
 
 
     args = parser.parse_args()
@@ -47,8 +48,15 @@ def main() -> None:
         second_octal = ord(suffix) - ord("a") + 1
         ui_params["network"]["value"]["addressSpace"] = f"10.{second_octal}.0.0/24"
 
-    branch =subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).decode().strip()
-    assert branch != "HEAD", "No headless checkouts allowed. If this is a tag, git checkout TAG -b TAG"
+    if args.branch:
+        branch = args.branch
+    else:
+        branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).decode().strip()
+        assert branch != "HEAD", "No headless checkouts allowed. If this is a tag, git checkout TAG -b TAG"
+        pushed_branches = subprocess.check_output(['git', 'branch', '-l']).decode().split()
+        if f'remotes/origin/{branch}' not in pushed_branches:
+            print(f"{branch} has not been pushed yet. Either push this branch, or pass in --branch main")
+            return
 
     ui_params['branch'] = {'value': branch}
 
