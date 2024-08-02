@@ -11,6 +11,9 @@ param networkInterfacesTags types.tags_t
 param subnetId string
 param adminUser string
 @secure()
+param adminPassword string
+@secure()
+param databaseAdminPassword string 
 param adminSshPublicKey string
 param vmSize string
 param dataDisks array
@@ -110,6 +113,23 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-11-01' = {
     )
   }
 }
+
+resource cse 'Microsoft.Compute/virtualMachines/extensions@2023-09-01' = {
+  name: '${name}-vm-customScriptExtension'
+  location: location
+  parent: virtualMachine
+  properties: {
+    publisher: 'Microsoft.Azure.Extensions'
+    type: 'CustomScript'
+    typeHandlerVersion: '2.0'
+    protectedSettings: {
+      commandToExecute: 'jq -n --arg adminPassword "${adminPassword}" --arg databaseAdminPassword "${databaseAdminPassword}" \'{adminPassword: $adminPassword, databaseAdminPassword: $databaseAdminPassword}\' > /root/ccsw.secrets.json'
+    }
+    
+  }
+}
+
+
 output fqdn string = '' //contains(vm, 'pip') && vm.pip ? publicIp.properties.dnsSettings.fqdn : ''
 output publicIp string = '' //contains(vm, 'pip') && vm.pip ? publicIp.properties.ipAddress : ''
 output privateIp string = nic.properties.ipConfigurations[0].properties.privateIPAddress

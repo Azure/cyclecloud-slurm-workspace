@@ -131,6 +131,8 @@ module ccswVM './vm.bicep' = if (!infrastructureOnly) {
     }
     subnetId: subnets.cyclecloud.id
     adminUser: adminUsername
+    adminPassword: adminPassword
+    databaseAdminPassword: databaseAdminPassword
     adminSshPublicKey: publicKey
     vmSize: ccVMSize
     dataDisks: [
