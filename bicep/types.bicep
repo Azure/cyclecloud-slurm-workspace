@@ -206,3 +206,9 @@ type storedKey_t = {
   location: string
   name: string
 }
+
+@export()
+type keyVaultPairs_t = {
+  ccswAdminPassword: string
+  ccswDatabaseAdminPassword: string?
+}
