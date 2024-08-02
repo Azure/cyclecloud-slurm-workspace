@@ -106,8 +106,9 @@ wget -O cyclecloud_install.py $URI/cyclecloud_install.py
 (python3 create_cc_param.py) > slurm_params.json
 echo "Filework successful" 
 
+KEYVAULT_NAME=$(jq -r .keyVault.value ccswOutputs.json)
 CYCLECLOUD_USERNAME=$(jq -r .adminUsername.value ccswOutputs.json)
-CYCLECLOUD_PASSWORD=$(jq -r .keyVault.value.pword ccswOutputs.json)
+CYCLECLOUD_PASSWORD=$(az keyvault secret show --vault-name "$KEYVAULT_NAME" --name ccswAdminPassword --query "value" -o tsv)
 CYCLECLOUD_USER_PUBKEY=$(jq -r .publicKey.value ccswOutputs.json)
 CYCLECLOUD_STORAGE="$(jq -r .storageAccountName.value ccswOutputs.json)"
 python3 /opt/ccsw/cyclecloud_install.py --acceptTerms \

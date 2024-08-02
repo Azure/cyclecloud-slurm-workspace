@@ -23,6 +23,8 @@ param tags types.resource_tags_t
 @secure()
 param databaseAdminPassword string = ''
 
+param userId string 
+
 param infrastructureOnly bool = false
 
 // build.sh will override this, but for development please set this yourself as a parameter
@@ -61,5 +63,6 @@ module makeCCSWresources 'ccsw.bicep' = {
     databaseAdminPassword: databaseAdminPassword
     branch: branch
     projectVersion: projectVersion
+    userId: userId
   }
 }

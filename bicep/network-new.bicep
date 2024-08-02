@@ -91,6 +91,7 @@ var vnet  = {
         nat_gateway: true
         service_endpoints: [
           'Microsoft.Storage'
+          'Microsoft.KeyVault'
         ]
         delegations: []
       }

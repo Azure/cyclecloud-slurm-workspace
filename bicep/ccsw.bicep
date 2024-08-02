@@ -30,6 +30,7 @@ param gpu types.hpc_t
 param tags types.resource_tags_t
 @secure()
 param databaseAdminPassword string
+param userId string
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
 
@@ -106,6 +107,34 @@ module ccswBastion './bastion.bicep' = if (deploy_bastion) {
 
 param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.6.320240719'
 
+// var kvPairs = union(
+//   [{
+//     name: 'ccsw-admin-password'
+//     value: adminPassword
+//   }], 
+//   create_database ? [{
+//     name: 'ccsw-database-password'
+//     value: databaseAdminPassword
+//   }] : []
+// )
+
+var kvPairs = union(
+  {ccswAdminPassword: adminPassword},
+  create_database ? {ccswDatabasePassword: databaseAdminPassword} : {}
+)
+
+module ccswKeyVault './keyvault.bicep' = if (!infrastructureOnly) {
+  name: 'ccswKeyVault'
+  params: {
+    location: location
+    kvName: 'ccsw-kv-${take(uniqueString(az.resourceGroup().id),16)}' 
+    subnetId: subnets.cyclecloud.id
+    keyvaultOwnerId: userId
+    lockDownNetwork: true //Restrict access to the storage account from compute and cyclecloud subnets
+    kvPairs: kvPairs
+  }
+}
+
 var vmName = 'ccsw-cyclecloud'
 module ccswVM './vm.bicep' = if (!infrastructureOnly) {
   name: 'ccswVM-cyclecloud'
@@ -148,7 +177,7 @@ module ccswVM './vm.bicep' = if (!infrastructureOnly) {
   ]
 }
 
-module ccswRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
+module ccswRoleAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
   name: 'ccswRoleFor-${vmName}-${location}'
   scope: subscription()
   params: {
@@ -158,6 +187,7 @@ module ccswRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly)
       'Contributor'
       'Storage Account Contributor'
       'Storage Blob Data Contributor'
+      'Key Vault Secrets User'
     ]
     principalId: ccswVM.outputs.principalId
   }
@@ -177,7 +207,7 @@ module ccswStorage './storage.bicep' = {
   }
 }
 
-var create_database = contains(slurmSettings, 'databaseAdminPassword')
+var create_database = databaseAdminPassword != ''
 var db_name = 'ccsw-mysqldb-${uniqueString(az.resourceGroup().id)}'
 
 module mySQLccsw './mysql.bicep' = if (create_database) {
@@ -278,14 +308,13 @@ var envNameToCloudMap = {
   AzureGermanCloud: 'AZUREGERMANCLOUD'
   AzureChinaCloud: 'AZURECHINACLOUD'
 }
-var pword = split('foo-${adminPassword}-foo', '-')[1] //workaround linter & arm-ttk
 
 output resourceGroup string = resourceGroup
 output location string = location
 output storageAccountName string = ccswStorage.outputs.storageAccountName
 output publicKey string = publicKey
 output adminUsername string = adminUsername
-output keyVault object = { pword: pword }
+output keyVault string = ccswKeyVault.outputs.keyvaultName
 output subscriptionId string = subscription().subscriptionId
 output tenantId string = subscription().tenantId
 output databaseFQDN string = create_database ? mySQLccsw.outputs.fqdn : ''

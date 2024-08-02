@@ -75,6 +75,22 @@
         "visible": "[equals(basics('newexisting'),'new')]"
       },
       {
+        "name": "objectId",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Object ID",
+        "toolTip": "Help text :)",
+        "constraints": {
+          "validations": [
+            {
+              "regex": "^.{1,}$",
+              "message": "Placeholder validation message: minimum length of 1."
+            }
+          ],
+          "required": true
+        },
+        "visible": true
+      },
+      {
         "name": "CycleCloudVmSize",
         "type": "Microsoft.Compute.SizeSelector",
         "label": "CycleCloud VM Size",
@@ -1306,6 +1322,7 @@
       "location": "[location()]",
       "adminUsername": "[basics('adminUser')]",
       "adminPassword": "[basics('adminPasswordBox')]",
+      "userId": "[basics('objectId')]",
       "adminSshPublicKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
       "storedKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'stored'),basics('keySelector'),basics('nullValue'))]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
