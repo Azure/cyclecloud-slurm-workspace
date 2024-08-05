@@ -97,6 +97,7 @@ az deployment group show -g $resource_group -n $deployment_name --query properti
 BRANCH=$(jq -r .branch.value ccswOutputs.json)
 PROJECT_VERSION=$(jq -r .projectVersion.value ccswOutputs.json)
 URI="https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/$BRANCH/bicep/files-to-load"
+SECRETS_FILE_PATH="/root/ccsw.secrets.json"
 
 # we don't want slurm-workspace.txt.1 etc if someone reruns this script, so use -O to overwrite existing files
 wget -O slurm-workspace.txt $URI/slurm-workspace.txt
@@ -104,10 +105,14 @@ wget -O create_cc_param.py $URI/create_cc_param.py
 wget -O initial_params.json $URI/initial_params.json
 wget -O cyclecloud_install.py $URI/cyclecloud_install.py
 (python3 create_cc_param.py) > slurm_params.json
+while [ ! -f "$SECRETS_FILE_PATH"]; do
+    echo "Waiting for VM to create secrets file..."
+    sleep 1
+done
 echo "Filework successful" 
 
 CYCLECLOUD_USERNAME=$(jq -r .adminUsername.value ccswOutputs.json)
-CYCLECLOUD_PASSWORD=$(jq -r .keyVault.value.pword ccswOutputs.json)
+CYCLECLOUD_PASSWORD=$(jq -r .adminPassword "$SECRETS_FILE_PATH")
 CYCLECLOUD_USER_PUBKEY=$(jq -r .publicKey.value ccswOutputs.json)
 CYCLECLOUD_STORAGE="$(jq -r .storageAccountName.value ccswOutputs.json)"
 python3 /opt/ccsw/cyclecloud_install.py --acceptTerms \
@@ -186,5 +191,7 @@ cyclecloud start_cluster ccsw
 echo "CC start_cluster successful"
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
 popd
+rm "$SECRETS_FILE_PATH"
+echo "Deleting secrets file"
 echo "exiting after install"
 exit 0
