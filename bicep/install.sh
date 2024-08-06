@@ -39,23 +39,21 @@ retry_command() {
 }
 read_os
 
-# echo "* apt updating"
-# retry_command "apt update"
-
-# replaces retry_command "./toolset/scripts/install.sh"
+echo "* Installing azcopy"
 curl -L -o /tmp/azcopy_linux.tar.gz 'https://aka.ms/downloadazcopy-v10-linux'
 tar xzf /tmp/azcopy_linux.tar.gz -C /tmp/ 
 mv /tmp/azcopy_linux*/azcopy /usr/local/bin/azcopy 
 rm -rf /tmp/azcopy_linux*
-# curl -L -o /usr/local/bin/yq 'https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64'
-# chmod a+x /usr/local/bin/yq
+
+echo "* Updating the system"
 if command -v apt; then
+    apt-mark hold cyclecloud8
+    apt-mark hold jetpack8
     retry_command "apt update -y"
     #apt install -y 
 else
-    retry_command "yum update -y"
+    retry_command "yum update -y --exclude=cyclecloud*"
     retry_command "yum install -y wget jq"
-    #yum install -y 
 fi
 printf "\n\n"
 printf "Applications installed\n"
@@ -92,12 +90,14 @@ done
 mkdir -p $ccsw_root/bin
 
 # FOR TESTING PURPOSES
+echo "* Extracting deployment output"
 pushd $ccsw_root
 az deployment group show -g $resource_group -n $deployment_name --query properties.outputs > ccswOutputs.json
 
 BRANCH=$(jq -r .branch.value ccswOutputs.json)
-PROJECT_VERSION=$(jq -r .project_version.value ccswOutputs.json)
+PROJECT_VERSION=$(jq -r .projectVersion.value ccswOutputs.json)
 URI="https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/$BRANCH/bicep/files-to-load"
+SECRETS_FILE_PATH="/root/ccsw.secrets.json"
 
 # we don't want slurm-workspace.txt.1 etc if someone reruns this script, so use -O to overwrite existing files
 wget -O slurm-workspace.txt $URI/slurm-workspace.txt
@@ -105,12 +105,16 @@ wget -O create_cc_param.py $URI/create_cc_param.py
 wget -O initial_params.json $URI/initial_params.json
 wget -O cyclecloud_install.py $URI/cyclecloud_install.py
 (python3 create_cc_param.py) > slurm_params.json
+while [ ! -f "$SECRETS_FILE_PATH"]; do
+    echo "Waiting for VM to create secrets file..."
+    sleep 1
+done
 echo "Filework successful" 
 
-CYCLECLOUD_USERNAME=$(jq -r .ccswGlobalConfig.value.adminUsername ccswOutputs.json)
-CYCLECLOUD_PASSWORD=$(jq -r .ccswGlobalConfig.value.adminPassword ccswOutputs.json)
-CYCLECLOUD_USER_PUBKEY=$(jq -r .ccswGlobalConfig.value.publicKey ccswOutputs.json)
-CYCLECLOUD_STORAGE="$(jq -r .ccswGlobalConfig.value.global_cc_storage ccswOutputs.json)"
+CYCLECLOUD_USERNAME=$(jq -r .adminUsername.value ccswOutputs.json)
+CYCLECLOUD_PASSWORD=$(jq -r .adminPassword "$SECRETS_FILE_PATH")
+CYCLECLOUD_USER_PUBKEY=$(jq -r .publicKey.value ccswOutputs.json)
+CYCLECLOUD_STORAGE="$(jq -r .storageAccountName.value ccswOutputs.json)"
 python3 /opt/ccsw/cyclecloud_install.py --acceptTerms \
     --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
@@ -187,5 +191,7 @@ cyclecloud start_cluster ccsw
 echo "CC start_cluster successful"
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
 popd
+rm "$SECRETS_FILE_PATH"
+echo "Deleting secrets file"
 echo "exiting after install"
 exit 0

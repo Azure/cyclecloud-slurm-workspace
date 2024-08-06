@@ -1,7 +1,8 @@
 targetScope = 'resourceGroup'
+import {tags_t} from './types.bicep'
 
 param location string
-param tags object
+param tags tags_t
 param name string
 param subnetId string
 @allowed([
@@ -19,7 +20,6 @@ The step sizes are dependent on the SKU.
 - AMLFS-Durable-Premium-500: 4TB
 ''')
 param capacity int
-param exportPath string
 param infrastructureOnly bool = false
 
 resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2023-05-01' = if (!infrastructureOnly){
@@ -40,9 +40,9 @@ resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2023-05-01' = if (!in
   }
 }
 
-// All fs modules must output ip_address, export_path and mount_options
-output ip_address string = infrastructureOnly ? '' : fileSystem.properties.clientInfo.mgsAddress
+// All fs modules must output ipAddress, exportPath and mountOptions
+output ipAddress string = infrastructureOnly ? '' : fileSystem.properties.clientInfo.mgsAddress
 // TODO we are fighting the chef cookbooks here by adding tcp:/lustrefs, as it simply prepends all paths
 // with tcp:/lustrefs
-output export_path string = exportPath
-output mount_options string = ''
+output exportPath string = '' //what should our placeholder be for new amlfs??
+output mountOptions string = ''

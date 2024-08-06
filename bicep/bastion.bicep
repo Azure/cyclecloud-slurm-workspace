@@ -1,10 +1,11 @@
 targetScope = 'resourceGroup'
+import {tags_t} from './types.bicep'
 
 param location string
-param tags object
+param tags tags_t
 param subnetId string
 
-resource bastionPip 'Microsoft.Network/publicIpAddresses@2022-07-01' = {
+resource bastionPip 'Microsoft.Network/publicIpAddresses@2023-06-01' = {
   name: 'bastion-pip'
   location: location
   tags: tags
@@ -16,7 +17,7 @@ resource bastionPip 'Microsoft.Network/publicIpAddresses@2022-07-01' = {
   }
 }
 
-resource bastionHost 'Microsoft.Network/bastionHosts@2022-07-01' = {
+resource bastionHost 'Microsoft.Network/bastionHosts@2023-06-01' = {
   name: 'bastion'
   location: location
   tags: tags

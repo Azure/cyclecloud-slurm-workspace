@@ -1,14 +1,16 @@
 targetScope = 'resourceGroup'
+import {tags_t} from './types.bicep'
 
 param name string
 param location string
-param tags object
+param tags tags_t
 param resourcePostfix string = uniqueString(resourceGroup().id)
 param subnetId string
 param serviceLevel string
-param sizeGB int
+param sizeTiB int
 param defaultMountOptions string
 param infrastructureOnly bool = false
+var capacity = sizeTiB * 1024 * 1024 * 1024 * 1024
 
 resource anfAccount 'Microsoft.NetApp/netAppAccounts@2023-07-01' = if(!infrastructureOnly){
   name: 'hpcanfaccount-${take(resourcePostfix,10)}'
@@ -22,7 +24,7 @@ resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2023-07-01' = if
   parent: anfAccount
   properties: {
     serviceLevel: serviceLevel
-    size: sizeGB * 1024 * 1024 * 1024 *1024
+    size: capacity
   }
 }
 
@@ -39,7 +41,7 @@ resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2023-0
     subnetId: subnetId
     protocolTypes: ['NFSv3']
     securityStyle: 'unix'
-    usageThreshold: sizeGB * 1024 * 1024 * 1024 *1024
+    usageThreshold: capacity
 
     exportPolicy: {
       rules: [
@@ -67,6 +69,6 @@ resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2023-0
 
 
 // Require fs_module outputs
-output ip_address string = infrastructureOnly ? '' :anfVolume.properties.mountTargets[0].ipAddress
-output export_path string = '/${name}-path'
-output mount_options string = defaultMountOptions
+output ipAddress string = infrastructureOnly ? '' :anfVolume.properties.mountTargets[0].ipAddress
+output exportPath string = '/${name}-path'
+output mountOptions string = defaultMountOptions
