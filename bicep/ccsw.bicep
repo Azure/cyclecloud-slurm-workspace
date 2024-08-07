@@ -30,6 +30,7 @@ param gpu types.hpc_t
 param tags types.resource_tags_t
 @secure()
 param databaseAdminPassword string
+param clusterName string
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
 
@@ -285,6 +286,7 @@ var pword = split('foo-${adminPassword}-foo', '-')[1] //workaround linter & arm-
 output resourceGroup string = resourceGroup
 output location string = location
 output storageAccountName string = ccswStorage.outputs.storageAccountName
+output clusterName string = clusterName
 output publicKey string = publicKey
 output adminUsername string = adminUsername
 output keyVault object = { pword: pword }

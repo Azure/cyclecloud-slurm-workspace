@@ -22,6 +22,7 @@ param gpu types.hpc_t
 param tags types.resource_tags_t 
 @secure()
 param databaseAdminPassword string = ''
+param clusterName string
 
 param infrastructureOnly bool = false
 
@@ -59,6 +60,7 @@ module makeCCSWresources 'ccsw.bicep' = {
     resourceGroup: resourceGroup
     tags: tags
     databaseAdminPassword: databaseAdminPassword
+    clusterName: clusterName
     branch: branch
     projectVersion: projectVersion
   }
