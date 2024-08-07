@@ -115,6 +115,7 @@ CYCLECLOUD_USERNAME=$(jq -r .adminUsername.value ccswOutputs.json)
 CYCLECLOUD_PASSWORD=$(jq -r .adminPassword "$SECRETS_FILE_PATH")
 CYCLECLOUD_USER_PUBKEY=$(jq -r .publicKey.value ccswOutputs.json)
 CYCLECLOUD_STORAGE="$(jq -r .storageAccountName.value ccswOutputs.json)"
+SLURM_CLUSTER_NAME=$(jq -r .clusterName.value ccswOutputs.json)
 python3 /opt/ccsw/cyclecloud_install.py --acceptTerms \
     --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
@@ -130,7 +131,7 @@ Value = "${vm_id}"
 
 AdType = "Application.Setting"
 Name = "distribution_method"
-Value = "ccsw"
+Value = "$SLURM_CLUSTER_NAME"
 EOF
 chown cycle_server:cycle_server /tmp/ccsw_site_id.txt
 chmod 664 /tmp/ccsw_site_id.txt
@@ -155,12 +156,12 @@ cycle_server start --wait
 # this will block until CC responds
 curl -k https://localhost
 
-cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=ccsw
+cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=$SLURM_CLUSTER_NAME
 echo "CC initialize successful"
 sleep 5
 cyclecloud import_template Slurm-Workspace -f slurm-workspace.txt
 echo "CC import template successful"
-cyclecloud create_cluster Slurm-Workspace ccsw -p slurm_params.json
+cyclecloud create_cluster Slurm-Workspace $SLURM_CLUSTER_NAME -p slurm_params.json
 echo "CC create_cluster successful"
 
 # ensure machine types are loaded ASAP
@@ -178,7 +179,7 @@ done
  FROM Cloud.Node
  INNER JOIN Azure.MachineType M 
  ON M.Name===MachineType && M.Location===Region
- WHERE ClusterName=="ccsw"' > /tmp/accel_network.txt
+ WHERE ClusterName=="$SLURM_CLUSTER_NAME"' > /tmp/accel_network.txt
  mv /tmp/accel_network.txt /opt/cycle_server/config/data
 
 # it usually takes less than 2 seconds, so before starting the longer timeouts, optimistically sleep.
@@ -187,7 +188,7 @@ echo Waiting for accelerated network records to be imported
 timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep 10; done'
 
 
-cyclecloud start_cluster ccsw
+cyclecloud start_cluster $SLURM_CLUSTER_NAME
 echo "CC start_cluster successful"
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
 popd
