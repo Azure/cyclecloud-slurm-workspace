@@ -280,14 +280,12 @@ var envNameToCloudMap = {
   AzureGermanCloud: 'AZUREGERMANCLOUD'
   AzureChinaCloud: 'AZURECHINACLOUD'
 }
-var pword = split('foo-${adminPassword}-foo', '-')[1] //workaround linter & arm-ttk
 
 output resourceGroup string = resourceGroup
 output location string = location
 output storageAccountName string = ccswStorage.outputs.storageAccountName
 output publicKey string = publicKey
 output adminUsername string = adminUsername
-output keyVault object = { pword: pword }
 output subscriptionId string = subscription().subscriptionId
 output tenantId string = subscription().tenantId
 output databaseFQDN string = create_database ? mySQLccsw.outputs.fqdn : ''
