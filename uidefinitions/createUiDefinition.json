@@ -853,8 +853,8 @@
             "toolTip": "Name of cluster in CycleCloud portal",
             "constraints": {
                 "required": true,
-                "regex": "^.{3,}$",
-                "validationMessage": "Cluster name must be at least 3 characters long."
+                "regex": "^[a-zA-Z0-9@_-]{3,}$",
+                "validationMessage": "Cluster name must be at least 3 characters long. Characters must be alphanumeric, @, -, or _."
             },
             "visible": true
           },

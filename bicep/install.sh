@@ -188,7 +188,7 @@ echo Waiting for accelerated network records to be imported
 timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep 10; done'
 
 
-cyclecloud start_cluster $SLURM_CLUSTER_NAME
+cyclecloud start_cluster "$SLURM_CLUSTER_NAME"
 echo "CC start_cluster successful"
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
 popd
