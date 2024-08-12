@@ -159,9 +159,7 @@
         "resourceType": "Microsoft.Compute/sshPublicKeys",
         "options": {
           "filter": {
-            "subscription": "onBasics",
-            "resourceGroup": "onBasics",
-            "location": "onBasics"
+            "subscription": "onBasics"
           }
         },
         "constraints": {
