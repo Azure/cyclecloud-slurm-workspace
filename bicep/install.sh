@@ -192,7 +192,7 @@ cyclecloud start_cluster "$SLURM_CLUSTER_NAME"
 echo "CC start_cluster successful"
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
 popd
-rm "$SECRETS_FILE_PATH"
+rm -f "$SECRETS_FILE_PATH"
 echo "Deleting secrets file"
 echo "exiting after install"
 exit 0
