@@ -843,6 +843,20 @@
         "label": "Slurm Settings",
         "elements": [
           {
+            "name": "clusterName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Cluster name",
+            "placeholder": "",
+            "defaultValue": "",
+            "toolTip": "Name of cluster in CycleCloud portal",
+            "constraints": {
+                "required": true,
+                "regex": "^[a-zA-Z0-9@_-]{3,}$",
+                "validationMessage": "Cluster name must be at least 3 characters long. Characters must be alphanumeric, @, -, or _."
+            },
+            "visible": true
+          },
+          {
             "name": "schedulerSection",
             "type": "Microsoft.Common.Section",
             "label": "Scheduler",
@@ -1343,6 +1357,7 @@
         "peeringAllowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]"
       },
       "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
+      "clusterName": "[steps('scheduler').clusterName]",
       "slurmSettings": {
         "version": "[steps('scheduler').schedulerSection.slurmVersion]",
         "healthCheckEnabled": "[steps('scheduler').healthCheck]"
