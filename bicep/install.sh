@@ -168,10 +168,16 @@ echo "CC create_cluster successful"
 cycle_server run_action 'Run:Application.Timer' -eq 'Name' 'plugin.azure.monitor_reference'
 
 # Wait for Azure.MachineType to be populated
-while ! (cycle_server execute 'select * from Azure.MachineType' | grep -q Standard); do
+while [ $(/opt/cycle_server/./cycle_server execute --format json '
+                        SELECT Name, M.Name as MachineType FROM Cloud.Node
+                        OUTER JOIN Azure.MachineType M
+                        ON  MachineType === M.Name &&
+                            Region === M.Location
+                        WHERE clustername=="ccsw"' | jq -r ".[] | select(.MachineType == null).Name" | wc -l) != 0 ]; do
     echo "Waiting for Azure.MachineType to be populated..."
     sleep 10
 done
+echo All Azure.MachineType records are loaded.
 
 # Enable accel networking on any nodearray that has a VM Size that supports it.
 /opt/cycle_server/./cycle_server execute \
