@@ -14,6 +14,8 @@ var create_lustre = additionalFilesystem.type == 'aml-new'
 var deploy_bastion = network.?bastion ?? false
 var create_database = false //update once MySQL capacity is available
 param natGatewayId string 
+param databaseConfig types.databaseConfig_t
+var create_private_endpoint = databaseConfig.type == 'privateEndpoint'
 
 //purpose: calculate 2^n for n between 0 and 3 or return 0 if n is -1, otherwise -1
 func pow2_or_0 (exp int) int => 
@@ -409,6 +411,42 @@ var subnets = union(
   create_database ? { database: subnet_database } : {}
 )
 
+resource database 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' existing = if (create_private_endpoint) {
+  name: databaseConfig.?dbInfo.name
+  scope: resourceGroup(split(databaseConfig.?dbInfo.id,'/')[4])
+}
+
+var privateEndpointName = 'ccsw-db-private-endpoint'
+
+resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-06-01' = if (create_private_endpoint) {
+  name: privateEndpointName
+  location: location
+  properties: {
+    subnet: {
+      id: subnetCompute.id
+    }
+    privateLinkServiceConnections: [
+      {
+        name: privateEndpointName
+        properties: {
+          privateLinkServiceId: database.id
+          groupIds: ['mysqlServer']
+        }
+      }
+    ]
+  }
+}
+
+// resource privateDnsZone 'Microsoft.Network/privateDnsZones@2023-06-01' = if (create_private_endpoint) {
+//   name: 'ccsw-db-privateDnsZone'
+//   location: 'global'
+//   properties: {}
+//   dependsOn: [
+//     virtualNetwork
+//   ]
+// }
+
 output nsgCCSW types.rsc_t = rsc_output(ccswCommonNsg)
 output vnetCCSW types.rsc_t = rsc_output(ccswVirtualNetwork)
 output subnetsCCSW types.subnets_t = subnets
+output databaseFQDN string = create_private_endpoint ? database.properties.fullyQualifiedDomainName : ''

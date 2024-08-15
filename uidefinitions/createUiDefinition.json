@@ -923,7 +923,7 @@
                 "name": "slurmAccounting",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Slurm job accounting",
-                "toolTip": "Select to enable Slurm job accounting in a managed mySQL instance",
+                "toolTip": "Select to enable Slurm job accounting in a managed MySQL instance",
                 "defaultValue": false,
                 "visible": true
               },
@@ -933,9 +933,22 @@
                 "visible": "[steps('scheduler').schedulerSection.slurmAccounting]",
                 "options": {
                   "icon": "Warning",
-                  "text": "CycleCloud Slurm Workspace currently only supports job accounting in existing mySQL instances. \nPlease visit the linked page to create a new mySQL instance prior to launching CycleCloud Slurm Workspace.",
+                  "text": "CycleCloud Slurm Workspace currently only supports job accounting in existing MySQL instances. \nPlease visit the linked page to create a new MySQL instance prior to launching CycleCloud Slurm Workspace.",
                   "uri": "https://portal.azure.com/#create/Microsoft.MySQLServer"
                 }
+              },
+              {
+                "name": "databaseUser",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Database user",
+                "defaultValue": "hpcdbadmin",
+                "toolTip": "Username of the Slurm accounting database admin",
+                "constraints": {
+                  "required": true,
+                  "regex": "^[a-zA-Z][a-zA-Z0-9_]{5,19}$",
+                  "validationMessage": "Enter a valid username"
+                },
+                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
               },
               {
                 "name": "databaseAdminPassword",
@@ -956,16 +969,77 @@
                 "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
               },
               {
+                "name": "dbConnection",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Connection options",
+                "placeholder": "",
+                "defaultValue": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'Direct: FQDN',if(equals(steps('networking').newexisting,'new'),'Private Endpoint',''))]",
+                "toolTip": "",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'Direct: FQDN','')]",
+                      "value": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'fqdn','')]"
+                    },
+                    {
+                      "label": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'Direct: Private IP','')]",
+                      "value": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'privateIp','')]"
+                    },
+                    {
+                      "label": "[if(equals(steps('networking').newexisting,'new'),'Private Endpoint','')]",
+                      "value": "[if(equals(steps('networking').newexisting,'new'),'privateEndpoint','')]"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
+              },
+              {
                 "name": "databaseURL",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Database FQDN (URL)",
                 "defaultValue": ".mysql.database.azure.com",
-                "toolTip": "Enter a FQDN (URL) for the mySQL database",
+                "toolTip": "Enter a FQDN (URL) for the MySQL database",
                 "constraints": {
                   "required": true,
-                  "validationMessage": "Please enter a valid mySQL database FQDN."
+                  "validationMessage": "Please enter a valid MySQL database FQDN."
                 },
-                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
+                "visible": "[equals(steps('scheduler').schedulerSection.dbConnection,'fqdn')]"
+              },
+              {
+                "name": "databasePIP",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Database Private IP",
+                "defaultValue": "",
+                "toolTip": "Enter the private IP address of the MySQL database",
+                "constraints": {
+                  "required": true,
+                  "validations": [
+                    {
+                      "regex": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$",
+                      "message": "Invalid IP address"
+                    }
+                  ]
+                },
+                "visible": "[equals(steps('scheduler').schedulerSection.dbConnection,'privateIp')]"
+              },
+              {
+                "name": "dbSelector",
+                "type": "Microsoft.Solutions.ResourceSelector",
+                "label": "Select MySQL Database",
+                "toolTip": "Select a MySQL Flexible Server in the Azure region selected on the Basics page",
+                "resourceType": "Microsoft.DBforMySQL/flexibleServers",
+                "options": {
+                  "filter": {
+                    "subscription": "onBasics",
+                    "location": "onBasics"
+                  }
+                },
+                "constraints": {
+                  "required": true,
+                  "validationMessage": "Please select a MySQL Flexible Server."
+                },
+                "visible": "[equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint')]"
               },
               {
                 "name": "useLoginNodes",
@@ -1367,7 +1441,13 @@
         "peeringAllowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]"
       },
       "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
-  
+      "databaseConfig": {
+        "type": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.dbConnection,'disabled')]",
+        "databaseUser": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseUser,basics('nullValue'))]",
+        "fqdn": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'fqdn'),steps('scheduler').schedulerSection.databaseURL,basics('nullValue'))]",
+        "privateIp": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateIp'),steps('scheduler').schedulerSection.databasePIP,basics('nullValue'))]",
+        "dbInfo": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint'),steps('scheduler').schedulerSection.dbSelector,basics('nullValue'))]"
+      },
       "slurmSettings": {
         "version": "[steps('scheduler').schedulerSection.slurmVersion]",
         "healthCheckEnabled": "[steps('scheduler').healthCheck]"
