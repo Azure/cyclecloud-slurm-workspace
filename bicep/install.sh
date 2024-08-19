@@ -73,15 +73,7 @@ cloudenv=$(echo $mds | jq -r '.compute.azEnvironment' | tr '[:upper:]' '[:lower:
 if [ "$cloudenv" == "azureusgovernmentcloud" ]; then
     echo "Running in Azure US Government Cloud"
     az cloud set --name AzureUSGovernment
-    env="usgov"
-elif [ "$cloudenv" == "azurechinacloud" ]; then 
-    echo "Running in Azure China Cloud"
-    az cloud set --name AzureChinaCloud
-    env="china"
-elif [ "$cloudenv" == "azuregermancloud" ]; then
-    echo "Running in Azure German Cloud"
-    az cloud set --name AzureGermanCloud
-    env="germany"
+    env="usgov" # ="china" for CN, "germany" for DE
 else
     echo "Running in Azure Public Cloud"
     az cloud set --name AzureCloud
