@@ -846,7 +846,7 @@
             "name": "clusterName",
             "type": "Microsoft.Common.TextBox",
             "label": "Cluster name",
-            "defaultValue": "",
+            "defaultValue": "ccsw",
             "toolTip": "Name of cluster in CycleCloud portal",
             "constraints": {
                 "required": true,
