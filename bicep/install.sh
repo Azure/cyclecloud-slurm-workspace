@@ -73,6 +73,11 @@ cloudenv=$(echo $mds | jq -r '.compute.azEnvironment' | tr '[:upper:]' '[:lower:
 if [ "$cloudenv" == "azureusgovernmentcloud" ]; then
     echo "Running in Azure US Government Cloud"
     az cloud set --name AzureUSGovernment
+    env="usgov" # ="china" for CN, "germany" for DE
+else
+    echo "Running in Azure Public Cloud"
+    az cloud set --name AzureCloud
+    env="public"
 fi
 # Add retry logic as it could take some delay to apply the Managed Identity
 timeout 360s bash -c 'until az login -i; do sleep 10; done'
@@ -120,6 +125,7 @@ python3 /opt/ccsw/cyclecloud_install.py --acceptTerms \
     --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
     --storageAccount=${CYCLECLOUD_STORAGE} \
+    --azureSovereignCloud="${env}" \
     --webServerPort=80 --webServerSslPort=443
 
 echo "CC install script successful"
