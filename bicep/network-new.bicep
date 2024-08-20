@@ -411,12 +411,12 @@ var subnets = union(
   create_database ? { database: subnet_database } : {}
 )
 
-resource database 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' existing = if (create_private_endpoint) {
+resource ccswDatabase 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' existing = if (create_private_endpoint) {
   name: databaseConfig.?dbInfo.name
   scope: resourceGroup(split(databaseConfig.?dbInfo.id,'/')[4])
 }
 
-var privateEndpointName = 'ccsw-db-private-endpoint'
+var privateEndpointName = 'contoso.com'
 
 resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-06-01' = if (create_private_endpoint) {
   name: privateEndpointName
@@ -429,7 +429,7 @@ resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-06-01' = if (c
       {
         name: privateEndpointName
         properties: {
-          privateLinkServiceId: database.id
+          privateLinkServiceId: ccswDatabase.id
           groupIds: ['mysqlServer']
         }
       }
@@ -437,16 +437,46 @@ resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-06-01' = if (c
   }
 }
 
-// resource privateDnsZone 'Microsoft.Network/privateDnsZones@2023-06-01' = if (create_private_endpoint) {
-//   name: 'ccsw-db-privateDnsZone'
-//   location: 'global'
-//   properties: {}
-//   dependsOn: [
-//     virtualNetwork
-//   ]
-// }
+var privateDnsZoneName = 'ccsw.db.privateDnsZone'
+resource privateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = if (create_private_endpoint) {
+  name: privateDnsZoneName
+  location: 'global'
+  properties: {}
+  dependsOn: [
+    ccswVirtualNetwork
+  ]
+}
+
+resource privateDnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+  parent: privateDnsZone
+  name: '${privateDnsZoneName}-link'
+  location: 'global'
+  properties: {
+    registrationEnabled: false
+    virtualNetwork: {
+      id: ccswVirtualNetwork.id
+    }
+  }
+}
+
+resource pvtEndpointDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2021-05-01' = {
+  name: '${privateEndpointName}/dnsgroup'
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'config1'
+        properties: {
+          privateDnsZoneId: privateDnsZone.id
+        }
+      }
+    ]
+  }
+  dependsOn: [
+    privateEndpoint
+  ]
+}
 
 output nsgCCSW types.rsc_t = rsc_output(ccswCommonNsg)
 output vnetCCSW types.rsc_t = rsc_output(ccswVirtualNetwork)
 output subnetsCCSW types.subnets_t = subnets
-output databaseFQDN string = create_private_endpoint ? database.properties.fullyQualifiedDomainName : ''
+output databaseFQDN string = create_private_endpoint ? ccswDatabase.properties.fullyQualifiedDomainName : ''
