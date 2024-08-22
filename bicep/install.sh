@@ -174,21 +174,6 @@ echo "CC create_cluster successful"
 cycle_server run_action 'Run:Application.Timer' -eq 'Name' 'plugin.azure.monitor_reference'
 
 # Wait for Azure.MachineType to be populated
-# VM_TYPE=$(jq -r '.SchedulerMachineType' slurm_params.json)
-# LOCATION=$(jq -r '.Region' slurm_params.json)
-# while ! (cycle_server execute "SELECT Name from Azure.MachineType where Name==\"$VM_TYPE\" && Location==\"$LOCATION\"" | grep -q Standard); do
-#     echo "Waiting for SchedulerMachineType $VM_TYPE to be populated..."
-#     sleep 10
-# done
-# echo "Scheduler VM type is loaded."
-
-# VM_TYPE=$(jq -r '.loginMachineType' slurm_params.json)
-# while ! (cycle_server execute "SELECT Name from Azure.MachineType where Name==\"$VM_TYPE\" && Location==\"$LOCATION\"" | grep -q Standard); do
-#     echo "Waiting for loginMachineType $VM_TYPE to be populated..."
-#     sleep 10
-# done
-# echo "Login VM type is loaded."
-
 while [ $(/opt/cycle_server/./cycle_server execute --format json "
                         SELECT Name, M.Name as MachineType FROM Cloud.Node
                         OUTER JOIN Azure.MachineType M
@@ -202,11 +187,11 @@ echo All Azure.MachineType records are loaded.
 
 # Enable accel networking on any nodearray that has a VM Size that supports it.
 /opt/cycle_server/./cycle_server execute \
-'SELECT AdType, ClusterName, Name, M.AcceleratedNetworkingEnabled AS EnableAcceleratedNetworking
+"SELECT AdType, ClusterName, Name, M.AcceleratedNetworkingEnabled AS EnableAcceleratedNetworking
  FROM Cloud.Node
  INNER JOIN Azure.MachineType M 
  ON M.Name===MachineType && M.Location===Region
- WHERE ClusterName=="$SLURM_CLUSTER_NAME"' > /tmp/accel_network.txt
+ WHERE ClusterName==\"$SLURM_CLUSTER_NAME\"" > /tmp/accel_network.txt
  mv /tmp/accel_network.txt /opt/cycle_server/config/data
 
 # it usually takes less than 2 seconds, so before starting the longer timeouts, optimistically sleep.
