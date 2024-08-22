@@ -24,7 +24,7 @@ param tags types.resource_tags_t
 param databaseAdminPassword string = ''
 @minLength(3)
 @description('The user-defined name of the cluster. Regex: ^[a-zA-Z0-9@_-]{3,}$')
-param clusterName string
+param clusterName string = 'ccsw'
 
 param infrastructureOnly bool = false
 

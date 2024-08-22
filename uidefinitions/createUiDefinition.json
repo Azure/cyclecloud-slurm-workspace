@@ -846,15 +846,14 @@
             "name": "clusterName",
             "type": "Microsoft.Common.TextBox",
             "label": "Cluster name",
-            "placeholder": "",
-            "defaultValue": "",
+            "defaultValue": "ccsw",
             "toolTip": "Name of cluster in CycleCloud portal",
             "constraints": {
                 "required": true,
                 "regex": "^[a-zA-Z0-9@_-]{3,}$",
                 "validationMessage": "Cluster name must be at least 3 characters long. Characters must be alphanumeric, @, -, or _."
             },
-            "visible": true
+            "visible": false
           },
           {
             "name": "schedulerSection",
