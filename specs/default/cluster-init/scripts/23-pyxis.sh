@@ -20,6 +20,10 @@ function install_plugstack() {
 }
 
 function install_pyxis_library() {
+   # Wait for the pyxis library to be available
+   echo "Waiting for pyxis library to be available"
+   timeout 360s bash -c "until (! ls $SHARED_DIR/spank_pyxis.so); do sleep 10; done"
+   echo "Pyxis library is available"
    mkdir -p /usr/lib64/slurm
    cp -fv $SHARED_DIR/spank_pyxis.so /usr/lib64/slurm
    chmod +x /usr/lib64/slurm/spank_pyxis.so
