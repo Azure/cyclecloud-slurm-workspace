@@ -176,15 +176,15 @@ cycle_server run_action 'Run:Application.Timer' -eq 'Name' 'plugin.azure.monitor
 # Wait for Azure.MachineType to be populated
 VM_TYPE=$(jq -r '.SchedulerMachineType' slurm_params.json)
 LOCATION=$(jq -r '.Region' slurm_params.json)
-while ! (cycle_server execute 'SELECT Name from Azure.MachineType where Name=="$VM_TYPE" && Location=="$LOCATION"' | grep -q Standard); do
-    echo "Waiting for Azure.MachineType to be populated..."
+while ! (cycle_server execute "SELECT Name from Azure.MachineType where Name==\"$VM_TYPE\" && Location==\"$LOCATION\"" | grep -q Standard); do
+    echo "Waiting for SchedulerMachineType $VM_TYPE to be populated..."
     sleep 10
 done
 echo "Scheduler VM type is loaded."
 
 VM_TYPE=$(jq -r '.loginMachineType' slurm_params.json)
-while ! (cycle_server execute 'SELECT Name from Azure.MachineType where Name=="$VM_TYPE" && Location=="$LOCATION"' | grep -q Standard); do
-    echo "Waiting for Azure.MachineType to be populated..."
+while ! (cycle_server execute "SELECT Name from Azure.MachineType where Name==\"$VM_TYPE\" && Location==\"$LOCATION\"" | grep -q Standard); do
+    echo "Waiting for loginMachineType $VM_TYPE to be populated..."
     sleep 10
 done
 echo "Login VM type is loaded."
