@@ -174,30 +174,30 @@ echo "CC create_cluster successful"
 cycle_server run_action 'Run:Application.Timer' -eq 'Name' 'plugin.azure.monitor_reference'
 
 # Wait for Azure.MachineType to be populated
-VM_TYPE=$(jq -r '.SchedulerMachineType' slurm_params.json)
-LOCATION=$(jq -r '.Region' slurm_params.json)
-while ! (cycle_server execute "SELECT Name from Azure.MachineType where Name==\"$VM_TYPE\" && Location==\"$LOCATION\"" | grep -q Standard); do
-    echo "Waiting for SchedulerMachineType $VM_TYPE to be populated..."
-    sleep 10
-done
-echo "Scheduler VM type is loaded."
-
-VM_TYPE=$(jq -r '.loginMachineType' slurm_params.json)
-while ! (cycle_server execute "SELECT Name from Azure.MachineType where Name==\"$VM_TYPE\" && Location==\"$LOCATION\"" | grep -q Standard); do
-    echo "Waiting for loginMachineType $VM_TYPE to be populated..."
-    sleep 10
-done
-echo "Login VM type is loaded."
-
-# while [ $(/opt/cycle_server/./cycle_server execute --format json '
-#                         SELECT Name, M.Name as MachineType FROM Cloud.Node
-#                         OUTER JOIN Azure.MachineType M
-#                         ON  MachineType === M.Name &&
-#                             Region === M.Location
-#                         WHERE clustername=="$SLURM_CLUSTER_NAME"' | jq -r ".[] | select(.MachineType == null).Name" | wc -l) != 0 ]; do
-#     echo "Waiting for Azure.MachineType to be populated..."
+# VM_TYPE=$(jq -r '.SchedulerMachineType' slurm_params.json)
+# LOCATION=$(jq -r '.Region' slurm_params.json)
+# while ! (cycle_server execute "SELECT Name from Azure.MachineType where Name==\"$VM_TYPE\" && Location==\"$LOCATION\"" | grep -q Standard); do
+#     echo "Waiting for SchedulerMachineType $VM_TYPE to be populated..."
 #     sleep 10
 # done
+# echo "Scheduler VM type is loaded."
+
+# VM_TYPE=$(jq -r '.loginMachineType' slurm_params.json)
+# while ! (cycle_server execute "SELECT Name from Azure.MachineType where Name==\"$VM_TYPE\" && Location==\"$LOCATION\"" | grep -q Standard); do
+#     echo "Waiting for loginMachineType $VM_TYPE to be populated..."
+#     sleep 10
+# done
+# echo "Login VM type is loaded."
+
+while [ $(/opt/cycle_server/./cycle_server execute --format json "
+                        SELECT Name, M.Name as MachineType FROM Cloud.Node
+                        OUTER JOIN Azure.MachineType M
+                        ON  MachineType === M.Name &&
+                            Region === M.Location
+                        WHERE clustername==\"$SLURM_CLUSTER_NAME\"" | jq -r ".[] | select(.MachineType == null).Name" | wc -l) != 0 ]; do
+    echo "Waiting for Azure.MachineType to be populated..."
+    sleep 10
+done
 echo All Azure.MachineType records are loaded.
 
 # Enable accel networking on any nodearray that has a VM Size that supports it.
