@@ -416,7 +416,7 @@ resource ccswDatabase 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' 
   scope: resourceGroup(split(databaseConfig.?dbInfo.id,'/')[4])
 }
 
-var privateEndpointName = 'contoso.com'
+var privateEndpointName = 'ccsw-mysql-pe'
 
 resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-06-01' = if (create_private_endpoint) {
   name: privateEndpointName
