@@ -62,12 +62,9 @@ module makeCCSWresources 'ccsw.bicep' = {
     ccVMSize: ccVMSize
     resourceGroup: resourceGroup
     databaseAdminPassword: databaseAdminPassword
-<<<<<<< HEAD
     databaseConfig: databaseConfig
     tags: tags
-=======
     clusterName: clusterName
->>>>>>> origin/main
     branch: branch
     projectVersion: projectVersion
   }
