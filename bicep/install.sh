@@ -174,18 +174,24 @@ echo "CC create_cluster successful"
 cycle_server run_action 'Run:Application.Timer' -eq 'Name' 'plugin.azure.monitor_reference'
 
 # Wait for Azure.MachineType to be populated
-while ! (cycle_server execute 'select * from Azure.MachineType' | grep -q Standard); do
+while [ $(/opt/cycle_server/./cycle_server execute --format json "
+                        SELECT Name, M.Name as MachineType FROM Cloud.Node
+                        OUTER JOIN Azure.MachineType M
+                        ON  MachineType === M.Name &&
+                            Region === M.Location
+                        WHERE clustername==\"$SLURM_CLUSTER_NAME\"" | jq -r ".[] | select(.MachineType == null).Name" | wc -l) != 0 ]; do
     echo "Waiting for Azure.MachineType to be populated..."
     sleep 10
 done
+echo All Azure.MachineType records are loaded.
 
 # Enable accel networking on any nodearray that has a VM Size that supports it.
 /opt/cycle_server/./cycle_server execute \
-'SELECT AdType, ClusterName, Name, M.AcceleratedNetworkingEnabled AS EnableAcceleratedNetworking
+"SELECT AdType, ClusterName, Name, M.AcceleratedNetworkingEnabled AS EnableAcceleratedNetworking
  FROM Cloud.Node
  INNER JOIN Azure.MachineType M 
  ON M.Name===MachineType && M.Location===Region
- WHERE ClusterName=="$SLURM_CLUSTER_NAME"' > /tmp/accel_network.txt
+ WHERE ClusterName==\"$SLURM_CLUSTER_NAME\"" > /tmp/accel_network.txt
  mv /tmp/accel_network.txt /opt/cycle_server/config/data
 
 # it usually takes less than 2 seconds, so before starting the longer timeouts, optimistically sleep.
