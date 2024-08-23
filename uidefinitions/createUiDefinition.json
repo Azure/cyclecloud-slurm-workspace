@@ -1031,8 +1031,7 @@
                 "resourceType": "Microsoft.DBforMySQL/flexibleServers",
                 "options": {
                   "filter": {
-                    "subscription": "onBasics",
-                    "location": "onBasics"
+                    "subscription": "onBasics"
                   }
                 },
                 "constraints": {
