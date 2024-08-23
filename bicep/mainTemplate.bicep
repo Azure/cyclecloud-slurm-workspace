@@ -23,6 +23,9 @@ param tags types.resource_tags_t
 @secure()
 param databaseAdminPassword string = ''
 param databaseConfig types.databaseConfig_t
+@minLength(3)
+@description('The user-defined name of the cluster. Regex: ^[a-zA-Z0-9@_-]{3,}$')
+param clusterName string = 'ccsw'
 
 param infrastructureOnly bool = false
 
@@ -59,8 +62,12 @@ module makeCCSWresources 'ccsw.bicep' = {
     ccVMSize: ccVMSize
     resourceGroup: resourceGroup
     databaseAdminPassword: databaseAdminPassword
+<<<<<<< HEAD
     databaseConfig: databaseConfig
     tags: tags
+=======
+    clusterName: clusterName
+>>>>>>> origin/main
     branch: branch
     projectVersion: projectVersion
   }

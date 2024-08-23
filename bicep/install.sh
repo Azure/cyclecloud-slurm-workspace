@@ -73,6 +73,11 @@ cloudenv=$(echo $mds | jq -r '.compute.azEnvironment' | tr '[:upper:]' '[:lower:
 if [ "$cloudenv" == "azureusgovernmentcloud" ]; then
     echo "Running in Azure US Government Cloud"
     az cloud set --name AzureUSGovernment
+    env="usgov" # ="china" for CN, "germany" for DE
+else
+    echo "Running in Azure Public Cloud"
+    az cloud set --name AzureCloud
+    env="public"
 fi
 # Add retry logic as it could take some delay to apply the Managed Identity
 timeout 360s bash -c 'until az login -i; do sleep 10; done'
@@ -116,10 +121,12 @@ CYCLECLOUD_USERNAME=$(jq -r .adminUsername.value ccswOutputs.json)
 CYCLECLOUD_PASSWORD=$(jq -r .adminPassword "$SECRETS_FILE_PATH")
 CYCLECLOUD_USER_PUBKEY=$(jq -r .publicKey.value ccswOutputs.json)
 CYCLECLOUD_STORAGE="$(jq -r .storageAccountName.value ccswOutputs.json)"
+SLURM_CLUSTER_NAME=$(jq -r .clusterName.value ccswOutputs.json)
 python3 /opt/ccsw/cyclecloud_install.py --acceptTerms \
     --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
     --storageAccount=${CYCLECLOUD_STORAGE} \
+    --azureSovereignCloud="${env}" \
     --webServerPort=80 --webServerSslPort=443
 
 echo "CC install script successful"
@@ -131,7 +138,7 @@ Value = "${vm_id}"
 
 AdType = "Application.Setting"
 Name = "distribution_method"
-Value = "ccsw"
+Value = "ccsw-$PROJECT_VERSION"
 EOF
 chown cycle_server:cycle_server /tmp/ccsw_site_id.txt
 chmod 664 /tmp/ccsw_site_id.txt
@@ -156,30 +163,36 @@ cycle_server start --wait
 # this will block until CC responds
 curl -k https://localhost
 
-cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=ccsw
+cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=$SLURM_CLUSTER_NAME
 echo "CC initialize successful"
 sleep 5
 cyclecloud import_template Slurm-Workspace -f slurm-workspace.txt
 echo "CC import template successful"
-cyclecloud create_cluster Slurm-Workspace ccsw -p slurm_params.json
+cyclecloud create_cluster Slurm-Workspace $SLURM_CLUSTER_NAME -p slurm_params.json
 echo "CC create_cluster successful"
 
 # ensure machine types are loaded ASAP
 cycle_server run_action 'Run:Application.Timer' -eq 'Name' 'plugin.azure.monitor_reference'
 
 # Wait for Azure.MachineType to be populated
-while ! (cycle_server execute 'select * from Azure.MachineType' | grep -q Standard); do
+while [ $(/opt/cycle_server/./cycle_server execute --format json "
+                        SELECT Name, M.Name as MachineType FROM Cloud.Node
+                        OUTER JOIN Azure.MachineType M
+                        ON  MachineType === M.Name &&
+                            Region === M.Location
+                        WHERE clustername==\"$SLURM_CLUSTER_NAME\"" | jq -r ".[] | select(.MachineType == null).Name" | wc -l) != 0 ]; do
     echo "Waiting for Azure.MachineType to be populated..."
     sleep 10
 done
+echo All Azure.MachineType records are loaded.
 
 # Enable accel networking on any nodearray that has a VM Size that supports it.
 /opt/cycle_server/./cycle_server execute \
-'SELECT AdType, ClusterName, Name, M.AcceleratedNetworkingEnabled AS EnableAcceleratedNetworking
+"SELECT AdType, ClusterName, Name, M.AcceleratedNetworkingEnabled AS EnableAcceleratedNetworking
  FROM Cloud.Node
  INNER JOIN Azure.MachineType M 
  ON M.Name===MachineType && M.Location===Region
- WHERE ClusterName=="ccsw"' > /tmp/accel_network.txt
+ WHERE ClusterName==\"$SLURM_CLUSTER_NAME\"" > /tmp/accel_network.txt
  mv /tmp/accel_network.txt /opt/cycle_server/config/data
 
 # it usually takes less than 2 seconds, so before starting the longer timeouts, optimistically sleep.
@@ -188,13 +201,13 @@ echo Waiting for accelerated network records to be imported
 timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep 10; done'
 
 
-cyclecloud start_cluster ccsw
+cyclecloud start_cluster "$SLURM_CLUSTER_NAME"
 echo "CC start_cluster successful"
 # rm -f slurm_params.json
 echo "Deleted input parameters file" 
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
 popd
-rm "$SECRETS_FILE_PATH"
-echo "Deleted secrets file"
+rm -f "$SECRETS_FILE_PATH"
+echo "Deleting secrets file"
 echo "exiting after install"
 exit 0
