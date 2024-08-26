@@ -109,11 +109,12 @@ wget -O slurm-workspace.txt $URI/slurm-workspace.txt
 wget -O create_cc_param.py $URI/create_cc_param.py
 wget -O initial_params.json $URI/initial_params.json
 wget -O cyclecloud_install.py $URI/cyclecloud_install.py
-(python3 create_cc_param.py) > slurm_params.json
-while [ ! -f "$SECRETS_FILE_PATH"]; do
+while [ ! -f "$SECRETS_FILE_PATH" ]; do
     echo "Waiting for VM to create secrets file..."
     sleep 1
 done
+DATABASE_ADMIN_PASSWORD=$(jq -r .databaseAdminPassword $SECRETS_FILE_PATH)
+(python3 create_cc_param.py --dbPassword="${DATABASE_ADMIN_PASSWORD}") > slurm_params.json
 echo "Filework successful" 
 
 CYCLECLOUD_USERNAME=$(jq -r .adminUsername.value ccswOutputs.json)
@@ -202,6 +203,8 @@ timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep
 
 cyclecloud start_cluster "$SLURM_CLUSTER_NAME"
 echo "CC start_cluster successful"
+# rm -f slurm_params.json
+echo "Deleted input parameters file" 
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
 popd
 rm -f "$SECRETS_FILE_PATH"

@@ -30,6 +30,7 @@ param gpu types.hpc_t
 param tags types.resource_tags_t
 @secure()
 param databaseAdminPassword string
+param databaseConfig types.databaseConfig_t
 param clusterName string
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
@@ -67,6 +68,7 @@ module ccswNetwork './network-new.bicep' = if (create_new_vnet) {
     natGatewayId: natGateawayId
     sharedFilesystem: sharedFilesystem
     additionalFilesystem: additionalFilesystem
+    databaseConfig: databaseConfig
   }
 }
 
@@ -295,7 +297,11 @@ output publicKey string = publicKey
 output adminUsername string = adminUsername
 output subscriptionId string = subscription().subscriptionId
 output tenantId string = subscription().tenantId
-output databaseFQDN string = create_database ? mySQLccsw.outputs.fqdn : ''
+// output databaseFQDN string = create_database ? mySQLccsw.outputs.fqdn : ''
+output databaseInfo types.databaseOutput_t = databaseConfig.type != 'disabled' ?{
+  databaseUser: databaseConfig.?databaseUser
+  url: databaseConfig.type == 'fqdn' ? databaseConfig.?fqdn : databaseConfig.type == 'privateIp' ? databaseConfig.?privateIp : ccswNetwork.outputs.?databaseFQDN 
+} : {}
 output azureEnvironment string = envNameToCloudMap[environment().name]
 
 output branch string = branch

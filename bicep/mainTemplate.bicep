@@ -22,6 +22,7 @@ param gpu types.hpc_t
 param tags types.resource_tags_t 
 @secure()
 param databaseAdminPassword string = ''
+param databaseConfig types.databaseConfig_t
 @minLength(3)
 @description('The user-defined name of the cluster. Regex: ^[a-zA-Z0-9@_-]{3,}$')
 param clusterName string = 'ccsw'
@@ -60,8 +61,9 @@ module makeCCSWresources 'ccsw.bicep' = {
     storedKey: storedKey
     ccVMSize: ccVMSize
     resourceGroup: resourceGroup
-    tags: tags
     databaseAdminPassword: databaseAdminPassword
+    databaseConfig: databaseConfig
+    tags: tags
     clusterName: clusterName
     branch: branch
     projectVersion: projectVersion

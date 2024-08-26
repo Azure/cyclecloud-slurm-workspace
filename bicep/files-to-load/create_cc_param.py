@@ -3,6 +3,7 @@
 import json
 import os
 import sys
+import argparse
 
 
 def get_json_dict(file_name):
@@ -13,7 +14,7 @@ def get_json_dict(file_name):
     return data
 
 
-def set_params(params, outputs):
+def set_params(params, dbPassword, outputs):
     params['Region'] = outputs['location']['value']
     #params['Credentials']
     if outputs['vnet']['value']['type'] == 'new':
@@ -50,12 +51,13 @@ def set_params(params, outputs):
     params['configuration_slurm_version'] = outputs['slurmSettings']['value']['version']
     # if outputs['slurmSettings']['value']['canUseSlurmHA']:
     #     params['configuration_slurm_ha_enabled'] = outputs['slurmSettings']['value']['slurmHA']
-    params['configuration_slurm_accounting_enabled'] = False # outputs['slurmSettings']['value']['slurmAccounting']
-    # if params['configuration_slurm_accounting_enabled']:
-    #     params['configuration_slurm_accounting_user'] = outputs['ccswGlobalConfig']['value']['database_user']
-    # if params['configuration_slurm_accounting_enabled']:
-    #     params['configuration_slurm_accounting_password'] = outputs['slurmSettings']['value']['databaseAdminPassword']
-    #params['configuration_slurm_accounting_url'] 
+    params['configuration_slurm_accounting_enabled'] = bool(outputs['databaseInfo']['value'])
+    if params['configuration_slurm_accounting_enabled']:
+        params['configuration_slurm_accounting_user'] = outputs['databaseInfo']['value']['databaseUser']
+    if params['configuration_slurm_accounting_enabled']:
+        params['configuration_slurm_accounting_password'] = dbPassword
+    if params['configuration_slurm_accounting_enabled']:
+        params['configuration_slurm_accounting_url'] = outputs['databaseInfo']['value']['url']
     #params['configuration_slurm_accounting_certificate_url']
 
     #login node(s)
@@ -85,9 +87,13 @@ def set_params(params, outputs):
         params['AdditionalNFSAddress'] = outputs['filerInfoFinal']['value']['additional']['ipAddress']
 
 def main():
+    parser = argparse.ArgumentParser(description="Accept database password")
+    parser.add_argument("--dbPassword", dest="dbPassword", default="", help="MySQL database password")
+    args = parser.parse_args()
+    
     slurm_params = get_json_dict('initial_params.json')
     ccsw_outputs = get_json_dict('ccswOutputs.json')
-    set_params(slurm_params,ccsw_outputs)
+    set_params(slurm_params,args.dbPassword,ccsw_outputs)
     print(json.dumps(slurm_params,indent=4))
 
 if __name__ == '__main__':

@@ -206,3 +206,38 @@ type storedKey_t = {
   location: string
   name: string
 }
+
+type db_none_t = {
+  type: 'disabled'
+}
+
+type db_fqdn_t = {
+  type: 'fqdn'
+  fqdn: string
+}
+
+type db_privateIp_t = {
+  type: 'privateIp'
+  privateIp: string
+}
+
+type dbInfo_t = {
+  id: string
+  location: string
+  name: string
+}
+
+type db_privateEndpoint_t = {
+  type: 'privateEndpoint'
+  dbInfo: dbInfo_t
+}
+
+@export()
+@discriminator('type')
+type databaseConfig_t = db_none_t | db_fqdn_t | db_privateIp_t | db_privateEndpoint_t
+
+@export()
+type databaseOutput_t = {
+  databaseUser: string?
+  url: string?
+}
