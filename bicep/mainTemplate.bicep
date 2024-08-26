@@ -5,7 +5,6 @@ param location string = az.resourceGroup().location
 param adminUsername string
 @secure()
 param adminPassword string
-//param adminKeyphrase string
 param adminSshPublicKey string = '' 
 param storedKey types.storedKey_t = {id: 'foo', location: 'foo', name:'foo'}
 param ccVMSize string

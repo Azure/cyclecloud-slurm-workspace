@@ -10,7 +10,6 @@ param projectVersion string
 param adminUsername string
 @secure()
 param adminPassword string
-//param adminKeyphrase string
 param adminSshPublicKey string
 param storedKey types.storedKey_t
 param ccVMSize string
