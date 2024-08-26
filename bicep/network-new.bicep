@@ -437,45 +437,6 @@ resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-06-01' = if (c
   }
 }
 
-// var privateDnsZoneName = 'ccsw.db.privateDnsZone'
-// resource privateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = if (create_private_endpoint) {
-//   name: privateDnsZoneName
-//   location: 'global'
-//   properties: {}
-//   dependsOn: [
-//     ccswVirtualNetwork
-//   ]
-// }
-
-// resource privateDnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
-//   parent: privateDnsZone
-//   name: '${privateDnsZoneName}-link'
-//   location: 'global'
-//   properties: {
-//     registrationEnabled: false
-//     virtualNetwork: {
-//       id: ccswVirtualNetwork.id
-//     }
-//   }
-// }
-
-// resource pvtEndpointDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2021-05-01' = {
-//   name: '${privateEndpointName}/dnsgroup'
-//   properties: {
-//     privateDnsZoneConfigs: [
-//       {
-//         name: 'config1'
-//         properties: {
-//           privateDnsZoneId: privateDnsZone.id
-//         }
-//       }
-//     ]
-//   }
-//   dependsOn: [
-//     privateEndpoint
-//   ]
-// }
-
 output nsgCCSW types.rsc_t = rsc_output(ccswCommonNsg)
 output vnetCCSW types.rsc_t = rsc_output(ccswVirtualNetwork)
 output subnetsCCSW types.subnets_t = subnets
