@@ -1,19 +1,21 @@
 targetScope = 'subscription'
 import * as types from './types.bicep'
 
-param location string
+param location string = az.resourceGroup().location
 param adminUsername string
 @secure()
 param adminPassword string
-//param adminKeyphrase string
 param adminSshPublicKey string = '' 
 param storedKey types.storedKey_t = {id: 'foo', location: 'foo', name:'foo'}
 param ccVMSize string
 param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
-param additionalFilesystem types.additionalFilesystem_t 
-param network types.vnet_t
-param slurmSettings types.slurmSettings_t
+param additionalFilesystem types.additionalFilesystem_t = { type: 'disabled' }
+param network types.vnet_t = {
+  type: 'new'
+  addressSpace: '10.0.0.0/24'
+}
+param slurmSettings types.slurmSettings_t = { version: '23.11.7-1', healthCheckEnabled: false }
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
 param htc types.htc_t
