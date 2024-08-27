@@ -411,9 +411,9 @@ var subnets = union(
   create_database ? { database: subnet_database } : {}
 )
 
-resource ccswDatabase 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' existing = if (create_private_endpoint) {
-  name: databaseConfig.?dbInfo.name
-  scope: resourceGroup(split(databaseConfig.?dbInfo.id,'/')[4])
+resource ccswDatabase 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' existing = if (create_private_endpoint && databaseConfig.type != 'disabled') {
+  name: databaseConfig.?dbInfo.?name ?? 'disabled'
+  scope: resourceGroup(split(databaseConfig.?dbInfo.?id ?? '////','/')[4])
 }
 
 var privateEndpointName = 'ccsw-mysql-pe'
