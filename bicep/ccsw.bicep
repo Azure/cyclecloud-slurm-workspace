@@ -3,6 +3,7 @@ import * as types from './types.bicep'
 
 param location string 
 param infrastructureOnly bool
+param insidersBuild bool
 
 param branch string
 param projectVersion string
@@ -302,3 +303,4 @@ output azureEnvironment string = envNameToCloudMap[environment().name]
 
 output branch string = branch
 output projectVersion string = projectVersion
+output insidersBuild bool = insidersBuild

@@ -30,6 +30,7 @@ param databaseConfig types.databaseConfig_t
 param clusterName string = 'ccsw'
 
 param infrastructureOnly bool = false
+param insidersBuild bool = false
 
 // build.sh will override this, but for development please set this yourself as a parameter
 param branch string = 'main'
@@ -48,6 +49,7 @@ module makeCCSWresources 'ccsw.bicep' = {
   params: {
     location: location
     infrastructureOnly: infrastructureOnly
+    insidersBuild: insidersBuild
     adminUsername: adminUsername
     adminPassword: adminPassword
     adminSshPublicKey: adminSshPublicKey

@@ -122,12 +122,26 @@ CYCLECLOUD_PASSWORD=$(jq -r .adminPassword "$SECRETS_FILE_PATH")
 CYCLECLOUD_USER_PUBKEY=$(jq -r .publicKey.value ccswOutputs.json)
 CYCLECLOUD_STORAGE="$(jq -r .storageAccountName.value ccswOutputs.json)"
 SLURM_CLUSTER_NAME=$(jq -r .clusterName.value ccswOutputs.json)
+USE_INSIDERS_BUILD=$(jq -r .insidersBuild.value ccswOutputs.json)
+INSIDERS_BUILD_ARG=
+if [ "$USE_INSIDERS_BUILD" == "true" ]; then
+    echo Using insiders build - we first need to uninstall cyclecloud8 and remove all files.
+    INSIDERS_BUILD_ARG="--insidersBuild"
+    if command -v apt; then
+        apt remove -y cyclecloud8
+    else
+        yum remove -y cyclecloud8
+    fi
+    rm -rf /opt/cycle_server/*
+    echo cyclecloud8 is uninstalled and all files are removed under /opt/cycle_server
+fi
+
 python3 /opt/ccsw/cyclecloud_install.py --acceptTerms \
     --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
     --storageAccount=${CYCLECLOUD_STORAGE} \
     --azureSovereignCloud="${env}" \
-    --webServerPort=80 --webServerSslPort=443
+    --webServerPort=80 --webServerSslPort=443 $INSIDERS_BUILD_ARG
 
 echo "CC install script successful"
 # Configuring distribution_method
