@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 import * as types from './types.bicep'
 
-param location string = az.resourceGroup().location
+param location string
 param adminUsername string
 @secure()
 param adminPassword string
