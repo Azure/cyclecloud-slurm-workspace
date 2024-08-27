@@ -83,5 +83,6 @@
     "HTCClusterInitSpecs": null,
     "SchedFilesystemSize": 30,
     "HPCMaxScalesetSize": 100,
-    "SchedulerHAZone": null
+    "SchedulerHAZone": null,
+    "ExecuteTags": {}
 }

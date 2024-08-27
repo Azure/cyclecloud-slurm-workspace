@@ -297,6 +297,7 @@ output subscriptionId string = subscription().subscriptionId
 output tenantId string = subscription().tenantId
 output databaseFQDN string = create_database ? mySQLccsw.outputs.fqdn : ''
 output azureEnvironment string = envNameToCloudMap[environment().name]
+output nodeArrayTags types.tags_t = tags[?'Node Array'] ?? {}
 
 output branch string = branch
 output projectVersion string = projectVersion
