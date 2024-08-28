@@ -983,9 +983,8 @@
                 "name": "dbConnection",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Connection options",
-                "placeholder": "",
                 "defaultValue": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'Direct: FQDN',if(equals(steps('networking').newexisting,'new'),'Private Endpoint',''))]",
-                "toolTip": "",
+                "toolTip": "Select method by which to connect to the existing MySQL database",
                 "constraints": {
                   "allowedValues": [
                     {
@@ -1013,7 +1012,12 @@
                 "toolTip": "Enter a FQDN (URL) for the MySQL database",
                 "constraints": {
                   "required": true,
-                  "validationMessage": "Please enter a valid MySQL database FQDN."
+                  "validations": [
+                    {
+                      "regex": "^(?:http[s]?:\\/\\/.)?(?:www\\.)?[-a-zA-Z0-9@%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b(?:[-a-zA-Z0-9@:%_\\+.~#?&\/\/=]*)$",
+                      "message": "Please enter a valid MySQL database FQDN."
+                    }
+                  ]
                 },
                 "visible": "[equals(steps('scheduler').schedulerSection.dbConnection,'fqdn')]"
               },
