@@ -82,9 +82,9 @@ output vnet types.networkOutput_t = union(
   create_new_vnet
     ? ccswNetwork.outputs.vnetCCSW
     : {
-        id: network.?existing_vnet_id
+        id: network.?id ?? ''
         name: network.?name
-        rg: split(network.?existing_vnet_id, '/')[4]
+        rg: split(network.?id ?? '////', '/')[4]
       },
   {
     type: network.type
