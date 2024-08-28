@@ -177,6 +177,14 @@ If you bring your own VNET you have to follow these pre-requisistes :
 - if deploying a Bastion, a dedicated **BastionSubnet** as documented [here](https://learn.microsoft.com/en-us/azure/bastion/configuration-settings#subnet)
 - Your NSGs, should allow communications between subnets as defined in the [bicep/network-new.bicep](./bicep/network-new.bicep) file.
 
+## Cleaning up roles
+Deleting the resource group will delete all of the resources that CCSW has created, however role assignments are not deleted. To fix this, we provide `util/delete_roles.sh` which will delete these roles for either a deleted resource group, or one where the resources were manually deleted.
+
+```bash
+util/./delete_rules.sh --location my-location --resource-group my-ccsw-rg [--delete-resource-group]
+```
+Note the option `--delete-resource-group` - unfortunately, we actually have to recreate the resource group and create a simple deployment that outputs the guid names that we produce for this given resource group name and location. *Passing in `--delete-resource-group` will clean up this resource group, whether we have created the resource group or not.*
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a

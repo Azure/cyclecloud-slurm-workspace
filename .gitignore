@@ -404,3 +404,6 @@ util/*.json
 
 # arm-ttk
 arm-ttk/
+
+# delete_roles.sh files
+util/.role_assignment_cleanup*
