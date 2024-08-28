@@ -66,6 +66,9 @@ def set_params(params, dbPassword, outputs):
     params['LoginImageName'] = outputs['loginNodes']['value']['image']
     params['EnableNodeHealthChecks'] = outputs['slurmSettings']['value']['healthCheckEnabled']
 
+    #Execute node tags
+    params['ExecuteTags'] = outputs['nodeArrayTags']['value']
+
     #Network Attached Storage
     params['UseBuiltinShared'] = outputs['filerInfoFinal']['value']['home']['type'] == 'nfs-new' 
     if params['UseBuiltinShared']:

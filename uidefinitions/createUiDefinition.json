@@ -1406,7 +1406,8 @@
               "Microsoft.StorageCache/amlFileSystems",
               "Microsoft.NetApp/netAppAccounts",
               "Microsoft.Network/bastionHosts",
-              "Resource group"
+              "Resource group",
+              "Node Array" 
             ]
           }
         ]

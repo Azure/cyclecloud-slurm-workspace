@@ -300,6 +300,7 @@ output databaseInfo types.databaseOutput_t = databaseConfig.type != 'disabled' ?
   url: databaseConfig.type == 'fqdn' ? databaseConfig.?fqdn : databaseConfig.type == 'privateIp' ? databaseConfig.?privateIp : ccswNetwork.outputs.?databaseFQDN 
 } : {}
 output azureEnvironment string = envNameToCloudMap[environment().name]
+output nodeArrayTags types.tags_t = tags[?'Node Array'] ?? {}
 
 output branch string = branch
 output projectVersion string = projectVersion

@@ -189,6 +189,7 @@ Autoscale = $Autoscale
 
     [[node nodearraybase]]
     Abstract = true
+    Tags = $ExecuteTags
         [[[configuration]]]
         slurm.autoscale = true
 
@@ -324,6 +325,13 @@ Order = 10
         ParameterType = Cloud.MachineType
         DefaultValue = Standard_F2s_v2
         Config.MultiSelect = true
+
+        [[[parameter ExecuteTags]]]
+        Label = Exec VM Tags
+        Description = Tags applied to all execute nodes
+        ParameterType = Record
+        DefaultValue := {}
+        Config.MultiSelect = false
 
 
     [[parameters Auto-Scaling]]
