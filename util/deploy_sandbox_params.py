@@ -30,6 +30,7 @@ def main() -> None:
     parser.add_argument("-v", "--cc-and-sched-vm-size", dest="vm_size")
     parser.add_argument("--dry-run", action="store_true", default=False)
     parser.add_argument("-b", "--branch")
+    parser.add_argument("-i", "--insiders", action="store_true", default=False)
 
 
     args = parser.parse_args()
@@ -53,12 +54,13 @@ def main() -> None:
     else:
         branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).decode().strip()
         assert branch != "HEAD", "No headless checkouts allowed. If this is a tag, git checkout TAG -b TAG"
-        pushed_branches = subprocess.check_output(['git', 'branch', '-l']).decode().split()
+        pushed_branches = subprocess.check_output(['git', 'branch', '-la']).decode().split()
         if f'remotes/origin/{branch}' not in pushed_branches:
             print(f"{branch} has not been pushed yet. Either push this branch, or pass in --branch main")
             return
 
     ui_params['branch'] = {'value': branch}
+    ui_params['insidersBuild'] = {'value': args.insiders}
 
     if args.location:
         ui_params["location"]["value"] = args.location
