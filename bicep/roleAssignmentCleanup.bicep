@@ -18,4 +18,3 @@ resource ccswResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
 }
 
 output names array = [for role in roles: '/subscriptions/${subscriptionId}/providers/Microsoft.Authorization/roleAssignments/${guid(vmName, role, ccswResourceGroup.id, subscription().id)}']
-output subscriptionId string = subscriptionId

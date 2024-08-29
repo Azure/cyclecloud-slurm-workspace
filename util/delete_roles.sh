@@ -61,7 +61,6 @@ echo recreating resource group $RG so that we can get the GUIDs of the roles we 
 az deployment sub create --location $LOCATION --template-file ./bicep/roleAssignmentCleanup.bicep -n $RG-cleanup --parameters util/.role_assignment_cleanup.json > util/.role_assignment_cleanup_output.json
 
 assignment_names=$(cat util/.role_assignment_cleanup_output.json | jq -r ".properties.outputs.names.value[]")
-subscription_id=$(cat util/.role_assignment_cleanup_output.json | jq -r ".properties.outputs.subscriptionId.value")
 echo Deleting, if they exist, the following role names: $assignment_names
 
 az role assignment delete --ids $assignment_names
