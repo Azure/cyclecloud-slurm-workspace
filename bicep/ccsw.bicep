@@ -210,6 +210,13 @@ module ccswAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
   ]
 }
 
+module ccswANFAccount 'anf-account.bicep' = if((sharedFilesystem.type == 'anf-new' || additionalFilesystem.type == 'anf-new') && !infrastructureOnly) {
+  name: 'ccswANFAccount'
+  params: {
+    location: location
+  }
+}
+
 module ccswANF 'anf.bicep' = [
   for filer in items({ home: sharedFilesystem, additional: additionalFilesystem }): if (filer.value.type == 'anf-new') {
     name: 'ccswANF-${filer.key}'
@@ -225,6 +232,7 @@ module ccswANF 'anf.bicep' = [
     }
     dependsOn: [
       ccswNetwork
+      ccswANFAccount
     ]
   }
 ]
