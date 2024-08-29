@@ -1162,7 +1162,7 @@
             "visible": true,
             "options": {
               "icon": "Info",
-              "text": "Help text: what is HTC, HPC, and GPU partition? The sizes below the are recommended sizes for the partitions."
+              "text": "Slurm uses partitions to distinguish different execute node types. We provide 3 common use cases, High-Throughput Compute (HTC), CPU-based High-Performance Compute (HPC) and GPU-based HPC (GPU)."
             }
           },
           {
