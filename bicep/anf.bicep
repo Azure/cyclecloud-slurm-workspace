@@ -12,9 +12,8 @@ param defaultMountOptions string
 param infrastructureOnly bool = false
 var capacity = sizeTiB * 1024 * 1024 * 1024 * 1024
 
-resource anfAccount 'Microsoft.NetApp/netAppAccounts@2023-07-01' = if(!infrastructureOnly){
+resource anfAccount 'Microsoft.NetApp/netAppAccounts@2023-07-01' existing = if(!infrastructureOnly){
   name: 'hpcanfaccount-${take(resourcePostfix,10)}'
-  location: location
 }
 
 resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2023-07-01' = if(!infrastructureOnly){
