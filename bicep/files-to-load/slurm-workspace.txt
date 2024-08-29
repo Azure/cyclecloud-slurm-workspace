@@ -27,9 +27,6 @@ Autoscale = $Autoscale
 
         [[[configuration]]]
 
-        slurm.install_pkg = azure-slurm-install-pkg-3.0.9.tar.gz
-        slurm.autoscale_pkg = azure-slurm-pkg-3.0.9.tar.gz
-
         slurm.version = $configuration_slurm_version
         slurm.user.uid = 11100
         slurm.user.gid = 11100
@@ -65,7 +62,7 @@ Autoscale = $Autoscale
         # May be used to identify the ID in cluster-init scripts
         cluster.identities.default = $ManagedIdentity
 
-        [[[cluster-init cyclecloud/slurm:default:3.0.9]]]
+        [[[cluster-init cyclecloud/slurm:default]]]
         Optional = true
 
         [[[cluster-init cyclecloud/ccsw:default]]]
@@ -121,7 +118,7 @@ Autoscale = $Autoscale
         slurm.secondary_scheduler_name = ${ifThenElse(configuration_slurm_ha_enabled, "scheduler-ha-1", undefined)}
 
 
-        [[[cluster-init cyclecloud/slurm:scheduler:3.0.9]]]
+        [[[cluster-init cyclecloud/slurm:scheduler]]]
 
         [[[network-interface eth0]]]
         AssociatePublicIpAddress = $UsePublicNetwork
@@ -180,7 +177,7 @@ Autoscale = $Autoscale
         AdditionalClusterInitSpecs = $LoginClusterInitSpecs
         ImageName = $LoginImageName
 
-        [[[cluster-init cyclecloud/slurm:login:3.0.9]]]
+        [[[cluster-init cyclecloud/slurm:login]]]
 
         [[[configuration]]]
         autoscale.enabled = false
@@ -196,7 +193,7 @@ Autoscale = $Autoscale
         slurm.node_prefix = ${ifThenElse(NodeNamePrefix=="Cluster Prefix", StrJoin("-", ClusterName, ""), NodeNamePrefix)}
         slurm.use_nodename_as_hostname = $NodeNameIsHostname
 
-        [[[cluster-init cyclecloud/slurm:execute:3.0.9]]]
+        [[[cluster-init cyclecloud/slurm:execute]]]
 
         [[[network-interface eth0]]]
         AssociatePublicIpAddress = $ExecuteNodesPublic
@@ -712,9 +709,21 @@ Order = 20
         Widget.Plugin = pico.form.BooleanCheckBox
         Widget.Label = Configure Slurm job accounting
 
+	[[[parameter slurm_database_warning]]]
+	HideLabel = true
+	Config.Plugin = pico.widget.HtmlTemplateWidget
+	Conditions.Excluded := configuration_slurm_accounting_enabled isnt true
+	Config.Template := "<table role=\"presentation\"><tr><td> <b>Note: Checking this box will create persistent databases and tables in SQL DB provided. Deleting this cluster will not automatically delete those databases. User is responsible for periodically purging/archiving their slurm databases to maintain costs.</b></td></tr></table>"
+
+
         [[[parameter configuration_slurm_accounting_url]]]
         Label = Slurm DBD URL
         Description = URL of the database to use for Slurm job accounting
+        Conditions.Excluded := configuration_slurm_accounting_enabled isnt true
+
+        [[[parameter configuration_slurm_accounting_storageloc]]]
+        Label = Database name
+        Description = Database name to store slurm accounting records
         Conditions.Excluded := configuration_slurm_accounting_enabled isnt true
 
         [[[parameter configuration_slurm_accounting_user]]]
