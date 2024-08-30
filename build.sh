@@ -24,9 +24,11 @@ mkdir -p "$build_dir"
 
 echo "Copying UI definition"
 cp "$UI_DEFINITION" "$build_dir"
+python3 bicep-typeless.py
 
 echo "Converting Bicep to ARM template"
-az bicep build --file "${GIT_ROOT}/bicep/mainTemplate.bicep" --outdir "$build_dir"
+az bicep build --file "${GIT_ROOT}/bicep-typeless/mainTemplate.bicep" --outdir "$build_dir"
+rm -rf bicep-typeless
 
 echo Adding branch=$BRANCH to build/mainTemplate.json
 cat > build_sh_python_tmp.py<<EOF
