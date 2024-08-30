@@ -27,7 +27,7 @@ param databaseConfig types.databaseConfig_t = { type: 'disabled' }
 param clusterName string = 'ccsw'
 
 param infrastructureOnly bool = false
-param insidersBuild bool = false
+param insidersBuild bool = true
 
 // build.sh will override this, but for development please set this yourself as a parameter
 param branch string = 'main'
