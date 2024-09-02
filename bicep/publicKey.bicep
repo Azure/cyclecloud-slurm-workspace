@@ -8,7 +8,7 @@ resource autogenerate_publickey 'Microsoft.Compute/sshPublicKeys@2023-09-01' = i
   location: location
 }
 */
-resource stored_publickey 'Microsoft.Compute/sshPublicKeys@2023-09-01' existing = {
+resource stored_publickey 'Microsoft.Compute/sshPublicKeys@2024-03-01' existing = {
   name: storedKey.name
   scope: resourceGroup(split(storedKey.id,'/')[4])
 }

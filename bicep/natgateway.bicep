@@ -6,7 +6,7 @@ param tags tags_t
 param name string
 
 
-resource publicip 'Microsoft.Network/publicIPAddresses@2023-06-01' = {
+resource publicip 'Microsoft.Network/publicIPAddresses@2023-11-01' = {
   name: 'pip-${name}'
   location: location
   tags: tags
@@ -20,7 +20,7 @@ resource publicip 'Microsoft.Network/publicIPAddresses@2023-06-01' = {
   }
 }
 
-resource natgateway 'Microsoft.Network/natGateways@2023-06-01' = {
+resource natgateway 'Microsoft.Network/natGateways@2023-11-01' = {
   name: name
   location: location
   sku: {

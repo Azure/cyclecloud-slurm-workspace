@@ -293,7 +293,7 @@ resource ccswCommonNsg 'Microsoft.Network/networkSecurityGroups@2023-11-01' = {
   }
 }
 
-resource ccswVirtualNetwork 'Microsoft.Network/virtualNetworks@2023-06-01' = {
+resource ccswVirtualNetwork 'Microsoft.Network/virtualNetworks@2023-11-01' = {
   name: vnet.name
   location: location
   tags: tags
@@ -325,7 +325,7 @@ resource ccswVirtualNetwork 'Microsoft.Network/virtualNetworks@2023-06-01' = {
   }
 }
 
-resource ccsw_to_peer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-06-01' = if (peeringEnabled) {
+resource ccsw_to_peer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-11-01' = if (peeringEnabled) {
   name: '${ccswVirtualNetwork.name}-to-${peeredVnetName}-${uniqueString(resourceGroup().id)}'
   parent: ccswVirtualNetwork
   properties: {
@@ -359,38 +359,38 @@ func rsc_output(rsc object) types.rsc_t => {
   rg: rsc.resourceGroupName
 }
 
-resource subnetCycleCloud 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' existing = {
+resource subnetCycleCloud 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
   name: vnet.subnets.cyclecloud.name
   parent: ccswVirtualNetwork
 }
 var subnet_cyclecloud = rsc_output(subnetCycleCloud)
 
-resource subnetCompute 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' existing = {
+resource subnetCompute 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
   name: vnet.subnets.compute.name
   parent: ccswVirtualNetwork
 }
 var subnet_compute = rsc_output(subnetCompute)
 
-resource subnetNetApp 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' existing = if (create_anf) {
+resource subnetNetApp 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = if (create_anf) {
   name: contains(vnet.subnets,'netapp') ? vnet.subnets.netapp.name : 'foo'
   parent: ccswVirtualNetwork
 }
 var subnet_netapp = create_anf ? rsc_output(subnetNetApp) : {}
 
-resource subnetLustre 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' existing = if (create_lustre) {
+resource subnetLustre 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = if (create_lustre) {
   name: contains(vnet.subnets,'lustre') ? vnet.subnets.lustre.name : 'foo'
   parent: ccswVirtualNetwork
 }
 //var subnet_lustre = lustre_count > 0 ? rsc_output(subnetLustre) : {}
 var subnet_lustre = create_lustre ? rsc_output(subnetLustre) : {}
 
-resource subnetBastion 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' existing = if (deploy_bastion) {
+resource subnetBastion 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = if (deploy_bastion) {
   name: contains(vnet.subnets,'bastion') ? vnet.subnets.bastion.name : 'foo'
   parent: ccswVirtualNetwork
 }
 var subnet_bastion = deploy_bastion ? rsc_output(subnetBastion) : {}
 
-resource subnetDatabase 'Microsoft.Network/virtualNetworks/subnets@2023-06-01' existing = if (create_database) {
+resource subnetDatabase 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = if (create_database) {
   name: contains(vnet.subnets,'database') ? vnet.subnets.database.name : 'foo'
   parent: ccswVirtualNetwork
 }
@@ -418,7 +418,7 @@ resource ccswDatabase 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' 
 
 var privateEndpointName = 'ccsw-mysql-pe'
 
-resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-06-01' = if (create_private_endpoint) {
+resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-11-01' = if (create_private_endpoint) {
   name: privateEndpointName
   location: location
   properties: {
