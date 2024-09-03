@@ -12,11 +12,11 @@ param allowGateway bool = true
 @description('VNET Id of the ccsw VNET')
 param vnetId string
 
-resource peeredVirtualNetwork 'Microsoft.Network/virtualNetworks@2022-07-01' existing = { 
+resource peeredVirtualNetwork 'Microsoft.Network/virtualNetworks@2023-11-01' existing = { 
   name: vnetName
 }
 
-resource peering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-06-01' = {
+resource peering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-11-01' = {
   name: name
   parent: peeredVirtualNetwork
   properties: {

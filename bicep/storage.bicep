@@ -11,7 +11,7 @@ param subnetIds array
 // var ips = [ for ip in allowableIps : { value: ip } ]
 var subIds = [ for id in subnetIds : { id: id } ]
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-04-01' = {
   name: saName
   location: location
   tags: tags
