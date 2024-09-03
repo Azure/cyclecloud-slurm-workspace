@@ -12,7 +12,7 @@ else
 fi
 if [ "$BRANCH" == "HEAD" ]; then 
     echo "Please check this out as a branch. If this is a tag, create a local branch with the same name"
-    echo "e.g. git checkout 2024.08.30 -b 2024.08.30"
+    echo "e.g. git checkout 2024.09.03 -b 2024.09.03"
     exit 2
 fi
 
