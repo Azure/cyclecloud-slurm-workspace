@@ -10,8 +10,8 @@
           "visible": false
         },
         "location": {
-          "label": "Region to deploy resources",
-          "toolTip": "Select the region to deploy resources",
+          "label": "Region in which to deploy resources",
+          "toolTip": "Select the region in which to deploy resources",
           "visible": true
         }
       }
@@ -93,7 +93,7 @@
         "type": "Microsoft.Common.TextBox",
         "label": "Admin User",
         "defaultValue": "hpcadmin",
-        "toolTip": "Local admin user for the Virtual Machines.",
+        "toolTip": "Local admin user for the Virtual Machines",
         "constraints": {
           "required": true,
           "regex": "^[a-zA-Z][a-zA-Z0-9_]{5,19}$",
@@ -108,7 +108,7 @@
           "password": "Admin Password",
           "confirmPassword": "Confirm password"
         },
-        "toolTip": "The Admin User password.",
+        "toolTip": "The Admin User password",
         "constraints": {
           "required": true,
           "regex": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_\\-+=[\\]{}|\\\\:'\",.?`~\";]).{8,123}$",
@@ -124,7 +124,7 @@
         "type": "Microsoft.Common.DropDown",
         "label": "SSH public key source",
         "defaultValue": "Use existing public key",
-        "toolTip": "Keypair and passwords can be retrieved from keyvault after deploying.",
+        "toolTip": "Public keys can be entered manually or retrieved from an Azure Public Key resource",
         "constraints": {
           "allowedValues": [
             {
@@ -143,7 +143,7 @@
         "name": "adminSshPublicKey",
         "type": "Microsoft.Common.TextBox",
         "label": "Admin SSH Public Key",
-        "toolTip": "SSH-RSA Public Key for the Virtual Machines.",
+        "toolTip": "SSH-RSA Public Key for the Virtual Machines",
         "constraints": {
           "required": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]",
           "regex": "^ssh-rsa AAAAB3NzaC1yc2[0-9A-Za-z+/]+[=]{0,3}(\\s.*)?$",
@@ -155,7 +155,7 @@
         "name": "keySelector",
         "type": "Microsoft.Solutions.ResourceSelector",
         "label": "Select stored SSH key",
-        "toolTip": "Select a stored SSH public key.",
+        "toolTip": "Select a stored SSH public key",
         "resourceType": "Microsoft.Compute/sshPublicKeys",
         "options": {
           "filter": {
@@ -205,7 +205,7 @@
                 "type": "Microsoft.Common.DropDown",
                 "label": "Create new file-system",
                 "defaultValue": "Create new",
-                "toolTip": "Create new file-system type or use existing for /shared directory.",
+                "toolTip": "Create new file-system type or use existing for /shared directory",
                 "multiselect": false,
                 "constraints": {
                   "allowedValues": [
@@ -227,7 +227,7 @@
                 "type": "Microsoft.Common.DropDown",
                 "label": "File-system Type",
                 "defaultValue": "[if(equals(steps('filesystem').shared.newexisting,'new'),'Builtin NFS','External NFS')]",
-                "toolTip": "Filer type for the /shared directory.",
+                "toolTip": "Filer type for the /shared directory",
                 "multiselect": false,
                 "constraints": {
                   "allowedValues": [
@@ -268,7 +268,7 @@
                 "label": "Service Level",
                 "defaultValue": "Premium",
                 "multiselect": false,
-                "toolTip": "Service level for the Azure NetApp Files volume.",
+                "toolTip": "Service level for the Azure NetApp Files volume",
                 "constraints": {
                   "allowedValues": [
                     {
@@ -292,7 +292,7 @@
                 "name": "anfcapacity",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Capacity",
-                "toolTip": "Capacity of the Azure NetApp Files volume.",
+                "toolTip": "Capacity of the Azure NetApp Files volume",
                 "subLabel": "TiB",
                 "defaultValue": "4",
                 "constraints": {
@@ -306,7 +306,7 @@
                 "name": "nfscapacity",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Capacity",
-                "toolTip": "Capacity of the NFS volume.",
+                "toolTip": "Capacity of the NFS volume",
                 "subLabel": "GB",
                 "defaultValue": "1024",
                 "constraints": {
@@ -320,7 +320,7 @@
                 "name": "ipAddress",
                 "type": "Microsoft.Common.TextBox",
                 "label": "IP Address",
-                "toolTip": "IP address of the filer mount.",
+                "toolTip": "IP address of the filer mount",
                 "defaultValue": "",
                 "constraints": {
                   "required": true,
@@ -338,7 +338,7 @@
                 "type": "Microsoft.Common.TextBox",
                 "label": "Export path",
                 "defaultValue": "/shared",
-                "toolTip": "Export path for the primary filer.",
+                "toolTip": "Export path for the primary filer",
                 "constraints": {
                   "required": true,
                   "regex": "^\/(?:[\\w-.]+\/)*[\\w-.]+$",
@@ -355,7 +355,7 @@
                 "constraints": {
                   "required": false,
                   "regex": "^.+$",
-                  "validationMessage": "Please enter a mount option."
+                  "validationMessage": "Please enter a mount option"
                 },
                 "visible": "[equals(steps('filesystem').shared.newexisting,'existing')]"
               }
@@ -379,7 +379,7 @@
                 "name": "checkbox",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Add another file-system mount",
-                "toolTip": "Add an additional filer.",
+                "toolTip": "Add an additional filer",
                 "defaultValue": false,
                 "constraints": {
                   "required": false
@@ -396,7 +396,7 @@
                 "type": "Microsoft.Common.DropDown",
                 "label": "Create new file-system",
                 "defaultValue": "Create new",
-                "toolTip": "Create new file-system or use existing.",
+                "toolTip": "Create new file-system or use existing",
                 "multiselect": false,
                 "constraints": {
                   "allowedValues": [
@@ -418,7 +418,7 @@
                 "type": "Microsoft.Common.DropDown",
                 "label": "File-system Type",
                 "defaultValue": "[if(equals(steps('filesystem').additional.newexisting,'new'),'Azure NetApp Files','External NFS')]",
-                "toolTip": "File-system type.",
+                "toolTip": "File-system type",
                 "multiselect": false,
                 "constraints": {
                   "allowedValues": [
@@ -459,7 +459,7 @@
                 "label": "Service Level",
                 "defaultValue": "Premium",
                 "multiselect": false,
-                "toolTip": "Service level for the Azure NetApp Files volume.",
+                "toolTip": "Service level for the Azure NetApp Files volume",
                 "constraints": {
                   "allowedValues": [
                     {
@@ -483,7 +483,7 @@
                 "name": "anfcapacity",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Capacity",
-                "toolTip": "Capacity of the Azure NetApp Files volume.",
+                "toolTip": "Capacity of the Azure NetApp Files volume",
                 "subLabel": "TiB",
                 "defaultValue": "4",
                 "constraints": {
@@ -541,7 +541,7 @@
                 "name": "azurelustrecapacity",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Capacity",
-                "toolTip": "Capacity of the Azure Managed Lustre volume.",
+                "toolTip": "Capacity of the Azure Managed Lustre volume",
                 "subLabel": "TiB",
                 "defaultValue": "48",
                 "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]",
@@ -555,7 +555,7 @@
                 "name": "ipAddress",
                 "type": "Microsoft.Common.TextBox",
                 "label": "IP Address",
-                "toolTip": "IP address of the filer mount.",
+                "toolTip": "IP address of the filer mount",
                 "defaultValue": "",
                 "constraints": {
                   "required": true,
@@ -573,7 +573,7 @@
                 "type": "Microsoft.Common.TextBox",
                 "label": "Mount path",
                 "defaultValue": "/data",
-                "toolTip": "Mount path for the additional filer.",
+                "toolTip": "Mount path for the additional filer",
                 "constraints": {
                   "required": true,
                   "regex": "^\/(?:[\\w-.]+\/)*[\\w-.]+$",
@@ -586,7 +586,7 @@
                 "type": "Microsoft.Common.TextBox",
                 "label": "Export path",
                 "defaultValue": "/mnt/data",
-                "toolTip": "Export path for the additional filer.",
+                "toolTip": "Export path for the additional filer",
                 "constraints": {
                   "required": true,
                   "regex": "^\/(?:[\\w-.]+\/)*[\\w-.]+$",
@@ -599,7 +599,7 @@
                 "type": "Microsoft.Common.TextBox",
                 "label": "Mount options",
                 "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev",
-                "toolTip": "Mount options for the additional filer.",
+                "toolTip": "Mount options for the additional filer",
                 "constraints": {
                   "required": false,
                   "regex": "^.+$",
@@ -630,7 +630,7 @@
             "type": "Microsoft.Common.DropDown",
             "label": "Virtual network options",
             "defaultValue": "Use existing virtual network and subnets",
-            "toolTip": "Use an existing virtual network and subnets or auto-generate new networking resources for your needs",
+            "toolTip": "Use an existing virtual network and subnets or auto-create new networking resources",
             "constraints": {
               "allowedValues": [
                 {
@@ -804,7 +804,7 @@
               {
                 "name": "peering",
                 "type": "Microsoft.Common.CheckBox",
-                "label": "Peer to an existing virtual network.",
+                "label": "Peer to an existing virtual network",
                 "defaultValue": false,
                 "toolTip": "Enable peering to your existing virtual network",
                 "visible": "[equals(steps('networking').newexisting,'new')]"
@@ -1144,7 +1144,7 @@
             "name": "healthCheck",
             "type": "Microsoft.Common.CheckBox",
             "label": "Enable health check",
-            "toolTip": "Enable health check scripts (NHC) to be run during allocation.",
+            "toolTip": "Enable health check scripts (NHC) to be run during allocation",
             "defaultValue": false,
             "constraints": {
               "required": false
