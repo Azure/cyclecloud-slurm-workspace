@@ -159,6 +159,8 @@ var nsg_rules = {
 
     // Allow ssh from cyclecloud to compute
     AllowSshCyclecloudComputeIn: ['200', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'cyclecloud', 'subnet', 'compute']
+    // Allow ssh from VirtualNetwork to CycleCloud
+    AllowSshVnetCyclecloudIn: ['250', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'tag', 'VirtualNetwork', 'subnet', 'cyclecloud']
 
     // All communications inside compute subnet
     AllowAllComputeComputeIn: ['365', 'Inbound', 'Allow', 'Tcp', 'All', 'subnet', 'compute', 'subnet', 'compute']
