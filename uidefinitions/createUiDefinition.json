@@ -849,9 +849,9 @@
             "defaultValue": "ccsw",
             "toolTip": "Name of cluster in CycleCloud portal",
             "constraints": {
-                "required": true,
-                "regex": "^[a-zA-Z0-9@_-]{3,}$",
-                "validationMessage": "Cluster name must be at least 3 characters long. Characters must be alphanumeric, @, -, or _."
+              "required": true,
+              "regex": "^[a-zA-Z0-9@_-]{3,}$",
+              "validationMessage": "Cluster name must be at least 3 characters long. Characters must be alphanumeric, @, -, or _."
             },
             "visible": false
           },
@@ -893,11 +893,28 @@
                     {
                       "label": "Ubuntu 22.04",
                       "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                    },
+                    {
+                      "label": "Custom image",
+                      "value": "custom"
                     }
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
                 }
+              },
+              {
+                "name": "customImageName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Custom Image ID",
+                "placeholder": "",
+                "defaultValue": "",
+                "toolTip": "Enter a custom image ID or URN",
+                "constraints": {
+                  "required": true,
+                  "validationMessage": "Enter a custom image ID or URN."
+                },
+                "visible": "[equals(steps('scheduler').schedulerSection.ImageName,'custom')]"
               },
               {
                 "name": "slurmVersion",
@@ -1105,11 +1122,28 @@
                     {
                       "label": "Ubuntu 22.04",
                       "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                    },
+                    {
+                      "label": "Custom image",
+                      "value": "custom"
                     }
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
                 }
+              },
+              {
+                "name": "customImageName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Custom Image ID",
+                "placeholder": "",
+                "defaultValue": "",
+                "toolTip": "Enter a custom image ID or URN",
+                "constraints": {
+                  "required": true,
+                  "validationMessage": "Enter a custom image ID or URN."
+                },
+                "visible": "[equals(steps('scheduler').loginNodesSection.ImageName,'custom')]"
               },
               {
                 "name": "initialNodes",
@@ -1218,11 +1252,28 @@
                     {
                       "label": "Ubuntu 22.04",
                       "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                    },
+                    {
+                      "label": "Custom image",
+                      "value": "custom"
                     }
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
                 }
+              },
+              {
+                "name": "customImageName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Custom Image ID",
+                "placeholder": "",
+                "defaultValue": "",
+                "toolTip": "Enter a custom image ID or URN",
+                "constraints": {
+                  "required": true,
+                  "validationMessage": "Enter a custom image ID or URN."
+                },
+                "visible": "[equals(steps('slurmSettings').HTCSection.ImageName,'custom')]"
               },
               {
                 "name": "spotHTC",
@@ -1291,11 +1342,28 @@
                     {
                       "label": "Ubuntu 22.04",
                       "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                    },
+                    {
+                      "label": "Custom image",
+                      "value": "custom"
                     }
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
                 }
+              },
+              {
+                "name": "customImageName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Custom Image ID",
+                "placeholder": "",
+                "defaultValue": "",
+                "toolTip": "Enter a custom image ID or URN",
+                "constraints": {
+                  "required": true,
+                  "validationMessage": "Enter a custom image ID or URN."
+                },
+                "visible": "[equals(steps('slurmSettings').HPCSection.ImageName,'custom')]"
               },
               {
                 "name": "spotHPC",
@@ -1367,11 +1435,28 @@
                     {
                       "label": "Ubuntu 22.04",
                       "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                    },
+                    {
+                      "label": "Custom image",
+                      "value": "custom"
                     }
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
                 }
+              },
+              {
+                "name": "customImageName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Custom Image ID",
+                "placeholder": "",
+                "defaultValue": "",
+                "toolTip": "Enter a custom image ID or URN",
+                "constraints": {
+                  "required": true,
+                  "validationMessage": "Enter a custom image ID or URN."
+                },
+                "visible": "[equals(steps('slurmSettings').GPUSection.ImageName,'custom')]"
               },
               {
                 "name": "spotGPU",
@@ -1407,7 +1492,7 @@
               "Microsoft.NetApp/netAppAccounts",
               "Microsoft.Network/bastionHosts",
               "Resource group",
-              "Node Array" 
+              "Node Array"
             ]
           }
         ]
