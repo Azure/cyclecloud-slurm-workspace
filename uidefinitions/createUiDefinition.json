@@ -917,6 +917,14 @@
                 "visible": "[equals(steps('scheduler').schedulerSection.ImageName,'custom')]"
               },
               {
+                "name": "universalImage",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Use image on all nodes",
+                "toolTip": "Use the indicated image on all nodes",
+                "defaultValue": false,
+                "visible": true
+              },
+              {
                 "name": "slurmVersion",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Slurm Version",
@@ -1130,7 +1138,8 @@
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
-                }
+                },
+                "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
               },
               {
                 "name": "customImageName",
@@ -1260,7 +1269,8 @@
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
-                }
+                },
+                "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
               },
               {
                 "name": "customImageName",
@@ -1350,7 +1360,8 @@
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
-                }
+                },
+                "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
               },
               {
                 "name": "customImageName",
@@ -1443,7 +1454,8 @@
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
-                }
+                },
+                "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
               },
               {
                 "name": "customImageName",
