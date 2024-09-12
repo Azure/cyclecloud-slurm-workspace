@@ -1567,29 +1567,29 @@
       },
       "schedulerNode": {
         "sku": "[steps('scheduler').schedulerSection.vmsize]",
-        "image": "[steps('scheduler').schedulerSection.ImageName]"
+        "image": "[if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName)]"
       },
       "loginNodes": {
         "sku": "[steps('scheduler').loginNodesSection.vmsize]",
-        "image": "[steps('scheduler').loginNodesSection.ImageName]",
+        "image": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('scheduler').loginNodesSection.ImageName,'custom'),steps('scheduler').loginNodesSection.customImageName,steps('scheduler').loginNodesSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]",
         "initialNodes": "[int(steps('scheduler').loginNodesSection.initialNodes)]",
         "maxNodes": "[int(steps('scheduler').loginNodesSection.maxNodes)]"
       },
       "htc": {
         "sku": "[steps('slurmSettings').HTCSection.vmsize]",
         "maxNodes": "[int(steps('slurmSettings').HTCSection.maxNodes)]",
-        "image": "[steps('slurmSettings').HTCSection.ImageName]",
+        "image": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').HTCSection.ImageName,'custom'),steps('slurmSettings').HTCSection.customImageName,steps('slurmSettings').HTCSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]",
         "useSpot": "[steps('slurmSettings').HTCSection.spotHTC]"
       },
       "hpc": {
         "sku": "[steps('slurmSettings').HPCSection.vmsize]",
         "maxNodes": "[int(steps('slurmSettings').HPCSection.maxNodes)]",
-        "image": "[steps('slurmSettings').HPCSection.ImageName]"
+        "image": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').HPCSection.ImageName,'custom'),steps('slurmSettings').HPCSection.customImageName,steps('slurmSettings').HPCSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]"
       },
       "gpu": {
         "sku": "[steps('slurmSettings').GPUSection.vmsize]",
         "maxNodes": "[int(steps('slurmSettings').GPUSection.maxNodes)]",
-        "image": "[steps('slurmSettings').GPUSection.ImageName]"
+        "image": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').GPUSection.ImageName,'custom'),steps('slurmSettings').GPUSection.customImageName,steps('slurmSettings').GPUSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]"
       },
       "tags": "[steps('tags').tagsByResource]"
     }
