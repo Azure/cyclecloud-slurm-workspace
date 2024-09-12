@@ -1470,29 +1470,29 @@
       },
       "schedulerNode": {
         "sku": "[steps('scheduler').schedulerSection.vmsize]",
-        "image": "[steps('scheduler').schedulerSection.ImageName]"
+        "osImage": "[steps('scheduler').schedulerSection.ImageName]"
       },
       "loginNodes": {
         "sku": "[steps('scheduler').loginNodesSection.vmsize]",
-        "image": "[steps('scheduler').loginNodesSection.ImageName]",
+        "osImage": "[steps('scheduler').loginNodesSection.ImageName]",
         "initialNodes": "[int(steps('scheduler').loginNodesSection.initialNodes)]",
         "maxNodes": "[int(steps('scheduler').loginNodesSection.maxNodes)]"
       },
       "htc": {
         "sku": "[steps('slurmSettings').HTCSection.vmsize]",
         "maxNodes": "[int(steps('slurmSettings').HTCSection.maxNodes)]",
-        "image": "[steps('slurmSettings').HTCSection.ImageName]",
+        "osImage": "[steps('slurmSettings').HTCSection.ImageName]",
         "useSpot": "[steps('slurmSettings').HTCSection.spotHTC]"
       },
       "hpc": {
         "sku": "[steps('slurmSettings').HPCSection.vmsize]",
         "maxNodes": "[int(steps('slurmSettings').HPCSection.maxNodes)]",
-        "image": "[steps('slurmSettings').HPCSection.ImageName]"
+        "osImage": "[steps('slurmSettings').HPCSection.ImageName]"
       },
       "gpu": {
         "sku": "[steps('slurmSettings').GPUSection.vmsize]",
         "maxNodes": "[int(steps('slurmSettings').GPUSection.maxNodes)]",
-        "image": "[steps('slurmSettings').GPUSection.ImageName]"
+        "osImage": "[steps('slurmSettings').GPUSection.ImageName]"
       },
       "tags": "[steps('tags').tagsByResource]"
     }
