@@ -1,8 +1,8 @@
-# Azure CycleCloud Slurm Workspace
+# Azure CycleCloud Workspace for Slurm
 
-Azure CycleCloud Slurm Workspace is a new solution that simplifies and streamlines the creation and management of Slurm clusters on Azure. Azure CycleCloud Slurm Workspace is an Azure marketplace solution template that allows users to easily create and configure pre-defined Slurm clusters with Azure CycleCloud, without requiring any prior knowledge of the cloud or Slurm. Slurm clusters will be pre-configured with PMix v4, Pyxis and enroot to support containerized AI Slurm jobs. Users can access the provisioned login node using SSH or Visual Studio Code to perform common tasks like submitting and managing Slurm jobs.
+Azure CycleCloud Workspace for Slurm is a new solution that simplifies and streamlines the creation and management of Slurm clusters on Azure. Azure CycleCloud Workspace for Slurm is an Azure marketplace solution template that allows users to easily create and configure pre-defined Slurm clusters with Azure CycleCloud, without requiring any prior knowledge of the cloud or Slurm. Slurm clusters will be pre-configured with PMix v4, Pyxis and enroot to support containerized AI Slurm jobs. Users can access the provisioned login node using SSH or Visual Studio Code to perform common tasks like submitting and managing Slurm jobs.
 
-Azure CycleCloud Slurm Workspace, based on the options choosen will deploy the following resources in your Azure subscription as described in the architecture below.
+Azure CycleCloud Workspace for Slurm, based on the options choosen will deploy the following resources in your Azure subscription as described in the architecture below.
 - a VNET and subnets to host CycleCloud, compute, Bastion and storage,
 - a VM with CycleCloud pre-configured, and a System Managed Identity with the right roles granted to create resources,
 - a Network Security Group with rules defined and attached to the subnets,
@@ -17,7 +17,8 @@ Azure CycleCloud Slurm Workspace, based on the options choosen will deploy the f
 
 # Table of Contents
 <!--ts-->
-* [Azure CycleCloud Slurm Workspace](#azure-cyclecloud-slurm-workspace)
+* [Azure CycleCloud Workspace for Slurm](#azure-cyclecloud-workspace-for-slurm)
+* [Table of Contents](#table-of-contents)
    * [How to deploy ?](#how-to-deploy-)
       * [Basics](#basics)
       * [File-system](#file-system)
@@ -35,6 +36,7 @@ Azure CycleCloud Slurm Workspace, based on the options choosen will deploy the f
    * [Check your deployment](#check-your-deployment)
    * [Connect to the login node](#connect-to-the-login-node)
    * [Bring your own VNET](#bring-your-own-vnet)
+   * [Cleaning up roles](#cleaning-up-roles)
    * [Contributing](#contributing)
    * [Trademarks](#trademarks)
 <!--te-->
@@ -102,7 +104,7 @@ Finally enabling health check will execute node health checks for HPC and GPU VM
 <img src="./images/marketplace_slurm.png" width="100%">
 
 ### Partition Settings
-Azure CycleCloud Slurm Workspace comes with 3 defined Slurm partitions :
+Azure CycleCloud Workspace for Slurm comes with 3 defined Slurm partitions :
 - HTC : for embarassingly non MPI jobs,
 - HPC : for highly coupled MPI jobs mostly using VM types with Infiniband support,
 - GPU : for MPI and non MPI GPU jobs
