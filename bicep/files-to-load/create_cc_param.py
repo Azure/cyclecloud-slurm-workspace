@@ -31,23 +31,23 @@ def set_params(params, dbPassword, outputs):
     #HTC
     params['HTCMachineType'] = outputs['partitions']['value']['htc']['sku']
     params['MaxHTCExecuteNodeCount'] = int(outputs['partitions']['value']['htc']['maxNodes'])
-    params['HTCImageName'] = outputs['partitions']['value']['htc']['image']
+    params['HTCImageName'] = outputs['partitions']['value']['htc']['osImage']
     params['HTCUseLowPrio'] = outputs['partitions']['value']['htc']['useSpot']
 
     #HPC
     params['HPCMachineType'] = outputs['partitions']['value']['hpc']['sku']
     params['MaxHPCExecuteNodeCount'] = int(outputs['partitions']['value']['hpc']['maxNodes'])
-    params['HPCImageName'] = outputs['partitions']['value']['hpc']['image']
+    params['HPCImageName'] = outputs['partitions']['value']['hpc']['osImage']
 
     #GPU
     params['GPUMachineType'] = outputs['partitions']['value']['gpu']['sku']
     params['MaxGPUExecuteNodeCount'] = int(outputs['partitions']['value']['gpu']['maxNodes'])
-    params['GPUImageName'] = outputs['partitions']['value']['gpu']['image']
+    params['GPUImageName'] = outputs['partitions']['value']['gpu']['osImage']
 
     #scheduler node
     #params['slurm'] #is this the slurm version??? no, so what is it?
     params['SchedulerMachineType'] = outputs['schedulerNode']['value']['sku']
-    params['SchedulerImageName'] = outputs['schedulerNode']['value']['image']
+    params['SchedulerImageName'] = outputs['schedulerNode']['value']['osImage']
     params['configuration_slurm_version'] = outputs['slurmSettings']['value']['version']
     # if outputs['slurmSettings']['value']['canUseSlurmHA']:
     #     params['configuration_slurm_ha_enabled'] = outputs['slurmSettings']['value']['slurmHA']
@@ -63,7 +63,7 @@ def set_params(params, dbPassword, outputs):
     #login node(s)
     params['loginMachineType'] = (outputs['loginNodes']['value']['sku']).strip()
     params['NumberLoginNodes'] = int(outputs['loginNodes']['value']['initialNodes'])
-    params['LoginImageName'] = outputs['loginNodes']['value']['image']
+    params['LoginImageName'] = outputs['loginNodes']['value']['osImage']
     params['EnableNodeHealthChecks'] = outputs['slurmSettings']['value']['healthCheckEnabled']
 
     #Execute node tags
