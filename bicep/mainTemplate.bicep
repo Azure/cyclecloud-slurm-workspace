@@ -24,7 +24,7 @@ param databaseAdminPassword string = ''
 param databaseConfig types.databaseConfig_t = { type: 'disabled' }
 @minLength(3)
 @description('The user-defined name of the cluster. Regex: ^[a-zA-Z0-9@_-]{3,}$')
-param clusterName string = 'ccsw'
+param clusterName string = 'ccw'
 
 param infrastructureOnly bool = false
 param insidersBuild bool = false
@@ -34,15 +34,15 @@ param branch string = 'main'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
 param projectVersion string = '2024.09.03'
 
-resource ccswResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
+resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: resourceGroup
   location: location
   tags: tags[?'Resource group'] ?? {}
 }
 
-module makeCCSWresources 'ccsw.bicep' = {
+module makeCCWresources 'ccw.bicep' = {
   name: 'pid-8d5b25bd-0ba7-49b9-90b3-3472bc08443e-partnercenter'
-  scope: ccswResourceGroup
+  scope: ccwResourceGroup
   params: {
     location: location
     infrastructureOnly: infrastructureOnly
