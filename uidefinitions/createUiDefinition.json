@@ -907,12 +907,12 @@
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Custom Image ID",
-                "placeholder": "",
                 "defaultValue": "",
                 "toolTip": "Enter a custom image ID or URN",
                 "constraints": {
                   "required": true,
-                  "validationMessage": "Enter a custom image ID or URN."
+                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
+                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
                 },
                 "visible": "[equals(steps('scheduler').schedulerSection.ImageName,'custom')]"
               },
@@ -1145,12 +1145,12 @@
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Custom Image ID",
-                "placeholder": "",
                 "defaultValue": "",
                 "toolTip": "Enter a custom image ID or URN",
                 "constraints": {
                   "required": true,
-                  "validationMessage": "Enter a custom image ID or URN."
+                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
+                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
                 },
                 "visible": "[equals(steps('scheduler').loginNodesSection.ImageName,'custom')]"
               },
@@ -1276,12 +1276,12 @@
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Custom Image ID",
-                "placeholder": "",
                 "defaultValue": "",
                 "toolTip": "Enter a custom image ID or URN",
                 "constraints": {
                   "required": true,
-                  "validationMessage": "Enter a custom image ID or URN."
+                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
+                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
                 },
                 "visible": "[equals(steps('slurmSettings').HTCSection.ImageName,'custom')]"
               },
@@ -1367,12 +1367,12 @@
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Custom Image ID",
-                "placeholder": "",
                 "defaultValue": "",
                 "toolTip": "Enter a custom image ID or URN",
                 "constraints": {
                   "required": true,
-                  "validationMessage": "Enter a custom image ID or URN."
+                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
+                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
                 },
                 "visible": "[equals(steps('slurmSettings').HPCSection.ImageName,'custom')]"
               },
@@ -1460,13 +1460,13 @@
               {
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
-                "label": "Custom Image ID",
-                "placeholder": "",
+                "label": "Custom Image URN or ID",
                 "defaultValue": "",
-                "toolTip": "Enter a custom image ID or URN",
+                "toolTip": "Enter a custom image URN or ID",
                 "constraints": {
                   "required": true,
-                  "validationMessage": "Enter a custom image ID or URN."
+                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
+                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
                 },
                 "visible": "[equals(steps('slurmSettings').GPUSection.ImageName,'custom')]"
               },
