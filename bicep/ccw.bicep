@@ -275,7 +275,7 @@ output partitions types.partitions_t = {
   htc: {
     sku: htc.sku
     maxNodes: htc.maxNodes
-    image: htc.image
+    osImage: htc.osImage
     useSpot: htc.?useSpot ?? false
   }
   hpc: hpc
