@@ -9,7 +9,7 @@ param vnetName string
 @description('allow gateway transit (default: true)')
 param allowGateway bool = true
 
-@description('VNET Id of the ccsw VNET')
+@description('VNET Id of the ccw VNET')
 param vnetId string
 
 resource peeredVirtualNetwork 'Microsoft.Network/virtualNetworks@2023-11-01' existing = { 

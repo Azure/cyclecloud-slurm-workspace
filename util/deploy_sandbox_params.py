@@ -6,7 +6,7 @@ import sys
 
 """
 This is a simple development utility to override common settings when deploying
-multiple slurm workspaces via sandbox UI parameters. This will also set the branch correctly.
+multiple workspaces for Slurm via sandbox UI parameters. This will also set the branch correctly.
 
 python3 deploy_sandbox_params.py --sandbox-ui-json raw-ui-parameters.json\
                                  --location southcentralus\

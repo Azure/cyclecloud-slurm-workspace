@@ -2,8 +2,8 @@
 set -eo pipefail
 # this is not set if you run this manually
 export PATH=$PATH:/usr/local/bin
-ccsw_root="/opt/ccsw"
-mkdir -p -m 777 $ccsw_root
+ccw_root="/opt/ccw"
+mkdir -p -m 777 $ccw_root
 
 read_os()
 {
@@ -92,17 +92,17 @@ while deployment_state=$(az deployment group show -g $resource_group -n $deploym
     sleep 10
 done
 
-mkdir -p $ccsw_root/bin
+mkdir -p $ccw_root/bin
 
 # FOR TESTING PURPOSES
 echo "* Extracting deployment output"
-pushd $ccsw_root
-az deployment group show -g $resource_group -n $deployment_name --query properties.outputs > ccswOutputs.json
+pushd $ccw_root
+az deployment group show -g $resource_group -n $deployment_name --query properties.outputs > ccwOutputs.json
 
-BRANCH=$(jq -r .branch.value ccswOutputs.json)
-PROJECT_VERSION=$(jq -r .projectVersion.value ccswOutputs.json)
+BRANCH=$(jq -r .branch.value ccwOutputs.json)
+PROJECT_VERSION=$(jq -r .projectVersion.value ccwOutputs.json)
 URI="https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/$BRANCH/bicep/files-to-load"
-SECRETS_FILE_PATH="/root/ccsw.secrets.json"
+SECRETS_FILE_PATH="/root/ccw.secrets.json"
 
 # we don't want slurm-workspace.txt.1 etc if someone reruns this script, so use -O to overwrite existing files
 wget -O slurm-workspace.txt $URI/slurm-workspace.txt
@@ -117,12 +117,12 @@ DATABASE_ADMIN_PASSWORD=$(jq -r .databaseAdminPassword $SECRETS_FILE_PATH)
 (python3 create_cc_param.py --dbPassword="${DATABASE_ADMIN_PASSWORD}") > slurm_params.json
 echo "Filework successful" 
 
-CYCLECLOUD_USERNAME=$(jq -r .adminUsername.value ccswOutputs.json)
+CYCLECLOUD_USERNAME=$(jq -r .adminUsername.value ccwOutputs.json)
 CYCLECLOUD_PASSWORD=$(jq -r .adminPassword "$SECRETS_FILE_PATH")
-CYCLECLOUD_USER_PUBKEY=$(jq -r .publicKey.value ccswOutputs.json)
-CYCLECLOUD_STORAGE="$(jq -r .storageAccountName.value ccswOutputs.json)"
-SLURM_CLUSTER_NAME=$(jq -r .clusterName.value ccswOutputs.json)
-USE_INSIDERS_BUILD=$(jq -r .insidersBuild.value ccswOutputs.json)
+CYCLECLOUD_USER_PUBKEY=$(jq -r .publicKey.value ccwOutputs.json)
+CYCLECLOUD_STORAGE="$(jq -r .storageAccountName.value ccwOutputs.json)"
+SLURM_CLUSTER_NAME=$(jq -r .clusterName.value ccwOutputs.json)
+USE_INSIDERS_BUILD=$(jq -r .insidersBuild.value ccwOutputs.json)
 INSIDERS_BUILD_ARG=
 if [ "$USE_INSIDERS_BUILD" == "true" ]; then
     echo Using insiders build - we first need to uninstall cyclecloud8 and remove all files.
@@ -136,7 +136,7 @@ if [ "$USE_INSIDERS_BUILD" == "true" ]; then
     echo cyclecloud8 is uninstalled and all files are removed under /opt/cycle_server
 fi
 
-python3 /opt/ccsw/cyclecloud_install.py --acceptTerms \
+python3 /opt/ccw/cyclecloud_install.py --acceptTerms \
     --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
     --storageAccount=${CYCLECLOUD_STORAGE} \
@@ -145,27 +145,27 @@ python3 /opt/ccsw/cyclecloud_install.py --acceptTerms \
 
 echo "CC install script successful"
 # Configuring distribution_method
-cat > /tmp/ccsw_site_id.txt <<EOF
+cat > /tmp/ccw_site_id.txt <<EOF
 AdType = "Application.Setting"
 Name = "site_id"
 Value = "${vm_id}"
 
 AdType = "Application.Setting"
 Name = "distribution_method"
-Value = "ccsw-$PROJECT_VERSION"
+Value = "ccw-$PROJECT_VERSION"
 EOF
-chown cycle_server:cycle_server /tmp/ccsw_site_id.txt
-chmod 664 /tmp/ccsw_site_id.txt
-mv /tmp/ccsw_site_id.txt /opt/cycle_server/config/data/ccsw_site_id.txt
+chown cycle_server:cycle_server /tmp/ccw_site_id.txt
+chmod 664 /tmp/ccw_site_id.txt
+mv /tmp/ccw_site_id.txt /opt/cycle_server/config/data/ccw_site_id.txt
 
 # Create the project file
-cat > /opt/cycle_server/config/data/ccsw_project.txt <<EOF
+cat > /opt/cycle_server/config/data/ccw_project.txt <<EOF
 AdType = "Cloud.Project"
 Version = "$PROJECT_VERSION"
 ProjectType = "scheduler"
 Url = "https://github.com/Azure/cyclecloud-slurm-workspace/releases/$PROJECT_VERSION"
 AutoUpgrade = false
-Name = "ccsw"
+Name = "ccw"
 EOF
 
 echo Waiting for records to be imported
