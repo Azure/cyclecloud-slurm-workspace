@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Create a Feature Request for CCSW
+about: Create a Feature Request for CycleCloud Workspace for Slurm
 title: ''
 labels: kind/feature
 assignees: ''
