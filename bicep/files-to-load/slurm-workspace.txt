@@ -65,7 +65,7 @@ Autoscale = $Autoscale
         [[[cluster-init cyclecloud/slurm:default]]]
         Optional = true
 
-        [[[cluster-init cyclecloud/ccsw:default]]]
+        [[[cluster-init cyclecloud/ccw:default]]]
         Order = 10000
 
         [[[volume boot]]]

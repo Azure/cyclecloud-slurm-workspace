@@ -95,8 +95,8 @@ def main():
     args = parser.parse_args()
     
     slurm_params = get_json_dict('initial_params.json')
-    ccsw_outputs = get_json_dict('ccswOutputs.json')
-    set_params(slurm_params,args.dbPassword,ccsw_outputs)
+    ccw_outputs = get_json_dict('ccwOutputs.json')
+    set_params(slurm_params,args.dbPassword,ccw_outputs)
     print(json.dumps(slurm_params,indent=4))
 
 if __name__ == '__main__':

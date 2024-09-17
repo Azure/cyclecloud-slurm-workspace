@@ -35,13 +35,13 @@ var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netd
 func getTags(resource_type string, tags types.resource_tags_t) types.tags_t => tags[?resource_type] ?? {}
 
 var useEnteredKey = adminSshPublicKey != ''
-module ccswPublicKey './publicKey.bicep' = if (!useEnteredKey && !infrastructureOnly) {
-  name: 'ccswPublicKey'
+module ccwPublicKey './publicKey.bicep' = if (!useEnteredKey && !infrastructureOnly) {
+  name: 'ccwPublicKey'
   params: {
     storedKey: storedKey
   }
 }
-var publicKey = infrastructureOnly ? '' : (useEnteredKey ? adminSshPublicKey : ccswPublicKey.outputs.publicKey)
+var publicKey = infrastructureOnly ? '' : (useEnteredKey ? adminSshPublicKey : ccwPublicKey.outputs.publicKey)
 
 var createNatGateway = network.?createNatGateway ?? false
 module natgateway './natgateway.bicep' = if (createNatGateway) {
@@ -49,14 +49,14 @@ module natgateway './natgateway.bicep' = if (createNatGateway) {
   params: {
     location: location
     tags: getTags('Microsoft.Network/natGateways', tags)
-    name: 'ccsw-nat-gateway'
+    name: 'ccw-nat-gateway'
   }
 }
 var natGateawayId = createNatGateway ? natgateway.outputs.NATGatewayId : ''
 
 var create_new_vnet = network.type == 'new'
-module ccswNetwork './network-new.bicep' = if (create_new_vnet) {
-  name: 'ccswNetwork'
+module ccwNetwork './network-new.bicep' = if (create_new_vnet) {
+  name: 'ccwNetwork'
   params: {
     location: location
     tags: getTags('Microsoft.Network/virtualNetworks', tags)
@@ -70,7 +70,7 @@ module ccswNetwork './network-new.bicep' = if (create_new_vnet) {
 }
 
 var subnets = create_new_vnet
-  ? ccswNetwork.outputs.subnetsCCSW
+  ? ccwNetwork.outputs.subnetsCCW
   : {
       cyclecloud: { id: join([network.?id, 'subnets', network.?cyclecloudSubnet], '/') }
       compute: { id: join([network.?id, 'subnets', network.?computeSubnet], '/') }
@@ -80,7 +80,7 @@ var subnets = create_new_vnet
 
 output vnet types.networkOutput_t = union(
   create_new_vnet
-    ? ccswNetwork.outputs.vnetCCSW
+    ? ccwNetwork.outputs.vnetCCW
     : {
         id: network.?id ?? ''
         name: network.?name
@@ -88,14 +88,14 @@ output vnet types.networkOutput_t = union(
       },
   {
     type: network.type
-    computeSubnetName: network.?computeSubnet ?? 'ccsw-compute-subnet'
+    computeSubnetName: network.?computeSubnet ?? 'ccw-compute-subnet'
     computeSubnetId: subnets.compute.id
   }
 )
 
 var deploy_bastion = network.?bastion ?? false
-module ccswBastion './bastion.bicep' = if (deploy_bastion) {
-  name: 'ccswBastion'
+module ccwBastion './bastion.bicep' = if (deploy_bastion) {
+  name: 'ccwBastion'
   scope: create_new_vnet ? az.resourceGroup() : az.resourceGroup(split(network.?existing_vnet_id, '/')[4])
   params: {
     location: location
@@ -106,9 +106,9 @@ module ccswBastion './bastion.bicep' = if (deploy_bastion) {
 
 param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.6.420240830'
 
-var vmName = 'ccsw-cyclecloud'
-module ccswVM './vm.bicep' = if (!infrastructureOnly) {
-  name: 'ccswVM-cyclecloud'
+var vmName = 'ccw-cyclecloud'
+module ccwVM './vm.bicep' = if (!infrastructureOnly) {
+  name: 'ccwVM-cyclecloud'
   params: {
     location: location
     tags: getTags('Microsoft.Compute/virtualMachines', tags)
@@ -137,7 +137,7 @@ module ccswVM './vm.bicep' = if (!infrastructureOnly) {
     vmSize: ccVMSize
     dataDisks: [
       {
-        name: 'ccsw-cyclecloud-vm-datadisk0'
+        name: 'ccw-cyclecloud-vm-datadisk0'
         disksku: 'Premium_LRS'
         size: split(cyclecloudBaseImage, ':')[0] == 'azurecyclecloud' ? 0 : 128
         caching: 'ReadWrite'
@@ -146,12 +146,12 @@ module ccswVM './vm.bicep' = if (!infrastructureOnly) {
     ]
   }
   dependsOn: [
-    ccswNetwork
+    ccwNetwork
   ]
 }
 
-module ccswRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
-  name: 'ccswRoleFor-${vmName}-${location}'
+module ccwRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
+  name: 'ccwRoleFor-${vmName}-${location}'
   scope: subscription()
   params: {
     name: vmName
@@ -161,29 +161,29 @@ module ccswRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly)
       'Storage Account Contributor'
       'Storage Blob Data Contributor'
     ]
-    principalId: ccswVM.outputs.principalId
+    principalId: ccwVM.outputs.principalId
   }
   dependsOn: [
-    ccswVM
+    ccwVM
   ]
 }
 
-module ccswStorage './storage.bicep' = {
-  name: 'ccswStorage'
+module ccwStorage './storage.bicep' = {
+  name: 'ccwStorage'
   params: {
     location: location
     tags: getTags('Microsoft.Storage/storageAccounts', tags)
-    saName: 'ccswstorage${uniqueString(az.resourceGroup().id)}'
+    saName: 'ccwstorage${uniqueString(az.resourceGroup().id)}'
     lockDownNetwork: true // Restrict access to the storage account from compute and cyclecloud subnets
     subnetIds: concat([subnets.compute.id], [subnets.cyclecloud.id])
   }
 }
 
 var create_database = contains(slurmSettings, 'databaseAdminPassword')
-var db_name = 'ccsw-mysqldb-${uniqueString(az.resourceGroup().id)}'
+var db_name = 'ccw-mysqldb-${uniqueString(az.resourceGroup().id)}'
 
-module mySQLccsw './mysql.bicep' = if (create_database) {
-  name: 'MySQLDB-ccsw'
+module mySQLccw './mysql.bicep' = if (create_database) {
+  name: 'MySQLDB-ccw'
   params: {
     location: location
     tags: getTags('Microsoft.DBforMySQL/flexibleServers', tags)
@@ -194,32 +194,32 @@ module mySQLccsw './mysql.bicep' = if (create_database) {
   }
 }
 
-module ccswAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
-  name: 'ccswAMLFS-additional'
+module ccwAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
+  name: 'ccwAMLFS-additional'
   params: {
     location: location
     tags: getTags('Microsoft.StorageCache/amlFileSystems', tags)
-    name: 'ccsw-lustre'
+    name: 'ccw-lustre'
     subnetId: subnets.?additional.id ?? ''
     sku: additionalFilesystem.?lustreTier
     capacity: additionalFilesystem.?lustreCapacityInTib
     infrastructureOnly: infrastructureOnly
   }
   dependsOn: [
-    ccswNetwork
+    ccwNetwork
   ]
 }
 
-module ccswANFAccount 'anf-account.bicep' = if((sharedFilesystem.type == 'anf-new' || additionalFilesystem.type == 'anf-new') && !infrastructureOnly) {
-  name: 'ccswANFAccount'
+module ccwANFAccount 'anf-account.bicep' = if((sharedFilesystem.type == 'anf-new' || additionalFilesystem.type == 'anf-new') && !infrastructureOnly) {
+  name: 'ccwANFAccount'
   params: {
     location: location
   }
 }
 
-module ccswANF 'anf.bicep' = [
+module ccwANF 'anf.bicep' = [
   for filer in items({ home: sharedFilesystem, additional: additionalFilesystem }): if (filer.value.type == 'anf-new') {
-    name: 'ccswANF-${filer.key}'
+    name: 'ccwANF-${filer.key}'
     params: {
       location: location
       tags: getTags('Microsoft.NetApp/netAppAccounts', tags)
@@ -231,8 +231,8 @@ module ccswANF 'anf.bicep' = [
       infrastructureOnly: infrastructureOnly
     }
     dependsOn: [
-      ccswNetwork
-      ccswANFAccount
+      ccwNetwork
+      ccwANFAccount
     ]
   }
 ]
@@ -241,29 +241,29 @@ output filerInfoFinal types.filerInfo_t = {
   home: {
     type: sharedFilesystem.type
     nfsCapacityInGb: sharedFilesystem.?nfsCapacityInGb ?? -1
-    ipAddress: sharedFilesystem.type == 'anf-new' ? ccswANF[1].outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
-    exportPath: sharedFilesystem.type == 'anf-new' ? ccswANF[1].outputs.exportPath : sharedFilesystem.?exportPath ?? ''
+    ipAddress: sharedFilesystem.type == 'anf-new' ? ccwANF[1].outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
+    exportPath: sharedFilesystem.type == 'anf-new' ? ccwANF[1].outputs.exportPath : sharedFilesystem.?exportPath ?? ''
     mountOptions: sharedFilesystem.type == 'anf-new'
-      ? ccswANF[1].outputs.mountOptions
+      ? ccwANF[1].outputs.mountOptions
       : sharedFilesystem.?mountOptions ?? ''
     mountPath: '/shared'
   }
   additional: {
     type: additionalFilesystem.type
     ipAddress: additionalFilesystem.type == 'anf-new'
-      ? ccswANF[0].outputs.ipAddress
-      : additionalFilesystem.type == 'aml-new' ? ccswAMLFS.outputs.ipAddress : additionalFilesystem.?ipAddress ?? ''
+      ? ccwANF[0].outputs.ipAddress
+      : additionalFilesystem.type == 'aml-new' ? ccwAMLFS.outputs.ipAddress : additionalFilesystem.?ipAddress ?? ''
     exportPath: additionalFilesystem.type == 'anf-new'
-      ? ccswANF[0].outputs.exportPath
+      ? ccwANF[0].outputs.exportPath
       :additionalFilesystem.?exportPath ?? ''
     mountOptions: additionalFilesystem.type == 'anf-new'
-      ? ccswANF[0].outputs.mountOptions
+      ? ccwANF[0].outputs.mountOptions
       : additionalFilesystem.?mountOptions ?? ''
     mountPath: additionalFilesystem.?mountPath ?? ''
   }
 }
 
-output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccswVM.outputs.principalId
+output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.principalId
 
 output slurmSettings types.slurmSettings_t = slurmSettings
 
@@ -296,16 +296,16 @@ var clusterNameCleaned = join(clusterNameArrCleaned,'')
 
 output resourceGroup string = resourceGroup
 output location string = location
-output storageAccountName string = ccswStorage.outputs.storageAccountName
+output storageAccountName string = ccwStorage.outputs.storageAccountName
 output clusterName string = clusterNameCleaned
 output publicKey string = publicKey
 output adminUsername string = adminUsername
 output subscriptionId string = subscription().subscriptionId
 output tenantId string = subscription().tenantId
-// output databaseFQDN string = create_database ? mySQLccsw.outputs.fqdn : ''
+// output databaseFQDN string = create_database ? mySQLccw.outputs.fqdn : ''
 output databaseInfo types.databaseOutput_t = databaseConfig.type != 'disabled' ?{
   databaseUser: databaseConfig.?databaseUser
-  url: databaseConfig.type == 'fqdn' ? databaseConfig.?fqdn : databaseConfig.type == 'privateIp' ? databaseConfig.?privateIp : ccswNetwork.outputs.?databaseFQDN 
+  url: databaseConfig.type == 'fqdn' ? databaseConfig.?fqdn : databaseConfig.type == 'privateIp' ? databaseConfig.?privateIp : ccwNetwork.outputs.?databaseFQDN 
 } : {}
 output azureEnvironment string = envNameToCloudMap[environment().name]
 output nodeArrayTags types.tags_t = tags[?'Node Array'] ?? {}

@@ -622,7 +622,7 @@
             "visible": true,
             "options": {
               "icon": "Info",
-              "text": "Optionally use existing virtual network resources or have them automatically created for the cluster deployment.\n\nIf proceeding with the former, then please confirm that the chosen subnets have the appropriate Service Endpoints and delegations as specified in the Azure CycleCloud Slurm Workspace documentation to ensure expected behavior."
+              "text": "Optionally use existing virtual network resources or have them automatically created for the cluster deployment.\n\nIf proceeding with the former, then please confirm that the chosen subnets have the appropriate Service Endpoints and delegations as specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior."
             }
           },
           {
@@ -846,7 +846,7 @@
             "name": "clusterName",
             "type": "Microsoft.Common.TextBox",
             "label": "Cluster name",
-            "defaultValue": "ccsw",
+            "defaultValue": "ccw",
             "toolTip": "Name of cluster in CycleCloud portal",
             "constraints": {
               "required": true,
@@ -969,7 +969,7 @@
                 "visible": "[steps('scheduler').schedulerSection.slurmAccounting]",
                 "options": {
                   "icon": "Warning",
-                  "text": "CycleCloud Slurm Workspace currently only supports job accounting in existing MySQL instances. \nPlease visit the linked page to create a new MySQL instance prior to launching CycleCloud Slurm Workspace.",
+                  "text": "CycleCloud Workspace for Slurm currently only supports job accounting in existing MySQL instances. \nPlease visit the linked page to create a new MySQL instance prior to launching CycleCloud Workspace for Slurm.",
                   "uri": "https://portal.azure.com/#create/Microsoft.MySQLServer"
                 }
               },

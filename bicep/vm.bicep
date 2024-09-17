@@ -123,7 +123,7 @@ resource cse 'Microsoft.Compute/virtualMachines/extensions@2024-03-01' = {
     type: 'CustomScript'
     typeHandlerVersion: '2.0'
     protectedSettings: {
-      commandToExecute: 'jq -n --arg adminPassword "${adminPassword}" --arg databaseAdminPassword "${databaseAdminPassword}" \'{adminPassword: $adminPassword, databaseAdminPassword: $databaseAdminPassword}\' > /root/ccsw.secrets.json'
+      commandToExecute: 'jq -n --arg adminPassword "${adminPassword}" --arg databaseAdminPassword "${databaseAdminPassword}" \'{adminPassword: $adminPassword, databaseAdminPassword: $databaseAdminPassword}\' > /root/ccw.secrets.json'
     }
     
   }
