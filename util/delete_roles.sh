@@ -42,7 +42,12 @@ if [ $HELP == 1 ]; then
     exit 1
 fi
 
-cat > util/.role_assignment_cleanup.json<<EOF
+RG_PATH=util/${RG}
+mkdir -p $RG_PATH
+CLEANUP_JSON_PATH=${RG_PATH}/.role_assignment_cleanup.json
+CLEANUP_OUTOUT_JSON_PATH=${RG_PATH}/.role_assignment_cleanup_output.json
+
+cat > $CLEANUP_JSON_PATH<<EOF
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
@@ -58,9 +63,9 @@ cat > util/.role_assignment_cleanup.json<<EOF
 EOF
 
 echo recreating resource group $RG so that we can get the GUIDs of the roles we created
-az deployment sub create --location $LOCATION --template-file ./bicep/roleAssignmentCleanup.bicep -n $RG-cleanup --parameters util/.role_assignment_cleanup.json > util/.role_assignment_cleanup_output.json
+az deployment sub create --location $LOCATION --template-file ./bicep/roleAssignmentCleanup.bicep -n $RG-cleanup --parameters $CLEANUP_JSON_PATH > $CLEANUP_OUTOUT_JSON_PATH
 
-assignment_names=$(cat util/.role_assignment_cleanup_output.json | jq -r ".properties.outputs.names.value[]")
+assignment_names=$(cat $CLEANUP_OUTOUT_JSON_PATH | jq -r ".properties.outputs.names.value[]")
 echo Deleting, if they exist, the following role names: $assignment_names
 
 az role assignment delete --ids $assignment_names
@@ -72,5 +77,6 @@ if [ $DELETE_RG == 1 ]; then
 fi
 
 echo cleaning up temporary files under util/
-rm -f util/.role_assignment_cleanup.json util/.role_assignment_cleanup_output.json
+rm -rf ${RG_PATH}
+# $CLEANUP_JSON_PATH $CLEANUP_OUTOUT_JSON_PATH
 echo done! You should be able to redeploy using this resource group or resource group name.
