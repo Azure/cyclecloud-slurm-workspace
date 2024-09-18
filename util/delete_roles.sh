@@ -62,20 +62,20 @@ cat > $CLEANUP_JSON_PATH<<EOF
 }
 EOF
 
-echo recreating resource group $RG so that we can get the GUIDs of the roles we created
+echo Recreating resource group $RG to get the GUIDs of the roles created in the initial CCW deployment
 az deployment sub create --location $LOCATION --template-file ./bicep/roleAssignmentCleanup.bicep -n $RG-cleanup --parameters $CLEANUP_JSON_PATH > $CLEANUP_OUTOUT_JSON_PATH
 
 assignment_names=$(cat $CLEANUP_OUTOUT_JSON_PATH | jq -r ".properties.outputs.names.value[]")
-echo Deleting, if they exist, the following role names: $assignment_names
+echo Deleting, if they exist, the following role IDs: $assignment_names
 
 az role assignment delete --ids $assignment_names
 
 if [ $DELETE_RG == 1 ]; then
-    echo deleting the resource group
+    echo Deleting the resource group $RG
     az group delete -n $RG -y
-    echo done
+    echo Done
 fi
 
-echo cleaning up temporary files under util/
+echo Cleaning up temporary files under util/
 rm -rf ${RG_PATH}
-echo done! You should be able to redeploy using this resource group or resource group name.
+echo Done! You should be able to redeploy using this resource group or resource group name
