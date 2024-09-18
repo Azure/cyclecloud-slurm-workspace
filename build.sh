@@ -2,6 +2,8 @@
 set -e
 # This script builds the ARM template and UI definition for the marketplace solution
 
+VERSION="2024.09.18"
+
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
@@ -12,7 +14,7 @@ else
 fi
 if [ "$BRANCH" == "HEAD" ]; then 
     echo "Please check this out as a branch. If this is a tag, create a local branch with the same name"
-    echo "e.g. git checkout 2024.09.03 -b 2024.09.03"
+    echo "e.g. git checkout ${VERSION} -b ${VERSION}"
     exit 2
 fi
 
