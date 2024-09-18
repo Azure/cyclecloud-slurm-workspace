@@ -849,9 +849,9 @@
             "defaultValue": "ccw",
             "toolTip": "Name of cluster in CycleCloud portal",
             "constraints": {
-                "required": true,
-                "regex": "^[a-zA-Z0-9@_-]{3,}$",
-                "validationMessage": "Cluster name must be at least 3 characters long. Characters must be alphanumeric, @, -, or _."
+              "required": true,
+              "regex": "^[a-zA-Z0-9@_-]{3,}$",
+              "validationMessage": "Cluster name must be at least 3 characters long. Characters must be alphanumeric, @, -, or _."
             },
             "visible": false
           },
@@ -893,11 +893,36 @@
                     {
                       "label": "Ubuntu 22.04",
                       "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                    },
+                    {
+                      "label": "Custom image",
+                      "value": "custom"
                     }
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
                 }
+              },
+              {
+                "name": "customImageName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Custom Image ID",
+                "defaultValue": "",
+                "toolTip": "Enter a custom image ID or URN",
+                "constraints": {
+                  "required": true,
+                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
+                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                },
+                "visible": "[equals(steps('scheduler').schedulerSection.ImageName,'custom')]"
+              },
+              {
+                "name": "universalImage",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Use image on all nodes",
+                "toolTip": "Use the indicated image on all nodes",
+                "defaultValue": false,
+                "visible": true
               },
               {
                 "name": "slurmVersion",
@@ -1105,11 +1130,29 @@
                     {
                       "label": "Ubuntu 22.04",
                       "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                    },
+                    {
+                      "label": "Custom image",
+                      "value": "custom"
                     }
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
-                }
+                },
+                "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
+              },
+              {
+                "name": "customImageName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Custom Image ID",
+                "defaultValue": "",
+                "toolTip": "Enter a custom image ID or URN",
+                "constraints": {
+                  "required": true,
+                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
+                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                },
+                "visible": "[equals(steps('scheduler').loginNodesSection.ImageName,'custom')]"
               },
               {
                 "name": "initialNodes",
@@ -1218,11 +1261,29 @@
                     {
                       "label": "Ubuntu 22.04",
                       "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                    },
+                    {
+                      "label": "Custom image",
+                      "value": "custom"
                     }
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
-                }
+                },
+                "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
+              },
+              {
+                "name": "customImageName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Custom Image ID",
+                "defaultValue": "",
+                "toolTip": "Enter a custom image ID or URN",
+                "constraints": {
+                  "required": true,
+                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
+                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                },
+                "visible": "[equals(steps('slurmSettings').HTCSection.ImageName,'custom')]"
               },
               {
                 "name": "spotHTC",
@@ -1291,11 +1352,29 @@
                     {
                       "label": "Ubuntu 22.04",
                       "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                    },
+                    {
+                      "label": "Custom image",
+                      "value": "custom"
                     }
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
-                }
+                },
+                "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
+              },
+              {
+                "name": "customImageName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Custom Image ID",
+                "defaultValue": "",
+                "toolTip": "Enter a custom image ID or URN",
+                "constraints": {
+                  "required": true,
+                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
+                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                },
+                "visible": "[equals(steps('slurmSettings').HPCSection.ImageName,'custom')]"
               },
               {
                 "name": "spotHPC",
@@ -1367,11 +1446,29 @@
                     {
                       "label": "Ubuntu 22.04",
                       "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                    },
+                    {
+                      "label": "Custom image",
+                      "value": "custom"
                     }
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
-                }
+                },
+                "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
+              },
+              {
+                "name": "customImageName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Custom Image URN or ID",
+                "defaultValue": "",
+                "toolTip": "Enter a custom image URN or ID",
+                "constraints": {
+                  "required": true,
+                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
+                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                },
+                "visible": "[equals(steps('slurmSettings').GPUSection.ImageName,'custom')]"
               },
               {
                 "name": "spotGPU",
@@ -1407,7 +1504,7 @@
               "Microsoft.NetApp/netAppAccounts",
               "Microsoft.Network/bastionHosts",
               "Resource group",
-              "Node Array" 
+              "Node Array"
             ]
           }
         ]
@@ -1470,29 +1567,29 @@
       },
       "schedulerNode": {
         "sku": "[steps('scheduler').schedulerSection.vmsize]",
-        "osImage": "[steps('scheduler').schedulerSection.ImageName]"
+        "osImage": "[if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName)]"
       },
       "loginNodes": {
         "sku": "[steps('scheduler').loginNodesSection.vmsize]",
-        "osImage": "[steps('scheduler').loginNodesSection.ImageName]",
+        "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('scheduler').loginNodesSection.ImageName,'custom'),steps('scheduler').loginNodesSection.customImageName,steps('scheduler').loginNodesSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]",
         "initialNodes": "[int(steps('scheduler').loginNodesSection.initialNodes)]",
         "maxNodes": "[int(steps('scheduler').loginNodesSection.maxNodes)]"
       },
       "htc": {
         "sku": "[steps('slurmSettings').HTCSection.vmsize]",
         "maxNodes": "[int(steps('slurmSettings').HTCSection.maxNodes)]",
-        "osImage": "[steps('slurmSettings').HTCSection.ImageName]",
+        "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').HTCSection.ImageName,'custom'),steps('slurmSettings').HTCSection.customImageName,steps('slurmSettings').HTCSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]",
         "useSpot": "[steps('slurmSettings').HTCSection.spotHTC]"
       },
       "hpc": {
         "sku": "[steps('slurmSettings').HPCSection.vmsize]",
         "maxNodes": "[int(steps('slurmSettings').HPCSection.maxNodes)]",
-        "osImage": "[steps('slurmSettings').HPCSection.ImageName]"
+        "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').HPCSection.ImageName,'custom'),steps('slurmSettings').HPCSection.customImageName,steps('slurmSettings').HPCSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]"
       },
       "gpu": {
         "sku": "[steps('slurmSettings').GPUSection.vmsize]",
         "maxNodes": "[int(steps('slurmSettings').GPUSection.maxNodes)]",
-        "osImage": "[steps('slurmSettings').GPUSection.ImageName]"
+        "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').GPUSection.ImageName,'custom'),steps('slurmSettings').GPUSection.customImageName,steps('slurmSettings').GPUSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]"
       },
       "tags": "[steps('tags').tagsByResource]"
     }

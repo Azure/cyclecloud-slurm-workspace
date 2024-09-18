@@ -159,13 +159,13 @@ type slurmSettings_t = {
 @export()
 type scheduler_t = {
   sku: string
-  image: string
+  osImage: string
 }
 
 @export()
 type login_t = {
   sku: string
-  image: string
+  osImage: string
   initialNodes: int
   maxNodes: int
 }
@@ -173,7 +173,7 @@ type login_t = {
 @export()
 type htc_t = {
   sku: string
-  image: string
+  osImage: string
   maxNodes: int
   useSpot: bool?
 }
@@ -181,7 +181,7 @@ type htc_t = {
 @export()
 type htc_output_t = {
   sku: string
-  image: string
+  osImage: string
   maxNodes: int
   useSpot: bool
 }
@@ -189,7 +189,7 @@ type htc_output_t = {
 @export()
 type hpc_t = {
   sku: string
-  image: string
+  osImage: string
   maxNodes: int
 }
 
