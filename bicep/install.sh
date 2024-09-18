@@ -82,7 +82,7 @@ fi
 # Add retry logic as it could take some delay to apply the Managed Identity
 timeout 360s bash -c 'until az login -i; do sleep 10; done'
 
-deployment_name='pid-8d5b25bd-0ba7-49b9-90b3-3472bc08443e-partnercenter'
+deployment_name='pid-d5d2708b-a4ef-42c0-a89b-b8bd6dd6d29b-partnercenter'
 resource_group=$(echo $mds | jq -r '.compute.resourceGroupName')
 vm_id=$(echo $mds | jq -r '.compute.vmId')
 

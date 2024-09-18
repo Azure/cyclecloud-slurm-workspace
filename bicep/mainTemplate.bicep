@@ -41,7 +41,7 @@ resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
 }
 
 module makeCCWresources 'ccw.bicep' = {
-  name: 'pid-8d5b25bd-0ba7-49b9-90b3-3472bc08443e-partnercenter'
+  name: 'pid-d5d2708b-a4ef-42c0-a89b-b8bd6dd6d29b-partnercenter'
   scope: ccwResourceGroup
   params: {
     location: location
