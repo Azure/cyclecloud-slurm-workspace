@@ -5,7 +5,7 @@
   "parameters": {
     "config": {
       "basics": {
-        "description": "Version 2024.09.03",
+        "description": "Version 2024.09.18",
         "resourceGroup": {
           "visible": false
         },
