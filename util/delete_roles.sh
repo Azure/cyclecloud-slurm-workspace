@@ -78,5 +78,4 @@ fi
 
 echo cleaning up temporary files under util/
 rm -rf ${RG_PATH}
-# $CLEANUP_JSON_PATH $CLEANUP_OUTOUT_JSON_PATH
 echo done! You should be able to redeploy using this resource group or resource group name.
