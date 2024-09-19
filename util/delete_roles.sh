@@ -37,6 +37,12 @@ while (( "$#" )); do
     esac
 done
 
+# Check if required arguments are provided
+if [ -z "$RG" ] || [ -z "$LOCATION" ]; then
+    echo "Please ensure that --resource-group and --location are both provided" >&2
+    HELP=1
+fi
+
 if [ $HELP == 1 ]; then
     echo Usage: delete_roles.sh --resource-group RG --location LOCATION [--delete-resource-group] 1>&2
     exit 1
