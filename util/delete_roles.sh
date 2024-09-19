@@ -63,7 +63,7 @@ cat > $CLEANUP_JSON_PATH<<EOF
 EOF
 
 echo Recreating resource group $RG to get the GUIDs of the roles created in the initial CCW deployment
-az deployment sub create --location $LOCATION --template-file ./bicep/roleAssignmentCleanup.bicep -n $RG-cleanup --parameters $CLEANUP_JSON_PATH > $CLEANUP_OUTOUT_JSON_PATH
+az deployment sub create --location $LOCATION --template-file ./bicep/roleAssignmentCleanup.bicep -n $RG-cleanup-$LOCATION --parameters $CLEANUP_JSON_PATH > $CLEANUP_OUTOUT_JSON_PATH
 
 assignment_names=$(cat $CLEANUP_OUTOUT_JSON_PATH | jq -r ".properties.outputs.names.value[]")
 echo Deleting, if they exist, the following role IDs: $assignment_names
