@@ -84,5 +84,5 @@
     "SchedFilesystemSize": 30,
     "HPCMaxScalesetSize": 100,
     "SchedulerHAZone": null,
-    "ExecuteTags": {}
+    "NodeTags": {}
 }
