@@ -120,7 +120,7 @@
         "visible": true
       },
       {
-        "name": "autogeneratePasswordsAndKeys",
+        "name": "publicKeySource",
         "type": "Microsoft.Common.DropDown",
         "label": "SSH public key source",
         "defaultValue": "Use existing public key",
@@ -145,11 +145,11 @@
         "label": "Admin SSH Public Key",
         "toolTip": "SSH-RSA Public Key for the Virtual Machines",
         "constraints": {
-          "required": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]",
+          "required": "[equals(basics('publicKeySource'),'entered')]",
           "regex": "^ssh-rsa AAAAB3NzaC1yc2[0-9A-Za-z+/]+[=]{0,3}(\\s.*)?$",
           "validationMessage": "Invalid ssh-rsa public key"
         },
-        "visible": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]"
+        "visible": "[equals(basics('publicKeySource'),'entered')]"
       },
       {
         "name": "keySelector",
@@ -166,7 +166,7 @@
           "required": true,
           "validationMessage": "Please select a stored SSH key."
         },
-        "visible": "[equals(basics('autogeneratePasswordsAndKeys'),'stored')]"
+        "visible": "[equals(basics('publicKeySource'),'stored')]"
       },
       {
         "name": "nullValue",
@@ -995,7 +995,7 @@
                 },
                 "toolTip": "Password for the Slurm accounting database admin user",
                 "constraints": {
-                  "required": "[not(equals(basics('autogeneratePasswordsAndKeys'),1))]",
+                  "required": "[not(equals(basics('publicKeySource'),1))]",
                   "regex": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_\\-+=[\\]{}|\\\\:'\",.?`~\";]).{8,123}$",
                   "validationMessage": "Your password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character (@ # $ % ^ & * - _ ! + = [ ] { } | \\ : ' , . ? ` ~ \" ( ) ; )"
                 },
@@ -1514,8 +1514,8 @@
       "location": "[location()]",
       "adminUsername": "[basics('adminUser')]",
       "adminPassword": "[basics('adminPasswordBox')]",
-      "adminSshPublicKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
-      "storedKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'stored'),basics('keySelector'),basics('nullValue'))]",
+      "adminSshPublicKey": "[if(equals(basics('publicKeySource'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
+      "storedKeyId": "[if(equals(basics('publicKeySource'),'stored'),basics('keySelector').id,basics('nullValue'))]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
       "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
       "sharedFilesystem": {

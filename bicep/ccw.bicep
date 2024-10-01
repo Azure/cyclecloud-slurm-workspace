@@ -12,7 +12,7 @@ param adminUsername string
 @secure()
 param adminPassword string
 param adminSshPublicKey string
-param storedKey types.storedKey_t
+param storedKey string
 param ccVMSize string
 param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
@@ -38,7 +38,7 @@ var useEnteredKey = adminSshPublicKey != ''
 module ccwPublicKey './publicKey.bicep' = if (!useEnteredKey && !infrastructureOnly) {
   name: 'ccwPublicKey'
   params: {
-    storedKey: storedKey
+    storedKeyId: storedKeyId
   }
 }
 var publicKey = infrastructureOnly ? '' : (useEnteredKey ? adminSshPublicKey : ccwPublicKey.outputs.publicKey)
