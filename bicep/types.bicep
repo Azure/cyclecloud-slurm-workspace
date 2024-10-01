@@ -81,8 +81,7 @@ type filerInfo_t = {
 
 type peered_vnet_t = {
   id: string
-  location: string
-  name: string
+  allowGatewayTransit: bool
 }
 
 type vnet_autocreate_t = {
@@ -96,7 +95,6 @@ type vnet_autocreate_t = {
   bastion: bool?
   createNatGateway: bool?
   vnetToPeer: peered_vnet_t?
-  peeringAllowGatewayTransit: bool?
 }
 
 type vnet_existing_t = {

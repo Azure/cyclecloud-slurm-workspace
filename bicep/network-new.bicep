@@ -279,12 +279,7 @@ var securityRules = [ for rule in nsgRules : {
     rule.value[7] == 'ips' ? { destinationAddressPrefixes: rule.value[8] } : {}
   )
 }]
-//var asgNames = []
 
-var peeringEnabled = contains(network,'vnetToPeer')
-var peeredVnetName = peeringEnabled ? network.?vnetToPeer.name : 'foo'
-var peeredVnetResourceGroup = peeringEnabled ? split(network.?vnetToPeer.id,'/')[4] : 'foo'
-var peeredVnetId = peeringEnabled ? network.?vnetToPeer.id : 'foo'
 
 resource ccwCommonNsg 'Microsoft.Network/networkSecurityGroups@2023-11-01' = {
   name: 'nsg-ccw-common'
@@ -327,13 +322,18 @@ resource ccwVirtualNetwork 'Microsoft.Network/virtualNetworks@2023-11-01' = {
   }
 }
 
+var peeringEnabled = contains(network,'vnetToPeer')
+var peeredVnetId = network.?vnetToPeer.?id ?? '////////'
+var peeredVnetName = split(peeredVnetId,'/')[8] 
+var peeredVnetResourceGroup = split(peeredVnetId,'/')[4]
+
 resource ccw_to_peer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-11-01' = if (peeringEnabled) {
   name: '${ccwVirtualNetwork.name}-to-${peeredVnetName}-${uniqueString(resourceGroup().id)}'
   parent: ccwVirtualNetwork
   properties: {
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: false
-    useRemoteGateways: network.?peeringAllowGatewayTransit
+    useRemoteGateways: network.?vnetToPeer.?allowGatewayTransit
     remoteVirtualNetwork: {
       id: peeredVnetId
     }
