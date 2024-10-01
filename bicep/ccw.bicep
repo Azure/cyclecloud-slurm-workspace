@@ -78,13 +78,15 @@ var subnets = create_new_vnet
       additional: { id: join([network.?id, 'subnets', network.?additionalFilerSubnet ?? 'null'], '/') }
     }
 
+var existingNetworkId = network.?id ?? '////////'
+
 output vnet types.networkOutput_t = union(
   create_new_vnet
     ? ccwNetwork.outputs.vnetCCW
     : {
-        id: network.?id ?? ''
-        name: network.?name
-        rg: split(network.?id ?? '////', '/')[4]
+        id: existingNetworkId
+        name: split(existingNetworkId, '/')[8]
+        rg: split(existingNetworkId, '/')[4]
       },
   {
     type: network.type

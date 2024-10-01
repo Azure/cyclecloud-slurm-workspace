@@ -99,7 +99,6 @@ type vnet_autocreate_t = {
 
 type vnet_existing_t = {
   type: 'existing'
-  name: string
   id: string
   cyclecloudSubnet: string
   computeSubnet: string

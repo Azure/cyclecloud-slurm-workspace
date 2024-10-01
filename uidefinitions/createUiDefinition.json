@@ -1540,7 +1540,6 @@
       },
       "network": {
         "type": "[steps('networking').newexisting]",
-        "name": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.networkSelector.name)]",
         "addressSpace": "[if(equals(steps('networking').newexisting,'new'),concat(steps('networking').networkSettings.baseIpAddress,steps('networking').networkSettings.cidrPrefix),basics('nullValue'))]",
         "id": "[if(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.networkSelector.id,basics('nullValue'))]",
         "cyclecloudSubnet": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.ccsubnet)]",
