@@ -6,7 +6,7 @@ param adminUsername string
 @secure()
 param adminPassword string
 param adminSshPublicKey string = '' 
-param storedKeyId string = {id: 'foo', location: 'foo', name:'foo'}
+param storedKeyId string = ''
 param ccVMSize string
 param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t

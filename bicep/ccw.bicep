@@ -12,7 +12,7 @@ param adminUsername string
 @secure()
 param adminPassword string
 param adminSshPublicKey string
-param storedKey string
+param storedKeyId string
 param ccVMSize string
 param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
