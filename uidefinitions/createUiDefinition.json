@@ -772,7 +772,7 @@
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
-                "visible": "[and(not(equals(steps('filesystem').shared.filertype, 'nfs')), equals(steps('networking').newexisting,'existing'))]"
+                "visible": "[and(equals(steps('networking').newexisting,'existing'),not(equals(steps('filesystem').shared.filertype, 'nfs')),equals(steps('filesystem').shared.newexisting,'new'))]"
               },
               {
                 "name": "filersubnet2",
@@ -783,7 +783,7 @@
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
-                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox)]"
+                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new'))]"
               },
               {
                 "name": "bastion",
