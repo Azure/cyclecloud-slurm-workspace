@@ -203,23 +203,20 @@ type db_none_t = {
 
 type db_fqdn_t = {
   type: 'fqdn'
+  databaseUser: string
   fqdn: string
 }
 
 type db_privateIp_t = {
   type: 'privateIp'
+  databaseUser: string
   privateIp: string
-}
-
-type dbInfo_t = {
-  id: string
-  location: string
-  name: string
 }
 
 type db_privateEndpoint_t = {
   type: 'privateEndpoint'
-  dbInfo: dbInfo_t
+  databaseUser: string
+  dbId: string
 }
 
 @export()

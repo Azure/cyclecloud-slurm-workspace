@@ -1556,7 +1556,7 @@
         "databaseUser": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseUser,basics('nullValue'))]",
         "fqdn": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'fqdn'),steps('scheduler').schedulerSection.databaseURL,basics('nullValue'))]",
         "privateIp": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateIp'),steps('scheduler').schedulerSection.databasePIP,basics('nullValue'))]",
-        "dbInfo": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint'),steps('scheduler').schedulerSection.dbSelector,basics('nullValue'))]"
+        "dbId": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint'),steps('scheduler').schedulerSection.dbSelector.id,basics('nullValue'))]"
       },
       "clusterName": "[steps('scheduler').clusterName]",
       "slurmSettings": {
