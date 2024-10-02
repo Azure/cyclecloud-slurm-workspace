@@ -879,7 +879,7 @@
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
                 "defaultValue": "Ubuntu 22.04",
-                "toolTip": "Select the image to use for the Login Nodes",
+                "toolTip": "Select the image to use for the Scheduler node",
                 "constraints": {
                   "allowedValues": [
                     {
@@ -1116,7 +1116,7 @@
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
                 "defaultValue": "Ubuntu 22.04",
-                "toolTip": "Select the image to use for the Login Nodes",
+                "toolTip": "Select the image to use for the Login nodes",
                 "constraints": {
                   "allowedValues": [
                     {
