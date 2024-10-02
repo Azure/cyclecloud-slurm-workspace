@@ -227,7 +227,7 @@ module ccwANF 'anf.bicep' = [
       tags: getTags('Microsoft.NetApp/netAppAccounts', tags)
       name: filer.key
       subnetId: subnets[filer.key].id
-      serviceLevel: filer.value.anfServiceTier
+      serviceLevel: filer.value.anfServiceLevel
       sizeTiB: filer.value.anfCapacityInTiB
       defaultMountOptions: anfDefaultMountOptions
       infrastructureOnly: infrastructureOnly

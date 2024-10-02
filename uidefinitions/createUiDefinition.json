@@ -263,7 +263,7 @@
                 }
               },
               {
-                "name": "anftier",
+                "name": "anfLevel",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Service Level",
                 "defaultValue": "Premium",
@@ -454,7 +454,7 @@
                 }
               },
               {
-                "name": "anftier",
+                "name": "anfLevel",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Service Level",
                 "defaultValue": "Premium",
@@ -1521,7 +1521,7 @@
       "sharedFilesystem": {
         "type": "[concat(if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs'),'-',steps('filesystem').shared.newexisting)]",
         "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),int(steps('filesystem').shared.nfscapacity),basics('nullValue'))]",
-        "anfServiceTier": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,basics('nullValue'))]",
+        "anfServiceLevel": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anfLevel,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').shared.filertype,'anf'),int(steps('filesystem').shared.anfcapacity),basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,basics('nullValue'))]",
         "exportPath": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,basics('nullValue'))]",
@@ -1529,7 +1529,7 @@
       },
       "additionalFilesystem": {
         "type": "[if(steps('filesystem').additionalCheck.checkbox,concat(steps('filesystem').additional.filertype,'-',steps('filesystem').additional.newexisting),'disabled')]",
-        "anfServiceTier": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,basics('nullValue'))]",
+        "anfServiceLevel": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anfLevel,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').additional.filertype,'anf'),int(steps('filesystem').additional.anfcapacity),basics('nullValue'))]",
         "lustreTier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,basics('nullValue'))]",
         "lustreCapacityInTib": "[if(equals(steps('filesystem').additional.filertype,'aml'),int(steps('filesystem').additional.azurelustrecapacity),basics('nullValue'))]",
