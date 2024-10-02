@@ -323,7 +323,7 @@ resource ccwVirtualNetwork 'Microsoft.Network/virtualNetworks@2023-11-01' = {
 }
 
 var peeringEnabled = contains(network,'vnetToPeer')
-var peeredVnetId = network.?vnetToPeer.?id ?? '////////'
+var peeredVnetId = network.?vnetToPeer.?id ?? 'q/w/e/r/t/y/u/i/o'
 var peeredVnetName = split(peeredVnetId,'/')[8] 
 var peeredVnetResourceGroup = split(peeredVnetId,'/')[4]
 
@@ -413,7 +413,7 @@ var subnets = union(
   create_database ? { database: subnet_database } : {}
 )
 
-var dbID = databaseConfig.?dbId ?? '////////'
+var dbID = databaseConfig.?dbId ?? 'q/w/e/r/t/y/u/i/o'
 resource ccwDatabase 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' existing = if (create_private_endpoint && databaseConfig.type != 'disabled') {
   name: split(dbID,'/')[8]
   scope: resourceGroup(split(dbID,'/')[4])

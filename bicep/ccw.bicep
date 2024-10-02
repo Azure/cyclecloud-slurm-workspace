@@ -78,7 +78,7 @@ var subnets = create_new_vnet
       additional: { id: join([network.?id, 'subnets', network.?additionalFilerSubnet ?? 'null'], '/') }
     }
 
-var existingNetworkId = network.?id ?? '////////'
+var existingNetworkId = network.?id ?? 'q/w/e/r/t/y/u/i/o'
 
 output vnet types.networkOutput_t = union(
   create_new_vnet
