@@ -7,11 +7,11 @@ HELP=0
 
 while (( "$#" )); do
     case "$1" in
-        --delete-resource-group)
+        -d|--delete-resource-group)
             DELETE_RG=1
             shift 1
             ;;
-        --resource-group)
+        -rg|--resource-group)
             RG=$2
             shift 2
             ;;
