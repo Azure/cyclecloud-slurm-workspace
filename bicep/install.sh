@@ -124,6 +124,7 @@ CYCLECLOUD_USER_PUBKEY=$(jq -r .publicKey.value ccwOutputs.json)
 CYCLECLOUD_STORAGE="$(jq -r .storageAccountName.value ccwOutputs.json)"
 SLURM_CLUSTER_NAME=$(jq -r .clusterName.value ccwOutputs.json)
 USE_INSIDERS_BUILD=$(jq -r .insidersBuild.value ccwOutputs.json)
+MANAGED_IDENTITY_ID=$(jq -r .managedIdentityId.value ccwOutputs.json)
 INSIDERS_BUILD_ARG=
 if [ "$USE_INSIDERS_BUILD" == "true" ]; then
     echo Using insiders build - we first need to uninstall cyclecloud8 and remove all files.
@@ -215,6 +216,19 @@ sleep 2
 echo Waiting for accelerated network records to be imported
 timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep 10; done'
 
+#Set managed identity
+/opt/cycle_server/./cycle_server execute \
+"UPDATE Cloud.Locker
+ SET JetpackManagedIdentity=\"$MANAGED_IDENTITY_ID\"
+ WHERE name==\"azure-storage\"" > /dev/null
+echo "Locker updated with managed identity"
+
+#Tell nodes to not use shared access key
+/opt/cycle_server/./cycle_server execute \
+"UPDATE Credential
+ SET UseSharedAccessKeys=false
+ WHERE name==\"azure\"" > /dev/null
+echo "UseSharedAccessKeys disabled"
 
 cyclecloud start_cluster "$SLURM_CLUSTER_NAME"
 echo "CC start_cluster successful"
