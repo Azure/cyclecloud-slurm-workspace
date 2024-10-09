@@ -150,6 +150,16 @@ module ccwVM './vm.bicep' = if (!infrastructureOnly) {
   ]
 }
 
+var miName = 'ccwJetpackManagedIdentity'
+module ccwManagedIdentity 'mi.bicep' = if (!infrastructureOnly) {
+  name: miName
+  params: {
+    name: miName
+    location: location
+    tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
+  }
+}
+
 module ccwRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
   name: 'ccwRoleFor-${vmName}-${location}'
   scope: subscription()
@@ -262,6 +272,8 @@ output filerInfoFinal types.filerInfo_t = {
 }
 
 output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.principalId
+
+output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
 
 output slurmSettings types.slurmSettings_t = slurmSettings
 
