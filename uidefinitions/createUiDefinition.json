@@ -1560,7 +1560,8 @@
               "Microsoft.NetApp/netAppAccounts",
               "Microsoft.Network/bastionHosts",
               "Resource group",
-              "Node Array"
+              "Node Array",
+              "Microsoft.ManagedIdentity/userAssignedIdentities"
             ]
           }
         ]
