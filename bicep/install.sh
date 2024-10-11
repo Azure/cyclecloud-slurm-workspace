@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# Don't automatically run when booting the VM
+exit 0
+# Location of the new CycleCloud package after scp'ing it to the VM
+LOCAL_PACKAGE="/opt/ccw/cyclecloud8.rpm"
+
 set -eo pipefail
 # this is not set if you run this manually
 export PATH=$PATH:/usr/local/bin
@@ -55,7 +61,9 @@ else
     # Increase the timeout for yum update to solve yum.lock issue due to other processes doing updates at startup
     retry_command "yum update -y --exclude=cyclecloud*" 5 60 
     retry_command "yum install -y wget jq"
+
 fi
+
 printf "\n\n"
 printf "Applications installed\n"
 printf "===============================================================================\n"
@@ -126,16 +134,30 @@ SLURM_CLUSTER_NAME=$(jq -r .clusterName.value ccwOutputs.json)
 USE_INSIDERS_BUILD=$(jq -r .insidersBuild.value ccwOutputs.json)
 MANAGED_IDENTITY_ID=$(jq -r .managedIdentityId.value ccwOutputs.json)
 INSIDERS_BUILD_ARG=
-if [ "$USE_INSIDERS_BUILD" == "true" ]; then
-    echo Using insiders build - we first need to uninstall cyclecloud8 and remove all files.
-    INSIDERS_BUILD_ARG="--insidersBuild"
+if [ "$USE_INSIDERS_BUILD" == "true" ] || [ -e $LOCAL_PACKAGE ]; then
+    if [ "$USE_INSIDERS_BUILD" == "true" ]; then 
+        echo -n "Using insiders build"
+        INSIDERS_BUILD_ARG="--insidersBuild"
+    else 
+        echo -n "Using local package build"
+    fi
+    echo " - we first need to uninstall cyclecloud8 and remove all files."
     if command -v apt; then
         apt remove -y cyclecloud8
     else
         yum remove -y cyclecloud8
     fi
     rm -rf /opt/cycle_server/*
-    echo cyclecloud8 is uninstalled and all files are removed under /opt/cycle_server
+    echo "cyclecloud8 is uninstalled and all files are removed under /opt/cycle_server."
+    if [ -e $LOCAL_PACKAGE ]; then 
+        echo "Now installing the cyclecloud8 build from local package."
+        if command -v apt; then
+            retry_command "apt install -y $LOCAL_PACKAGE"
+        else
+            retry_command "yum install -y $LOCAL_PACKAGE"
+        fi
+        echo "Successfully installed the cyclecloud8 build from local package."
+    fi
 fi
 
 python3 /opt/ccw/cyclecloud_install.py --acceptTerms \
@@ -232,11 +254,11 @@ echo "UseSharedAccessKeys disabled"
 
 cyclecloud start_cluster "$SLURM_CLUSTER_NAME"
 echo "CC start_cluster successful"
-rm -f slurm_params.json
+# rm -f slurm_params.json
 echo "Deleted input parameters file" 
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
 popd
-rm -f "$SECRETS_FILE_PATH"
+# rm -f "$SECRETS_FILE_PATH"
 echo "Deleting secrets file"
 echo "exiting after install"
 exit 0
