@@ -44,7 +44,7 @@ if [ $HELP == 1 ]; then
 fi
 
 LOCATION=$(az group show -n $RG --query location -o tsv)
-LOCATION=${LOCATION::-1} #remove trailing newline character
+#LOCATION=${LOCATION::-1} #remove trailing newline character
 
 RG_PATH=util/${RG}
 mkdir -p $RG_PATH
