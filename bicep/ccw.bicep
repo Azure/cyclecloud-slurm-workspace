@@ -29,6 +29,7 @@ param tags types.resource_tags_t
 param databaseAdminPassword string
 param databaseConfig types.databaseConfig_t
 param clusterName string
+param manualInstall bool
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
 
@@ -323,3 +324,4 @@ output nodeArrayTags types.tags_t = tags[?'Node Array'] ?? {}
 output branch string = branch
 output projectVersion string = projectVersion
 output insidersBuild bool = insidersBuild
+output manualInstall bool = manualInstall
