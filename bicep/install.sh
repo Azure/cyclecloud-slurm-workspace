@@ -136,13 +136,20 @@ if [ "$USE_INSIDERS_BUILD" == "true" ]; then
     echo cyclecloud8 is uninstalled and all files are removed under /opt/cycle_server
 fi
 
-python3 /opt/ccw/cyclecloud_install.py --acceptTerms \
+ACCEPT_MP_TERMS=$(jq -r .acceptMarketplaceTermsAndConditions.value ccwOutputs.json)
+ACCEPT_MP_TERMS_ARG=
+if [ "$ACCEPT_MP_TERMS" == "true" ]; then
+    ACCEPT_MP_TERMS_ARG="--acceptMarketplaceTerms"
+fi
+# Note --acceptTerms is for CC terms, not marketplace terms
+echo python3 /opt/ccw/cyclecloud_install.py --acceptTerms \
     --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
     --storageAccount=${CYCLECLOUD_STORAGE} \
     --azureSovereignCloud="${env}" \
-    --webServerPort=80 --webServerSslPort=443 $INSIDERS_BUILD_ARG
-
+    --acceptTerms \
+    --webServerPort=80 --webServerSslPort=443 $INSIDERS_BUILD_ARG $ACCEPT_MP_TERMS_ARG
+exit 
 echo "CC install script successful"
 # Configuring distribution_method
 cat > /tmp/ccw_site_id.txt <<EOF

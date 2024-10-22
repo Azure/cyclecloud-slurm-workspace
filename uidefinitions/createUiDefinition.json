@@ -175,6 +175,14 @@
         "toolTip": "Null Value",
         "defaultValue": false,
         "visible": false
+      },
+      {
+        "name": "acceptMarketplaceTermsAndConditions",
+        "type": "Microsoft.Common.CheckBox",
+        "label": "Accept Marketplace Terms and Conditions",
+        "toolTip": "CycleCloud has the ability to accept the terms and conditions of the Azure Marketplace, but it is not enabled by default.",
+        "defaultValue": false,
+        "visible": true
       }
     ],
     "steps": [
@@ -1517,6 +1525,7 @@
       "adminSshPublicKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
       "storedKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'stored'),basics('keySelector'),basics('nullValue'))]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
+      "acceptMarketplaceTermsAndConditions": "[basics('acceptMarketplaceTermsAndConditions')]",
       "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
       "sharedFilesystem": {
         "type": "[concat(if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs'),'-',steps('filesystem').shared.newexisting)]",
