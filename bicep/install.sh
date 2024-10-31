@@ -69,6 +69,18 @@ tar xzf /tmp/azcopy_linux.tar.gz -C /tmp/
 mv /tmp/azcopy_linux*/azcopy /usr/local/bin/azcopy 
 rm -rf /tmp/azcopy_linux*
 
+echo "* Updating the system"
+if command -v apt; then
+    apt-mark hold cyclecloud8
+    apt-mark hold jetpack8
+    retry_command "apt update -y"
+    #apt install -y 
+else
+    retry_command "yum update -y --exclude=cyclecloud*"
+    retry_command "yum install -y wget jq"
+
+fi
+
 printf "\n\n"
 printf "Applications installed\n"
 printf "===============================================================================\n"
@@ -131,18 +143,6 @@ if [ "$MANUAL" == "true" ]; then
             echo "File found at $LOCAL_PACKAGE. Continuing."
         fi
     fi
-fi
-
-echo "* Updating the system"
-if command -v apt; then
-    apt-mark hold cyclecloud8
-    apt-mark hold jetpack8
-    retry_command "apt update -y"
-    #apt install -y 
-else
-    retry_command "yum update -y --exclude=cyclecloud*"
-    retry_command "yum install -y wget jq"
-
 fi
 
 mkdir -p $ccw_root/bin
