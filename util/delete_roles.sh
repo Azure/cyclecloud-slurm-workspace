@@ -43,9 +43,11 @@ if [ $HELP == 1 ]; then
     exit 1
 fi
 
-LOCATION=$(az group show -n $RG --query location -o tsv)
-#LOCATION=${LOCATION::-1} #remove trailing newline character
-
+LOCATION=$(az group show -n $RG --query location -o tsv 2>/dev/null | tr -d '\n' | tr -d '\r') 
+if [ -z "$LOCATION" ]; then
+    LOCATION='eastus'
+fi
+echo Resource group $RG is in location $LOCATION
 RG_PATH=util/${RG}
 mkdir -p $RG_PATH
 CLEANUP_JSON_PATH=${RG_PATH}/.role_assignment_cleanup.json
