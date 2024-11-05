@@ -52,7 +52,8 @@ if command -v apt; then
     retry_command "apt update -y"
     #apt install -y 
 else
-    retry_command "yum update -y --exclude=cyclecloud*"
+    # Increase the timeout for yum update to solve yum.lock issue due to other processes doing updates at startup
+    retry_command "yum update -y --exclude=cyclecloud*" 5 60 
     retry_command "yum install -y wget jq"
 fi
 printf "\n\n"
