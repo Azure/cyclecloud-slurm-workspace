@@ -2,7 +2,7 @@
 set -e
 # This script builds the ARM template and UI definition for the marketplace solution
 
-VERSION="2024.10.15"
+VERSION="2024.11.08"
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 

@@ -17,6 +17,7 @@ Autoscale = $Autoscale
     Region = $Region
     KeyPairLocation = ~/.ssh/cyclecloud.pem
     Azure.Identities = $ManagedIdentity
+    Tags = $NodeTags
     
     # Slurm autoscaling supports both Terminate and Deallocate shutdown policies
     ShutdownPolicy = $configuration_slurm_shutdown_policy
@@ -189,7 +190,6 @@ Autoscale = $Autoscale
 
     [[node nodearraybase]]
     Abstract = true
-    Tags = $ExecuteTags
         [[[configuration]]]
         slurm.autoscale = true
 
@@ -280,7 +280,7 @@ Order = 1
 Order = 10
 
     
-    [[parameters Virtual Machines ]]
+    [[parameters Virtual Machines]]
     Description = "The cluster, in this case, has two roles: the scheduler node with shared filer and the execute hosts. Configure which VM types to use based on the requirements of your application."
     Order = 20
 
@@ -326,9 +326,9 @@ Order = 10
         DefaultValue = Standard_F2s_v2
         Config.MultiSelect = true
 
-        [[[parameter ExecuteTags]]]
-        Label = Exec VM Tags
-        Description = Tags applied to all execute nodes
+        [[[parameter NodeTags]]]
+        Label = VM Tags
+        Description = Tags applied to all nodes
         ParameterType = Record
         DefaultValue := {}
         Config.MultiSelect = false

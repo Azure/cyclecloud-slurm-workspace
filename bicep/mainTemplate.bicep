@@ -32,7 +32,7 @@ param insidersBuild bool = false
 // build.sh will override this, but for development please set this yourself as a parameter
 param branch string = 'main'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
-param projectVersion string = '2024.10.15'
+param projectVersion string = '2024.11.08'
 
 resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: resourceGroup
