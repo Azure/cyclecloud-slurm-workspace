@@ -887,6 +887,10 @@
                       "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
                     },
                     {
+                      "label": "Alma Linux 8.10",
+                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
+                    },
+                    {
                       "label": "Ubuntu 20.04",
                       "value": "microsoft-dsvm:ubuntu-hpc:2004:latest"
                     },
@@ -1124,6 +1128,10 @@
                       "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
                     },
                     {
+                      "label": "Alma Linux 8.10",
+                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
+                    },
+                    {
                       "label": "Ubuntu 20.04",
                       "value": "microsoft-dsvm:ubuntu-hpc:2004:latest"
                     },
@@ -1255,6 +1263,10 @@
                       "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
                     },
                     {
+                      "label": "Alma Linux 8.10",
+                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
+                    },
+                    {
                       "label": "Ubuntu 20.04",
                       "value": "microsoft-dsvm:ubuntu-hpc:2004:latest"
                     },
@@ -1344,6 +1356,10 @@
                     {
                       "label": "Alma Linux 8.7",
                       "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
+                    },
+                    {
+                      "label": "Alma Linux 8.10",
+                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
                     },
                     {
                       "label": "Ubuntu 20.04",
@@ -1438,6 +1454,10 @@
                     {
                       "label": "Alma Linux 8.7",
                       "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
+                    },
+                    {
+                      "label": "Alma Linux 8.10",
+                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
                     },
                     {
                       "label": "Ubuntu 20.04",
