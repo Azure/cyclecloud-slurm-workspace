@@ -159,8 +159,6 @@ while [ ! -f "$SECRETS_FILE_PATH" ]; do
     sleep 1
 done
 DATABASE_ADMIN_PASSWORD=$(jq -r .databaseAdminPassword $SECRETS_FILE_PATH)
-(python3 create_cc_param.py --dbPassword="${DATABASE_ADMIN_PASSWORD}") > slurm_params.json
-echo "Filework successful" 
 
 CYCLECLOUD_USERNAME=$(jq -r .adminUsername.value ccwOutputs.json)
 CYCLECLOUD_PASSWORD=$(jq -r .adminPassword "$SECRETS_FILE_PATH")
@@ -173,6 +171,12 @@ else
     USE_INSIDERS_BUILD=$(jq -r .insidersBuild.value ccwOutputs.json)
 fi
 MANAGED_IDENTITY_ID=$(jq -r .managedIdentityId.value ccwOutputs.json)
+
+INCLUDE_OOD=true
+if [ $(jq -r .ood.value.type ccwOutputs.json) == 'disabled'  ]; then
+    INCLUDE_OOD=false
+fi
+
 INSIDERS_BUILD_ARG=
 if [ "$USE_INSIDERS_BUILD" == "true" ] || [ "$MANUAL" == "true" ]; then
     if [ "$USE_INSIDERS_BUILD" == "true" ]; then 
@@ -229,7 +233,7 @@ chmod 664 /tmp/ccw_site_id.txt
 mv /tmp/ccw_site_id.txt /opt/cycle_server/config/data/ccw_site_id.txt
 
 echo Waiting for records to be imported
-timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep 10; done'
+timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt 2> /dev/null); do sleep 10; done'
 
 echo Restarting cyclecloud so that new records take effect
 cycle_server stop
@@ -240,20 +244,30 @@ curl -k https://localhost
 cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=$SLURM_CLUSTER_NAME
 echo "CC initialize successful"
 
+# needs to be done after initialization, as we now call fetch/upload
+(python3 create_cc_param.py slurm --dbPassword="${DATABASE_ADMIN_PASSWORD}") > slurm_params.json 
+
 SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Cloud.Project WHERE Name=="Slurm"' | jq -r '.[0].Version')
 
 cyclecloud create_cluster slurm_template_${SLURM_PROJ_VERSION} $SLURM_CLUSTER_NAME -p slurm_params.json
 echo "CC create_cluster successful"
 
-# TODO RDH Begin remove this when additional cluster init support is added.
-CCW_PROJECT_URL="https://github.com/Azure/cyclecloud-slurm-workspace/releases/${PROJECT_VERSION}"
-echo $CCW_PROJECT_URL
-cyclecloud project fetch $CCW_PROJECT_URL ccw-project
-pushd ccw-project
-cyclecloud project upload azure-storage
-popd
-# TODO RDH End remove this when additional cluster init support is added.
+if [ $INCLUDE_OOD == true ]; then
+    # When we add OOD as an icon to CycleCloud, only parameter creation and create_cluster calls should
+    # remain. The fetch / upload / import_template calls should be removed.
+    (python3 create_cc_param.py ood) > ood_params.json 
 
+    OOD_PROJECT_VERSION=$(jq -r .ood.value.version ccwOutputs.json)
+    ood_url="https://github.com/Azure/cyclecloud-open-ondemand/releases/${OOD_PROJECT_VERSION}"
+    echo fetching OOD project from $ood_url
+    cyclecloud project fetch $ood_url ood
+    cd ood
+    cyclecloud project upload azure-storage
+    ood_template_name=OpenOnDemand_${OOD_PROJECT_VERSION}
+    cyclecloud import_template -c OpenOnDemand -f templates/OpenOnDemand.txt $ood_template_name --force
+    cd ..
+    cyclecloud create_cluster $ood_template_name OpenOnDemand -p ood_params.json
+fi
 # ensure machine types are loaded ASAP
 cycle_server run_action 'Run:Application.Timer' -eq 'Name' 'plugin.azure.monitor_reference'
 
@@ -263,7 +277,7 @@ while [ $(/opt/cycle_server/./cycle_server execute --format json "
                         OUTER JOIN Azure.MachineType M
                         ON  MachineType === M.Name &&
                             Region === M.Location
-                        WHERE clustername==\"$SLURM_CLUSTER_NAME\"" | jq -r ".[] | select(.MachineType == null).Name" | wc -l) != 0 ]; do
+                        WHERE clustername in {"OpenOnDemand", \"$SLURM_CLUSTER_NAME\"}" | jq -r ".[] | select(.MachineType == null).Name" | wc -l) != 0 ]; do
     echo "Waiting for Azure.MachineType to be populated..."
     sleep 10
 done
@@ -286,7 +300,15 @@ timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep
 cyclecloud start_cluster "$SLURM_CLUSTER_NAME"
 echo "CC start_cluster successful"
 rm -f slurm_params.json
-echo "Deleted input parameters file" 
+echo "Deleted Slurm input parameters file" 
+
+if [ $INCLUDE_OOD == true ]; then
+    cyclecloud start_cluster OpenOnDemand
+    echo "CC start_cluster for OpenOnDemand successful"
+    rm -f ood_params.json
+    echo "Deleted OOD input parameters file" 
+fi
+
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
 popd
 

@@ -1984,6 +1984,7 @@
         "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",
         "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.registerEntraIDApp,basics('nullValue'))]"
       },
+      "clusterInitSpecs": [],
       "tags": "[steps('tags').tagsByResource]"
     }
   }
