@@ -883,10 +883,6 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.7",
-                      "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
-                    },
-                    {
                       "label": "Alma Linux 8.10",
                       "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
                     },
@@ -1124,10 +1120,6 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.7",
-                      "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
-                    },
-                    {
                       "label": "Alma Linux 8.10",
                       "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
                     },
@@ -1259,10 +1251,6 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.7",
-                      "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
-                    },
-                    {
                       "label": "Alma Linux 8.10",
                       "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
                     },
@@ -1353,10 +1341,6 @@
                 "toolTip": "Select the image to use for the HPC partition",
                 "constraints": {
                   "allowedValues": [
-                    {
-                      "label": "Alma Linux 8.7",
-                      "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
-                    },
                     {
                       "label": "Alma Linux 8.10",
                       "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
@@ -1451,10 +1435,6 @@
                 "toolTip": "Select the image to use for the GPU partition",
                 "constraints": {
                   "allowedValues": [
-                    {
-                      "label": "Alma Linux 8.7",
-                      "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
-                    },
                     {
                       "label": "Alma Linux 8.10",
                       "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
