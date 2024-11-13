@@ -1,7 +1,9 @@
 targetScope = 'resourceGroup'
 import * as types from './types.bicep'
 
-param location string 
+param location string
+
+param startCluster bool
 param infrastructureOnly bool
 param insidersBuild bool
 
@@ -18,6 +20,8 @@ param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t 
 param network types.vnet_t 
+param clusterInitSpecs types.cluster_init_param_t
+param ood object
 param slurmSettings types.slurmSettings_t 
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
@@ -30,6 +34,7 @@ param databaseAdminPassword string
 param databaseConfig types.databaseConfig_t
 param clusterName string
 param manualInstall bool
+
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
 
@@ -276,6 +281,7 @@ output filerInfoFinal types.filerInfo_t = {
 output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.principalId
 
 output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
+output clusterInitSpecs types.cluster_init_param_t = clusterInitSpecs
 
 output slurmSettings types.slurmSettings_t = slurmSettings
 
@@ -324,5 +330,10 @@ output nodeArrayTags types.tags_t = tags[?'Node Array'] ?? {}
 
 output branch string = branch
 output projectVersion string = projectVersion
+output startCluster bool = startCluster
 output insidersBuild bool = insidersBuild
 output manualInstall bool = manualInstall
+
+output ood object = union(ood, {
+  version: '2024-11-14'
+})

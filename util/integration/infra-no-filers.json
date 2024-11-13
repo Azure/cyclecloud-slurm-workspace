@@ -1,0 +1,73 @@
+{
+    "infrastructureOnly": {
+      "value": true
+    },
+    "adminUsername": {
+      "value": "hpcadmin"
+    },
+    "ccVMSize": {
+      "value": "Standard_D4as_v4"
+    },
+    "sharedFilesystem": {
+      "value": {
+        "type": "anf-new",
+        "anfServiceTier": "Premium",
+        "anfCapacityInTiB": 8
+      }
+    },
+    "additionalFilesystem": {
+      "value": {
+        "type": "aml-new",
+        "lustreTier": "AMLFS-Durable-Premium-250",
+        "lustreCapacityInTib": 48,
+        "mountPath": "/data"
+      }
+    },
+    "network": {
+      "value": {
+        "type": "new",
+        "addressSpace": "10.30.0.0/24",
+        "bastion": true,
+        "createNatGateway": true
+      }
+    },
+    "schedulerNode": {
+      "value": {
+        "sku": "Standard_D4as_v4",
+        "image": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+      }
+    },
+    "loginNodes": {
+      "value": {
+        "sku": "Standard_F4s_v2",
+        "image": "microsoft-dsvm:ubuntu-hpc:2204:latest",
+        "initialNodes": 2,
+        "maxNodes": 4
+      }
+    },
+    "htc": {
+      "value": {
+        "sku": "Standard_F2s_v2",
+        "maxNodes": 16,
+        "image": "microsoft-dsvm:ubuntu-hpc:2204:latest",
+        "useSpot": false
+      }
+    },
+    "hpc": {
+      "value": {
+        "sku": "Standard_HB120rs_v3",
+        "maxNodes": 4,
+        "image": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+      }
+    },
+    "gpu": {
+      "value": {
+        "sku": "Standard_ND96asr_v4",
+        "maxNodes": 4,
+        "image": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+      }
+    },
+    "tags": {
+      "value": {}
+    }
+  }

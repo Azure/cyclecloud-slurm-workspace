@@ -1,0 +1,102 @@
+{
+  "adminUsername": {
+    "value": "hpcadmin"
+  },
+  "ccVMSize": {
+    "value": "Standard_D4as_v4"
+  },
+  "sharedFilesystem": {
+    "value": {
+      "type": "nfs-new",
+      "nfsCapacityInGb": 1024
+    }
+  },
+  "network": {
+    "value": {
+      "type": "existing",
+      "name": "ccw-vnet",
+      "cyclecloudSubnet": "ccw-cyclecloud-subnet",
+      "computeSubnet": "ccw-compute-subnet",
+      "sharedFilerSubnet": "ccw-anf-subnet",
+      "additionalFilerSubnet": "ccw-anf-subnet"
+    }
+  },
+  "schedulerNode": {
+    "value": {
+      "sku": "Standard_D4as_v4",
+      "image": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+    }
+  },
+  "loginNodes": {
+    "value": {
+      "sku": "Standard_F4s_v2",
+      "image": "microsoft-dsvm:ubuntu-hpc:2204:latest",
+      "initialNodes": 1,
+      "maxNodes": 1
+    }
+  },
+  "htc": {
+    "value": {
+      "sku": "Standard_F2s_v2",
+      "maxNodes": 100,
+      "image": "microsoft-dsvm:ubuntu-hpc:2204:latest",
+      "useSpot": false
+    }
+  },
+  "hpc": {
+    "value": {
+      "sku": "Standard_HB120rs_v3",
+      "maxNodes": 100,
+      "image": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+    }
+  },
+  "gpu": {
+    "value": {
+      "sku": "Standard_ND96asr_v4",
+      "maxNodes": 100,
+      "image": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+    }
+  },    
+  "ood": {
+    "value": {
+      "ood_auth_method": "Basic"
+    }
+  },
+  "clusterInitSpecs": {
+    "value": {
+      "ccw": [
+        {
+          "gitHubReleaseURL": "https://github.com/ryanhamel/cluster-init-hello-world/releases/1.0.0",
+          "target": [
+            "scheduler",
+            "login"
+          ],
+          "spec": "default",
+          "type": "gitHubReleaseURL"
+        },
+        {
+          "gitHubReleaseURL": "https://github.com/ryanhamel/cluster-init-hello-world/releases/1.0.0",
+          "target": [
+            "scheduler",
+            "login"
+          ],
+          "spec": "espanol",
+          "type": "gitHubReleaseURL"
+        }
+      ],
+      "ood": [
+        {
+          "gitHubReleaseURL": "https://github.com/ryanhamel/cluster-init-hello-world/releases/1.0.0",
+          "target": [
+            "ood"
+          ],
+          "spec": "francais",
+          "type": "gitHubReleaseURL"
+        }
+      ]
+    }
+  },
+  "tags": {
+    "value": {}
+  }
+}
