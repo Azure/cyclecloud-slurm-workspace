@@ -19,6 +19,7 @@ param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t 
 param network types.vnet_t 
+param clusterInitSpecs types.cluster_init_param_t
 param slurmSettings types.slurmSettings_t 
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
@@ -305,6 +306,7 @@ output filerInfoFinal types.filerInfo_t = {
 output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.principalId
 
 output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
+output clusterInitSpecs types.cluster_init_param_t = clusterInitSpecs
 
 output slurmSettings types.slurmSettings_t = slurmSettings
 
@@ -356,3 +358,7 @@ output projectVersion string = projectVersion
 output insidersBuild bool = insidersBuild
 output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
+
+output ood object = union(ood, {
+  version: '2024-11-14'
+})
