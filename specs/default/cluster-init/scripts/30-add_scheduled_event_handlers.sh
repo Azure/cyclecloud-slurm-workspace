@@ -8,7 +8,7 @@ chmod 770 ${collect_logs_script}
 mkdir -p /opt/cycle/jetpack/scripts
 
 cat << EOF > /opt/cycle/jetpack/scripts/onTerminate.sh
-bash -c ${collect_logs_script}
+sudo bash -c ${collect_logs_script}
 
 EOF
 chmod 770 /opt/cycle/jetpack/scripts/onTerminate.sh
