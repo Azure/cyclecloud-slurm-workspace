@@ -4,7 +4,7 @@ set -e
 # Set the path to store the logs on /sched
 cluster_name=$(grep ClusterName= /etc/slurm/slurm.conf | sed 's/.*= *//; s/[ \t\r\n]*$//')
 vm_name=$(hostname)
-path="/sched/$cluster_name/$vm_name"
+path="/shared/$cluster_name/node_logs/$vm_name"
 
 # User may optionally override default path
 while (( "$#" )); do
