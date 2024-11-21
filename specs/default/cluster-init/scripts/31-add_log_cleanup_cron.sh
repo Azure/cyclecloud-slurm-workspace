@@ -7,7 +7,7 @@ if [ ! is_scheduler ]; then
     exit 0
 fi
 
-cluster_name=$(which scontrol > /dev/null && scontrol show config | grep -i "ClusterName" | sed 's/.*ClusterName *= *//' | tr -d '[:space:]')
+cluster_name=$(which scontrol > /dev/null && scontrol show config | grep -i "ClusterName" | sed 's/.*ClusterName *= *//')
 
 cat << EOF > /etc/cron.daily/node_log_cleanup
 #!/bin/bash

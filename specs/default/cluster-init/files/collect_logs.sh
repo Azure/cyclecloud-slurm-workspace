@@ -2,7 +2,7 @@
 set -e
 
 # Set the path to store the logs on /sched
-cluster_name=$(which scontrol > /dev/null && scontrol show config | grep -i "ClusterName" | sed 's/.*ClusterName *= *//' | tr -d '[:space:]')
+cluster_name=$(which scontrol > /dev/null && scontrol show config | grep -i "ClusterName" | sed 's/.*ClusterName *= *//')
 vm_name=$(hostname)
 path="/shared/$cluster_name/node_logs/$vm_name"
 
