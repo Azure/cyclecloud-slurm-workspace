@@ -20,6 +20,18 @@ function fix_ndv5()
 
 }
 
+# remove space in between values in the device array https://github.com/Azure/cyclecloud-slurm/pull/291/files
+function fix_generate_amd_devices()
+{
+    autoscale_version=$(jetpack config slurm.autoscale_version)
+    if [[ $autoscale_version == "3.0.9" ]]; then
+        logger -s "Fixing generate_amd_devices"
+        wget -q https://github.com/Azure/cyclecloud-slurm/pull/291.patch
+        patch -t -p1 /opt/azurehpc/slurm/venv/lib/python3.6/site-packages/slurmcc/cli.py < 291.patch
+    fi
+}
+
 if is_scheduler; then
     fix_ndv5
+    fix_generate_amd_devices
 fi
