@@ -12,7 +12,7 @@ param adminUsername string
 @secure()
 param adminPassword string
 param adminSshPublicKey string
-param storedKey types.storedKey_t
+param storedKeyId string
 param ccVMSize string
 param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
@@ -38,7 +38,7 @@ var useEnteredKey = adminSshPublicKey != ''
 module ccwPublicKey './publicKey.bicep' = if (!useEnteredKey && !infrastructureOnly) {
   name: 'ccwPublicKey'
   params: {
-    storedKey: storedKey
+    storedKeyId: storedKeyId
   }
 }
 var publicKey = infrastructureOnly ? '' : (useEnteredKey ? adminSshPublicKey : ccwPublicKey.outputs.publicKey)
@@ -78,13 +78,15 @@ var subnets = create_new_vnet
       additional: { id: join([network.?id, 'subnets', network.?additionalFilerSubnet ?? 'null'], '/') }
     }
 
+var existingNetworkId = network.?id ?? 'q/w/e/r/t/y/u/i/o'
+
 output vnet types.networkOutput_t = union(
   create_new_vnet
     ? ccwNetwork.outputs.vnetCCW
     : {
-        id: network.?id ?? ''
-        name: network.?name
-        rg: split(network.?id ?? '////', '/')[4]
+        id: existingNetworkId
+        name: split(existingNetworkId, '/')[8]
+        rg: split(existingNetworkId, '/')[4]
       },
   {
     type: network.type
@@ -225,7 +227,7 @@ module ccwANF 'anf.bicep' = [
       tags: getTags('Microsoft.NetApp/netAppAccounts', tags)
       name: filer.key
       subnetId: subnets[filer.key].id
-      serviceLevel: filer.value.anfServiceTier
+      serviceLevel: filer.value.anfServiceLevel
       sizeTiB: filer.value.anfCapacityInTiB
       defaultMountOptions: anfDefaultMountOptions
       infrastructureOnly: infrastructureOnly
