@@ -26,8 +26,18 @@ function fix_generate_amd_devices()
     autoscale_version=$(jetpack config slurm.autoscale_version)
     if [[ $autoscale_version == "3.0.9" ]]; then
         logger -s "Fixing generate_amd_devices"
-        wget -q https://github.com/Azure/cyclecloud-slurm/pull/291.patch
-        patch -t -p1 /opt/azurehpc/slurm/venv/lib/python3.6/site-packages/slurmcc/cli.py < 291.patch
+        PATCH_FILE=291.patch
+        wget -q https://github.com/Azure/cyclecloud-slurm/pull/$PATCH_FILE -O $PATCH_FILE
+        if [ ! -f $PATCH_FILE ]; then
+            logger -s "Failed to download patch"
+            return
+        fi
+        # if the file to patch exists then apply the patch
+        FILE_TO_PATCH=/opt/azurehpc/slurm/venv/lib/python3.6/site-packages/slurmcc/cli.py
+        if [ -f $FILE_TO_PATCH ]; then
+            patch -t -p1 $FILE_TO_PATCH < $PATCH_FILE
+        fi
+
     fi
 }
 
