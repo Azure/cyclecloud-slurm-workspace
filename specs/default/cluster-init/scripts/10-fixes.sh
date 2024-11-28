@@ -1,6 +1,7 @@
 #!/bin/bash
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$script_dir/../files/common.sh" 
+TOUCH_FILE=.10-fixes.done
 
 # fix wrong NDv5 gpu count in gres.conf
 function fix_ndv5()
@@ -12,12 +13,8 @@ function fix_ndv5()
         cp -f $SLURM_AUTOSCALE_ROOT/autoscale.json $SLURM_AUTOSCALE_ROOT/autoscale.json.orig
         jq '.default_resources = [{"select": {"node.vm_size": "Standard_ND96isr_H100_v5"}, "name": "slurm_gpus", "value": 8}] + .default_resources' $SLURM_AUTOSCALE_ROOT/autoscale.json.orig > $SLURM_AUTOSCALE_ROOT/autoscale.json
 
-        # Update autoscaler
-        logger -s "Update autoscaler"
-        /root/bin/azslurm scale
-        logger -s "Autoscaler updated"
+        touch $TOUCH_FILE
     fi
-
 }
 
 # remove space in between values in the device array https://github.com/Azure/cyclecloud-slurm/pull/291/files
@@ -41,12 +38,21 @@ function fix_generate_amd_devices()
         FILE_TO_PATCH=/opt/azurehpc/slurm/venv/lib/python3.$PYTHON_MINOR_VERSION/site-packages/slurmcc/cli.py
         if [ -f $FILE_TO_PATCH ]; then
             patch -t -p1 $FILE_TO_PATCH < $PATCH_FILE
+            touch $TOUCH_FILE
         fi
-
     fi
 }
 
 if is_scheduler; then
+    rm -f $TOUCH_FILE
     fix_ndv5
     fix_generate_amd_devices
+
+    # If touch file exists, then Update autoscaler
+    if [ -f $TOUCH_FILE ]; then
+        logger -s "Update autoscaler"
+        AZSLURM=$(which azslurm)
+        $AZSLURM scale
+        logger -s "Autoscaler updated"
+    fi
 fi
