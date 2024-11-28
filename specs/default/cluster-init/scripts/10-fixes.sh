@@ -48,11 +48,12 @@ if is_scheduler; then
     fix_ndv5
     fix_generate_amd_devices
 
-    # If touch file exists, then Update autoscaler
-    if [ -f $TOUCH_FILE ]; then
-        logger -s "Update autoscaler"
-        AZSLURM=$(which azslurm)
-        $AZSLURM scale
-        logger -s "Autoscaler updated"
-    fi
+    # We probably don't need to rerun the autoscaler at this time
+    # # If touch file exists, then Update autoscaler
+    # if [ -f $TOUCH_FILE ]; then
+    #     logger -s "Update autoscaler"
+    #     AZSLURM=$(which azslurm)
+    #     $AZSLURM scale
+    #     logger -s "Autoscaler updated"
+    # fi
 fi
