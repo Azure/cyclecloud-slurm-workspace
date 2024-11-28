@@ -32,8 +32,13 @@ function fix_generate_amd_devices()
             logger -s "Failed to download patch"
             return
         fi
+
+        # Retrieve the python site packages to fix
+        source /opt/azurehpc/slurm/venv/bin/activate
+        PYTHON_MINOR_VERSION=$(python3 --version | cut -d '.' -f 2)
+
         # if the file to patch exists then apply the patch
-        FILE_TO_PATCH=/opt/azurehpc/slurm/venv/lib/python3.6/site-packages/slurmcc/cli.py
+        FILE_TO_PATCH=/opt/azurehpc/slurm/venv/lib/python3.$PYTHON_MINOR_VERSION/site-packages/slurmcc/cli.py
         if [ -f $FILE_TO_PATCH ]; then
             patch -t -p1 $FILE_TO_PATCH < $PATCH_FILE
         fi
