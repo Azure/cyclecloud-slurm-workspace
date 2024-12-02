@@ -905,6 +905,15 @@
                 }
               },
               {
+                "name": "customImageInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('scheduler').schedulerSection.ImageName,'custom')]",
+                "options": {
+                  "icon": "Info",
+                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
+                }
+              },
+              {
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Custom Image ID",
@@ -912,8 +921,8 @@
                 "toolTip": "Enter a custom image ID or URN",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
-                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                  "regex": "^.{1,}$",
+                  "validationMessage": "Please enter a custom image resource ID or URN"
                 },
                 "visible": "[equals(steps('scheduler').schedulerSection.ImageName,'custom')]"
               },
@@ -1143,6 +1152,15 @@
                 "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
               },
               {
+                "name": "customImageInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('scheduler').loginNodesSection.ImageName,'custom')]",
+                "options": {
+                  "icon": "Info",
+                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
+                }
+              },
+              {
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Custom Image ID",
@@ -1150,8 +1168,8 @@
                 "toolTip": "Enter a custom image ID or URN",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
-                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                  "regex": "^.{1,}$",
+                  "validationMessage": "Please enter a custom image resource ID or URN"
                 },
                 "visible": "[equals(steps('scheduler').loginNodesSection.ImageName,'custom')]"
               },
@@ -1274,6 +1292,15 @@
                 "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
               },
               {
+                "name": "customImageInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('slurmSettings').HTCSection.ImageName,'custom')]",
+                "options": {
+                  "icon": "Info",
+                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
+                }
+              },
+              {
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Custom Image ID",
@@ -1281,8 +1308,8 @@
                 "toolTip": "Enter a custom image ID or URN",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
-                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                  "regex": "^.{1,}$",
+                  "validationMessage": "Please enter a custom image resource ID or URN"
                 },
                 "visible": "[equals(steps('slurmSettings').HTCSection.ImageName,'custom')]"
               },
@@ -1365,6 +1392,15 @@
                 "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
               },
               {
+                "name": "customImageInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('slurmSettings').HPCSection.ImageName,'custom')]",
+                "options": {
+                  "icon": "Info",
+                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
+                }
+              },
+              {
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Custom Image ID",
@@ -1372,8 +1408,8 @@
                 "toolTip": "Enter a custom image ID or URN",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
-                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                  "regex": "^.{1,}$",
+                  "validationMessage": "Please enter a custom image resource ID or URN"
                 },
                 "visible": "[equals(steps('slurmSettings').HPCSection.ImageName,'custom')]"
               },
@@ -1459,6 +1495,15 @@
                 "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
               },
               {
+                "name": "customImageInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('slurmSettings').GPUSection.ImageName,'custom')]",
+                "options": {
+                  "icon": "Info",
+                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
+                }
+              },
+              {
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Custom Image URN or ID",
@@ -1466,8 +1511,8 @@
                 "toolTip": "Enter a custom image URN or ID",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
-                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                  "regex": "^.{1,}$",
+                  "validationMessage": "Please enter a custom image resource ID or URN"
                 },
                 "visible": "[equals(steps('slurmSettings').GPUSection.ImageName,'custom')]"
               },
