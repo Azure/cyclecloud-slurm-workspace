@@ -54,8 +54,6 @@ tar -xzf "$log_file_name".tar.gz && rm "$log_file_name".tar.gz
 cd "$log_file_name" && mkdir -p cluster && cd cluster
 set +e # in a failed node, some of these directories may not exist
 log_directories=(
-    "/var/log/slurm"
-    "/var/log/slurmctld"
     "/var/log/slurmd"
     "/opt/azurehpc/slurm/logs"
     "/opt/cycle/jetpack/logs"
