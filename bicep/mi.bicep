@@ -14,7 +14,7 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
 
 var managedIdentityId = managedIdentity.id
 
-//assign Storage Blob Data Contributor role to the managed identity
+//assign Storage Blob Data Reader role to the managed identity
 resource miRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(name, managedIdentityId, resourceGroup().id, subscription().id)
   scope: managedIdentity
