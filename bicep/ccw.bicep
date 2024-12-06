@@ -154,8 +154,6 @@ module ccwRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly) 
   name: 'ccwRoleFor-${vmName}-${location}'
   scope: subscription()
   params: {
-    name: vmName
-    rgID: az.resourceGroup().id
     roles: [
       'Contributor'
       'Storage Account Contributor'
