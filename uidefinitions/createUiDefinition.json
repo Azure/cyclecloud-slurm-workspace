@@ -635,7 +635,7 @@
             "constraints": {
               "allowedValues": [
                 {
-                  "label": "Automatically create new virtual networks and subnets",
+                  "label": "Automatically create new virtual network and subnets",
                   "value": "new"
                 },
                 {
