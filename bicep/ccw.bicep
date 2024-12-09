@@ -102,7 +102,7 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
   params: {
     location: location
     tags: getTags('Microsoft.Network/bastionHosts', tags)
-    subnetId: subnets.bastion.id
+    subnetId: subnets.?bastion.id ?? ''
   }
 }
 
@@ -192,7 +192,7 @@ module mySQLccw './mysql.bicep' = if (create_database) {
     Name: db_name
     adminUser: adminUsername
     adminPassword: databaseAdminPassword
-    subnetId: subnets.database.id
+    subnetId: subnets.?database.id ?? ''
   }
 }
 
