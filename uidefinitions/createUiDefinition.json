@@ -622,7 +622,7 @@
             "visible": true,
             "options": {
               "icon": "Info",
-              "text": "Optionally use existing virtual network resources or have them automatically created for the cluster deployment.\n\nIf proceeding with the former, then please confirm that the chosen subnets have the necessary Service Endpoints and delegations as specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
+              "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment.\n\nIf proceeding with the latter, then please confirm that the chosen subnets have the necessary Service Endpoints and delegations as specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
               "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
             }
           },
@@ -630,17 +630,17 @@
             "name": "newexisting",
             "type": "Microsoft.Common.DropDown",
             "label": "Virtual network options",
-            "defaultValue": "Use existing virtual network and subnets",
-            "toolTip": "Use an existing virtual network and subnets or auto-create new networking resources",
+            "defaultValue": "Automatically create new virtual networks and subnets",
+            "toolTip": "Auto-create new networking resources or use an existing virtual network and subnets",
             "constraints": {
               "allowedValues": [
                 {
-                  "label": "Use existing virtual network and subnets",
-                  "value": "existing"
+                  "label": "Automatically create new virtual network and subnets",
+                  "value": "new"
                 },
                 {
-                  "label": "Automatically create new virtual networks and subnets",
-                  "value": "new"
+                  "label": "Use existing virtual network and subnets",
+                  "value": "existing"
                 }
               ],
               "required": true
