@@ -630,7 +630,7 @@
             "name": "newexisting",
             "type": "Microsoft.Common.DropDown",
             "label": "Virtual network options",
-            "defaultValue": "Automatically create new virtual networks and subnets",
+            "defaultValue": "Automatically create new virtual network and subnets",
             "toolTip": "Auto-create new networking resources or use an existing virtual network and subnets",
             "constraints": {
               "allowedValues": [
