@@ -3,21 +3,16 @@ set -e
 
 DELETE_RG=0
 RG=""
-LOCATION=""
 HELP=0
 
 while (( "$#" )); do
     case "$1" in
-        --delete-resource-group)
+        -d|--delete-resource-group)
             DELETE_RG=1
             shift 1
             ;;
-        --resource-group)
+        -rg|--resource-group)
             RG=$2
-            shift 2
-            ;;
-        --location)
-            LOCATION=$2
             shift 2
             ;;
         --help)
@@ -38,16 +33,21 @@ while (( "$#" )); do
 done
 
 # Check if required arguments are provided
-if [ -z "$RG" ] || [ -z "$LOCATION" ]; then
-    echo "Please ensure that --resource-group and --location are both provided" >&2
+if [ -z "$RG" ] ; then
+    echo "Please ensure that --resource-group is provided" >&2
     HELP=1
 fi
 
 if [ $HELP == 1 ]; then
-    echo Usage: delete_roles.sh --resource-group RG --location LOCATION [--delete-resource-group] 1>&2
+    echo Usage: delete_roles.sh --resource-group RG [--delete-resource-group] 1>&2
     exit 1
 fi
 
+LOCATION=$(az group show -n $RG --query location -o tsv 2>/dev/null | tr -d '\n' | tr -d '\r') 
+if [ -z "$LOCATION" ]; then
+    LOCATION='eastus'
+fi
+echo Resource group $RG is in location $LOCATION
 RG_PATH=util/${RG}
 mkdir -p $RG_PATH
 CLEANUP_JSON_PATH=${RG_PATH}/.role_assignment_cleanup.json

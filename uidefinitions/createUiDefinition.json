@@ -5,7 +5,7 @@
   "parameters": {
     "config": {
       "basics": {
-        "description": "Version 2024.09.18",
+        "description": "Version 2024.11.08",
         "resourceGroup": {
           "visible": false
         },
@@ -500,7 +500,7 @@
                 "options": {
                   "icon": "Warning",
                   "text": "Please consult the linked page for the capacity range of each Azure Managed Lustre Tier.",
-                  "uri": "https://learn.microsoft.com/en-us/azure/azure-managed-lustre/create-file-system-portal?WT.mc_id=Portal-Microsoft_Azure_CreateUIDef#throughput-configurations"
+                  "uri": "https://learn.microsoft.com/azure/azure-managed-lustre/create-file-system-portal?WT.mc_id=Portal-Microsoft_Azure_CreateUIDef#throughput-configurations"
                 }
               },
               {
@@ -622,24 +622,25 @@
             "visible": true,
             "options": {
               "icon": "Info",
-              "text": "Optionally use existing virtual network resources or have them automatically created for the cluster deployment.\n\nIf proceeding with the former, then please confirm that the chosen subnets have the appropriate Service Endpoints and delegations as specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior."
+              "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment.\n\nIf proceeding with the latter, then please confirm that the chosen subnets have the necessary Service Endpoints and delegations as specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
+              "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
             }
           },
           {
             "name": "newexisting",
             "type": "Microsoft.Common.DropDown",
             "label": "Virtual network options",
-            "defaultValue": "Use existing virtual network and subnets",
-            "toolTip": "Use an existing virtual network and subnets or auto-create new networking resources",
+            "defaultValue": "Automatically create new virtual networks and subnets",
+            "toolTip": "Auto-create new networking resources or use an existing virtual network and subnets",
             "constraints": {
               "allowedValues": [
                 {
-                  "label": "Use existing virtual network and subnets",
-                  "value": "existing"
+                  "label": "Automatically create new virtual network and subnets",
+                  "value": "new"
                 },
                 {
-                  "label": "Automatically create new virtual networks and subnets",
-                  "value": "new"
+                  "label": "Use existing virtual network and subnets",
+                  "value": "existing"
                 }
               ],
               "required": true
@@ -883,8 +884,8 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.7",
-                      "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
+                      "label": "Alma Linux 8.10",
+                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
                     },
                     {
                       "label": "Ubuntu 20.04",
@@ -904,6 +905,15 @@
                 }
               },
               {
+                "name": "customImageInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('scheduler').schedulerSection.ImageName,'custom')]",
+                "options": {
+                  "icon": "Info",
+                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
+                }
+              },
+              {
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Custom Image ID",
@@ -911,8 +921,8 @@
                 "toolTip": "Enter a custom image ID or URN",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
-                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                  "regex": "^.{1,}$",
+                  "validationMessage": "Please enter a custom image resource ID or URN"
                 },
                 "visible": "[equals(steps('scheduler').schedulerSection.ImageName,'custom')]"
               },
@@ -1120,8 +1130,8 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.7",
-                      "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
+                      "label": "Alma Linux 8.10",
+                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
                     },
                     {
                       "label": "Ubuntu 20.04",
@@ -1142,6 +1152,15 @@
                 "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
               },
               {
+                "name": "customImageInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('scheduler').loginNodesSection.ImageName,'custom')]",
+                "options": {
+                  "icon": "Info",
+                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
+                }
+              },
+              {
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Custom Image ID",
@@ -1149,8 +1168,8 @@
                 "toolTip": "Enter a custom image ID or URN",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
-                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                  "regex": "^.{1,}$",
+                  "validationMessage": "Please enter a custom image resource ID or URN"
                 },
                 "visible": "[equals(steps('scheduler').loginNodesSection.ImageName,'custom')]"
               },
@@ -1251,8 +1270,8 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.7",
-                      "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
+                      "label": "Alma Linux 8.10",
+                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
                     },
                     {
                       "label": "Ubuntu 20.04",
@@ -1273,6 +1292,15 @@
                 "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
               },
               {
+                "name": "customImageInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('slurmSettings').HTCSection.ImageName,'custom')]",
+                "options": {
+                  "icon": "Info",
+                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
+                }
+              },
+              {
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Custom Image ID",
@@ -1280,8 +1308,8 @@
                 "toolTip": "Enter a custom image ID or URN",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
-                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                  "regex": "^.{1,}$",
+                  "validationMessage": "Please enter a custom image resource ID or URN"
                 },
                 "visible": "[equals(steps('slurmSettings').HTCSection.ImageName,'custom')]"
               },
@@ -1342,8 +1370,8 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.7",
-                      "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
+                      "label": "Alma Linux 8.10",
+                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
                     },
                     {
                       "label": "Ubuntu 20.04",
@@ -1364,6 +1392,15 @@
                 "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
               },
               {
+                "name": "customImageInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('slurmSettings').HPCSection.ImageName,'custom')]",
+                "options": {
+                  "icon": "Info",
+                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
+                }
+              },
+              {
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Custom Image ID",
@@ -1371,8 +1408,8 @@
                 "toolTip": "Enter a custom image ID or URN",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
-                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                  "regex": "^.{1,}$",
+                  "validationMessage": "Please enter a custom image resource ID or URN"
                 },
                 "visible": "[equals(steps('slurmSettings').HPCSection.ImageName,'custom')]"
               },
@@ -1436,8 +1473,8 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.7",
-                      "value": "almalinux:almalinux-hpc:8_7-hpc-gen2:latest"
+                      "label": "Alma Linux 8.10",
+                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
                     },
                     {
                       "label": "Ubuntu 20.04",
@@ -1458,6 +1495,15 @@
                 "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
               },
               {
+                "name": "customImageInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('slurmSettings').GPUSection.ImageName,'custom')]",
+                "options": {
+                  "icon": "Info",
+                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
+                }
+              },
+              {
                 "name": "customImageName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Custom Image URN or ID",
@@ -1465,8 +1511,8 @@
                 "toolTip": "Enter a custom image URN or ID",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?:[^:\\s]+:[^:\\s]+:[^:\\s]+:[^:\\s]+|/subscriptions/[^/\\s]+/resourceGroups/[^/\\s]+/providers/Microsoft\\.Compute/galleries/[^/\\s]+/images/[^/\\s]+/versions/[^/\\s]+)$",
-                  "validationMessage": "Please ensure that URNs follow the format of publisher:offer:sku:version and that image IDs follow the format of /subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Compute/galleries/{{sig_name}}/images/{{image_name}}/versions/{{version_number}}"
+                  "regex": "^.{1,}$",
+                  "validationMessage": "Please enter a custom image resource ID or URN"
                 },
                 "visible": "[equals(steps('slurmSettings').GPUSection.ImageName,'custom')]"
               },
