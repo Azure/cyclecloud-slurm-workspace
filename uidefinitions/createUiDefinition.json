@@ -675,14 +675,14 @@
                       "value": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','/24')]"
                     },
                     {
-                      "label": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,92)),'','/23')]",
-                      "description": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,92)),'','251 compute nodes')]",
-                      "value": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,92)),'','/23')]"
+                      "label": "/23)]",
+                      "description": "251 compute nodes",
+                      "value": "/23"
                     },
                     {
-                      "label": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,196)),'','/22')]",
-                      "description": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,196)),'','506 compute nodes')]",
-                      "value": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,196)),'','/22')]"
+                      "label": "/22",
+                      "description": "506 compute nodes",
+                      "value": "/22"
                     },
                     {
                       "label": "/21",
