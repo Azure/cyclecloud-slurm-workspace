@@ -664,15 +664,15 @@
                 "name": "cidrPrefix",
                 "type": "Microsoft.Common.DropDown",
                 "label": "CIDR Prefix",
-                "defaultValue": "/24",
+                "defaultValue": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'/23','/24')]",
                 "multiLine": true,
                 "toolTip": "Select the CIDR prefix",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "/24",
-                      "description": "123 compute nodes",
-                      "value": "/24"
+                      "label": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','/24')]",
+                      "description": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','123 compute nodes')]",
+                      "value": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','/24')]"
                     },
                     {
                       "label": "/23",
@@ -681,7 +681,7 @@
                     },
                     {
                       "label": "/22",
-                      "description": "507 compute nodes",
+                      "description": "506 compute nodes",
                       "value": "/22"
                     },
                     {
