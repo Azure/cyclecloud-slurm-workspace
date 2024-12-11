@@ -206,7 +206,7 @@ python3 /opt/ccw/cyclecloud_install.py --acceptTerms \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
     --storageAccount=${CYCLECLOUD_STORAGE} \
     --azureSovereignCloud="${env}" \
-    --webServerPort=80 --webServerSslPort=443 $INSIDERS_BUILD_ARG
+    --webServerPort=80 --webServerSslPort=443 $INSIDERS_BUILD_ARG --storageManagedIdentity="${MANAGED_IDENTITY_ID}"
 
 echo "CC install script successful"
 # Configuring distribution_method
@@ -278,20 +278,6 @@ echo All Azure.MachineType records are loaded.
 sleep 2
 echo Waiting for accelerated network records to be imported
 timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep 10; done'
-
-#Set managed identity
-/opt/cycle_server/./cycle_server execute \
-"UPDATE Cloud.Locker
- SET JetpackManagedIdentity=\"$MANAGED_IDENTITY_ID\"
- WHERE name==\"azure-storage\"" > /dev/null
-echo "Locker updated with managed identity"
-
-#Tell nodes to not use shared access key
-/opt/cycle_server/./cycle_server execute \
-"UPDATE Credential
- SET UseSharedAccessKeys=false
- WHERE name==\"azure\"" > /dev/null
-echo "UseSharedAccessKeys disabled"
 
 cyclecloud start_cluster "$SLURM_CLUSTER_NAME"
 echo "CC start_cluster successful"
