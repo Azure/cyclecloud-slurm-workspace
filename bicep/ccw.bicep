@@ -151,7 +151,7 @@ module ccwVM './vm.bicep' = if (!infrastructureOnly) {
   ]
 }
 
-var miName = 'ccwJetpackManagedIdentity'
+var miName = 'ccwLockerManagedIdentity'
 module ccwManagedIdentity 'mi.bicep' = if (!infrastructureOnly) {
   name: miName
   params: {
