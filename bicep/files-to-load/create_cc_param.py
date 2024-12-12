@@ -71,6 +71,7 @@ def set_params(params, dbPassword, outputs):
 
     #Network Attached Storage
     params['UseBuiltinShared'] = outputs['filerInfoFinal']['value']['home']['type'] == 'nfs-new' 
+    params['UseBuiltinSched'] = params['UseBuiltinShared']
     if params['UseBuiltinShared']:
         params['FilesystemSize'] = outputs['filerInfoFinal']['value']['home']['nfsCapacityInGb']
     else:
