@@ -653,12 +653,22 @@
             "label": "Network configuration",
             "elements": [
               {
-                "name": "existing",
-                "type": "Microsoft.Common.TextBlock",
-                "visible": false,
+                "name": "lustreInfoBoxNew",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'new'))]",
                 "options": {
-                  "text": "Placeholder. Scrap?"
-                }
+                  "icon": "Warning",
+                  "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nThe option to create a new virtual network with a CIDR of /24 is therefore omitted in the below menu."
+                  }
+              },
+              {
+                "name": "lustreInfoBoxExisting",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'existing'))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nPlease ensure that the subnet for the additional file-system selected below meets this requirement."
+                  }
               },
               {
                 "name": "cidrPrefix",
