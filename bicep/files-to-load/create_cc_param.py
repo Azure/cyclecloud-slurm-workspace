@@ -80,7 +80,6 @@ def set_params(params, dbPassword, outputs):
         # We no longer need to handle these differently based on the fs type, as each
         # fs module's common outputs map to these.
         params['NFSSharedExportPath'] = outputs['filerInfoFinal']['value']['home']['exportPath']
-        # params['NFSSchedExportPath'] = /sched # params['NFSSharedExportPath']
         params['NFSSharedMountOptions'] = outputs['filerInfoFinal']['value']['home']['mountOptions']
         params['NFSSchedMountOptions'] = params['NFSSharedMountOptions']
         params['NFSAddress'] = outputs['filerInfoFinal']['value']['home']['ipAddress']
