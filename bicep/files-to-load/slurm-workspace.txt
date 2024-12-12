@@ -489,7 +489,7 @@ Order = 15
         [[[parameter About sched part 2]]]
         HideLabel = true
         Config.Plugin = pico.widget.HtmlTemplateWidget
-        Config.Template = ''' <p>To disable the built-in NFS export of the <code>/sched</code> directory, and to use an external filesystem, select the checkbox below.</p>'''
+        Config.Template = ''' <p>Uncheck the box below to disable the built-in NFS export of the <code>/sched</code> directory and use an external file-system.</p>'''
         Order = 7
         Conditions.Hidden := configuration_slurm_ha_enabled
 
@@ -504,7 +504,7 @@ Order = 15
         [[[parameter NFSSchedDiskWarning]]]
         HideLabel = true
         Config.Plugin = pico.widget.HtmlTemplateWidget
-        Config.Template := "<p><b>Warning</b>: switching an active cluster over to NFS or Lustre from Builtin will delete the shared disk.</p>"
+        Config.Template := "<p><b>Warning</b>: switching an active cluster over to NFS from Builtin will delete the shared disk.</p>"
         Conditions.Hidden := UseBuiltinSched || configuration_slurm_ha_enabled
 
         [[[parameter NFSSchedType]]]        
@@ -512,13 +512,13 @@ Order = 15
         ParameterType = StringList
         Config.Label = Type of shared filesystem to use for this cluster
         Config.Plugin = pico.form.Dropdown
-        Config.Entries := {[Label="External NFS"; Value="nfs"], [Label="Azure Managed Lustre"; Value="lustre"]}
+        Config.Entries := {[Label="External NFS"; Value="nfs"]}
         DefaultValue = nfs
         Conditions.Hidden := UseBuiltinSched && !configuration_slurm_ha_enabled
 
         [[[parameter NFSSchedAddress]]]
         Label = IP Address
-        Description = The IP address or hostname of the NFS server or Lustre FS. Also accepts a list comma-separated addresses, for example, to mount a frontend load-balanced Azure HPC Cache.
+        Description = The IP address or hostname of the NFS server. Also accepts a list comma-separated addresses, for example, to mount a frontend load-balanced Azure HPC Cache.
         Config.ParameterType = String
         Conditions.Hidden := UseBuiltinSched && !configuration_slurm_ha_enabled
 
@@ -559,13 +559,13 @@ Order = 15
         [[[parameter About shared part 2]]]
         HideLabel = true
         Config.Plugin = pico.widget.HtmlTemplateWidget
-        Config.Template = ''' <p>To disable the built-in NFS export of the <code>/sched</code> directory, and to use an external filesystem, select the checkbox below.</p>'''
+        Config.Template = ''' <p>Uncheck the box below to disable the built-in NFS export of the <code>/shared</code> directory and use an external file-system.</p>'''
         Order = 7
         Conditions.Hidden := configuration_slurm_ha_enabled
 
         [[[parameter UseBuiltinShared]]]
         Label = Use Builtin NFS
-        Description = Use the builtin NFS for /share
+        Description = Use the builtin NFS for /shared
         DefaultValue = true
         ParameterType = Boolean
         Conditions.Hidden := configuration_slurm_ha_enabled
@@ -574,7 +574,7 @@ Order = 15
         [[[parameter NFSDiskWarning]]]
         HideLabel = true
         Config.Plugin = pico.widget.HtmlTemplateWidget
-        Config.Template := "<p><b>Warning</b>: switching an active cluster over to NFS or Lustre from Builtin will delete the shared disk.</p>"
+        Config.Template := "<p><b>Warning</b>: switching an active cluster over to NFS from Builtin will delete the shared disk.</p>"
         Conditions.Hidden := UseBuiltinShared || configuration_slurm_ha_enabled
 
         [[[parameter NFSType]]]        
@@ -582,13 +582,13 @@ Order = 15
         ParameterType = StringList
         Config.Label = Type of shared filesystem to use for this cluster
         Config.Plugin = pico.form.Dropdown
-        Config.Entries := {[Label="External NFS"; Value="nfs"], [Label="Azure Managed Lustre"; Value="lustre"]}
+        Config.Entries := {[Label="External NFS"; Value="nfs"]}
         DefaultValue = nfs
         Conditions.Hidden := UseBuiltinShared && !configuration_slurm_ha_enabled
 
         [[[parameter NFSAddress]]]
         Label = IP Address
-        Description = The IP address or hostname of the NFS server or Lustre FS. Also accepts a list comma-separated addresses, for example, to mount a frontend load-balanced Azure HPC Cache.
+        Description = The IP address or hostname of the NFS server. Also accepts a list comma-separated addresses, for example, to mount a frontend load-balanced Azure HPC Cache.
         Config.ParameterType = String
         Conditions.Hidden := UseBuiltinShared && !configuration_slurm_ha_enabled
 
@@ -620,7 +620,7 @@ Order = 15
         [[[parameter Additional Shared FS Mount Readme]]]
         HideLabel = true
         Config.Plugin = pico.widget.HtmlTemplateWidget
-        Config.Template := "<p>Mount another shared filesystem endpoint on the cluster nodes.</p>"
+        Config.Template := "<p>Mount another shared file-system endpoint on the cluster nodes.</p>"
         Order = 20
 
         [[[parameter AdditionalNFS]]]
