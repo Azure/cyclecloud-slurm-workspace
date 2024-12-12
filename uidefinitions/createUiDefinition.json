@@ -75,6 +75,19 @@
         "visible": "[equals(basics('newexisting'),'new')]"
       },
       {
+        "name": "CycleCloudVmName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "CycleCloud VM Name",
+        "defaultValue": "ccw-cyclecloud-vm",
+        "toolTip": "Name for the CycleCloud VM",
+        "constraints": {
+          "required": true,
+          "regex": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,62}[a-zA-Z0-9_]$",
+          "validationMessage": "Enter a valid VM name"
+        },
+        "visible": true
+      },
+      {
         "name": "CycleCloudVmSize",
         "type": "Microsoft.Compute.SizeSelector",
         "label": "CycleCloud VM Size",
@@ -1562,6 +1575,7 @@
       "adminPassword": "[basics('adminPasswordBox')]",
       "adminSshPublicKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
       "storedKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'stored'),basics('keySelector'),basics('nullValue'))]",
+      "ccVMName": "[basics('CycleCloudVmName')]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
       "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
       "sharedFilesystem": {

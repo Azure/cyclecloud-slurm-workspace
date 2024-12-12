@@ -2,7 +2,7 @@ targetScope = 'resourceGroup'
 import * as types from './types.bicep'
 
 param name string
-param deployScript string 
+param deployScript string
 param osDiskSku string
 param image object //TODO: find a way to type this
 param location string
@@ -13,7 +13,7 @@ param adminUser string
 @secure()
 param adminPassword string
 @secure()
-param databaseAdminPassword string 
+param databaseAdminPassword string
 param adminSshPublicKey string
 param vmSize string
 param dataDisks array
@@ -40,7 +40,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2023-11-01' = {
 }
 
 resource virtualMachine 'Microsoft.Compute/virtualMachines@2024-03-01' = {
-  name: '${name}-vm'
+  name: name
   location: location
   tags: tags
   plan: contains(image, 'plan') && empty(image.plan) == false ? {
@@ -93,10 +93,10 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2024-03-01' = {
       {
         computerName: name
         adminUsername: adminUser
-      }, 
+      },
       deployScript != '' ? { // deploy script not empty
         customData: base64(deployScript)
-      } : {}, 
+      } : {},
       { // linux
         linuxConfiguration: {
           disablePasswordAuthentication: true
@@ -115,7 +115,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2024-03-01' = {
 }
 
 resource cse 'Microsoft.Compute/virtualMachines/extensions@2024-03-01' = {
-  name: '${name}-vm-customScriptExtension'
+  name: '${name}-customScriptExtension'
   location: location
   parent: virtualMachine
   properties: {
@@ -125,10 +125,8 @@ resource cse 'Microsoft.Compute/virtualMachines/extensions@2024-03-01' = {
     protectedSettings: {
       commandToExecute: 'jq -n --arg adminPassword "${adminPassword}" --arg databaseAdminPassword "${databaseAdminPassword}" \'{adminPassword: $adminPassword, databaseAdminPassword: $databaseAdminPassword}\' > /root/ccw.secrets.json'
     }
-    
   }
 }
-
 
 output fqdn string = '' //contains(vm, 'pip') && vm.pip ? publicIp.properties.dnsSettings.fqdn : ''
 output publicIp string = '' //contains(vm, 'pip') && vm.pip ? publicIp.properties.ipAddress : ''
