@@ -175,7 +175,7 @@ else
 fi
 MANAGED_IDENTITY_ID=$(jq -r .managedIdentityId.value ccwOutputs.json)
 INSIDERS_BUILD_ARG=
-if [ "$USE_INSIDERS_BUILD" == "true" ] || [ -e $LOCAL_PACKAGE ]; then
+if [ "$USE_INSIDERS_BUILD" == "true" ] || [ "$MANUAL" == "true" ]; then
     if [ "$USE_INSIDERS_BUILD" == "true" ]; then 
         echo -n "Using insiders build"
         INSIDERS_BUILD_ARG="--insidersBuild"
@@ -190,7 +190,7 @@ if [ "$USE_INSIDERS_BUILD" == "true" ] || [ -e $LOCAL_PACKAGE ]; then
     fi
     rm -rf /opt/cycle_server/*
     echo "cyclecloud8 is uninstalled and all files are removed under /opt/cycle_server."
-    if [ -e $LOCAL_PACKAGE ]; then 
+    if [ "$MANUAL" == "true" ]; then 
         echo "Now installing the cyclecloud8 build from local package."
         if command -v apt; then
             retry_command "apt install -y $LOCAL_PACKAGE"
