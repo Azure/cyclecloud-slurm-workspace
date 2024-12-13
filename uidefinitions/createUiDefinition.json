@@ -29,17 +29,17 @@
         "name": "newexisting",
         "type": "Microsoft.Common.DropDown",
         "label": "Resource group options",
-        "defaultValue": "Use existing resource group",
-        "toolTip": "Use an existing resource group or create a new one",
+        "defaultValue": "Create a new resource group",
+        "toolTip": "Create a new resource group or use an existing one",
         "constraints": {
           "allowedValues": [
             {
-              "label": "Use existing resource group",
-              "value": "existing"
+              "label": "Create a new resource group",
+              "value": "new"
             },
             {
-              "label": "Create new resource group",
-              "value": "new"
+              "label": "Use an existing resource group",
+              "value": "existing"
             }
           ],
           "required": true
