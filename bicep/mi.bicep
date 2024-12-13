@@ -3,6 +3,7 @@ import {tags_t} from './types.bicep'
 
 param name string
 param location string
+param storageAccountName string
 param tags tags_t
 
 //create managed identity for VMSSs
@@ -14,10 +15,14 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
 
 var managedIdentityId = managedIdentity.id
 
-//assign Storage Blob Data Reader role to the managed identity
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-04-01' existing = {
+  name: storageAccountName
+}
+
+//assign Storage Blob Data Reader role to the managed identity scoped to CC storage account
 resource miRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(name, managedIdentityId, resourceGroup().id, subscription().id)
-  scope: managedIdentity
+  scope: storageAccount
   properties: {
     principalId: managedIdentity.properties.principalId
     principalType: 'ServicePrincipal'
