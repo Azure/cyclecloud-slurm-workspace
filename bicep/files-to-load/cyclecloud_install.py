@@ -181,6 +181,9 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
 
     if storage_managed_identity:
         azure_data["LockerIdentity"] = storage_managed_identity
+        azure_data["LockerAuthMode"] = "ManagedIdentity"
+    else:
+        azure_data["LockerAuthMode"] = "SharedAccessKey"
 
     app_setting_installation = {
         "AdType": "Application.Setting",
