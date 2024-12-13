@@ -76,13 +76,16 @@ def set_params(params, dbPassword, outputs):
         params['FilesystemSize'] = outputs['filerInfoFinal']['value']['home']['nfsCapacityInGb']
     else:
         params['NFSType'] = 'nfs' if outputs['filerInfoFinal']['value']['home']['type'] in ['nfs-existing','anf-new'] else 'lustre'
-        params['NFSSchedType'] = params['NFSType']
         # We no longer need to handle these differently based on the fs type, as each
         # fs module's common outputs map to these.
         params['NFSSharedExportPath'] = outputs['filerInfoFinal']['value']['home']['exportPath']
         params['NFSSharedMountOptions'] = outputs['filerInfoFinal']['value']['home']['mountOptions']
-        params['NFSSchedMountOptions'] = params['NFSSharedMountOptions']
         params['NFSAddress'] = outputs['filerInfoFinal']['value']['home']['ipAddress']
+
+        # /sched mounted on the same export than /shared
+        params['NFSSchedType'] = params['NFSType']
+        params['NFSSchedExportPath'] = params['NFSSharedExportPath']
+        params['NFSSchedMountOptions'] = params['NFSSharedMountOptions']
         params['NFSSchedAddress'] = params['NFSAddress']
 
     params['AdditionalNFS'] = outputs['filerInfoFinal']['value']['additional']['type'] != 'disabled'
