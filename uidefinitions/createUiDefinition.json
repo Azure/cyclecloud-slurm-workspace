@@ -34,12 +34,12 @@
         "constraints": {
           "allowedValues": [
             {
-              "label": "Use existing resource group",
-              "value": "existing"
-            },
-            {
               "label": "Create a new resource group",
               "value": "new"
+            },
+            {
+              "label": "Use an existing resource group",
+              "value": "existing"
             }
           ],
           "required": true
