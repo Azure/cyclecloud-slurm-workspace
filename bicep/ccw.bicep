@@ -160,9 +160,6 @@ module ccwManagedIdentity 'mi.bicep' = if (!infrastructureOnly) {
     storageAccountName: ccwStorage.outputs.storageAccountName
     tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
   }
-  dependsOn: [
-    ccwStorage
-  ]
 }
 
 module ccwRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
