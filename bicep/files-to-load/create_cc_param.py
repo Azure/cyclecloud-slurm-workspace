@@ -82,7 +82,7 @@ def set_params(params, dbPassword, outputs):
         params['NFSSharedMountOptions'] = outputs['filerInfoFinal']['value']['home']['mountOptions']
         params['NFSAddress'] = outputs['filerInfoFinal']['value']['home']['ipAddress']
 
-        # /sched mounted on the same export than /shared
+        # /sched mounted on the same export as /shared
         params['NFSSchedType'] = params['NFSType']
         params['NFSSchedExportPath'] = params['NFSSharedExportPath']
         params['NFSSchedMountOptions'] = params['NFSSharedMountOptions']
