@@ -643,7 +643,7 @@ def main():
 
     start_cc()
 
-    install_cc_cli()
+    install_cc_cli(args.insidersBuild)
 
     if not args.dryrun:
         vm_metadata = get_vm_metadata()
