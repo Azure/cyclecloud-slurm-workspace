@@ -948,7 +948,7 @@
                 "name": "slurmVersion",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Slurm Version",
-                "defaultValue": "24.05.4-2",
+                "defaultValue": "24.05.4",
                 "toolTip": "Select the version of Slurm to use",
                 "constraints": {
                   "allowedValues": [
