@@ -1,9 +1,32 @@
 #!/bin/bash
+
 set -eo pipefail
 # this is not set if you run this manually
 export PATH=$PATH:/usr/local/bin
 ccw_root="/opt/ccw"
 mkdir -p -m 777 $ccw_root
+
+# DEV USER: Set this to the path of your build
+LOCAL_PACKAGE=""
+
+while (( "$#" )); do
+        case $1 in
+                --local-package) 
+                    if [ -z "$2" ]; then
+                        echo "--local-package requires a non-empty argument." >&2
+                        exit 1
+                    fi
+                    LOCAL_PACKAGE="$2"
+                    shift
+                    ;;
+                *) 
+                    echo "Unknown parameter passed: $1"
+                    exit 1
+                    ;;
+        esac
+        shift
+done
+
 
 read_os()
 {
@@ -39,6 +62,7 @@ retry_command() {
 }
 read_os
 
+# Install azcopy prior to manual deployment cutoff so the dev user has the option to copy their build
 echo "* Installing azcopy"
 curl -L -o /tmp/azcopy_linux.tar.gz 'https://aka.ms/downloadazcopy-v10-linux'
 tar xzf /tmp/azcopy_linux.tar.gz -C /tmp/ 
@@ -52,10 +76,11 @@ if command -v apt; then
     retry_command "apt update -y"
     #apt install -y 
 else
-    # Increase the timeout for yum update to solve yum.lock issue due to other processes doing updates at startup
-    retry_command "yum update -y --exclude=cyclecloud*" 5 60 
+    retry_command "yum update -y --exclude=cyclecloud*"
     retry_command "yum install -y wget jq"
+
 fi
+
 printf "\n\n"
 printf "Applications installed\n"
 printf "===============================================================================\n"
@@ -93,23 +118,43 @@ while deployment_state=$(az deployment group show -g $resource_group -n $deploym
     sleep 10
 done
 
+pushd $ccw_root
+echo "* Extracting deployment output"
+az deployment group show -g $resource_group -n $deployment_name --query properties.outputs > ccwOutputs.json
+BRANCH=$(jq -r .branch.value $ccw_root/ccwOutputs.json)
+URI="https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/$BRANCH/bicep"
+MANUAL=$(jq -r .manualInstall.value $ccw_root/ccwOutputs.json)
+
+if [ "$MANUAL" == "true" ]; then
+    echo "Manual install requested."
+    if [ -z "$LOCAL_PACKAGE" ]; then
+        echo "No local package path provided."
+        echo "Copying install.sh to /opt/ccw and exiting."
+        wget -O install.sh $URI/install.sh
+        popd
+        exit 0
+    else 
+        echo "Local package path provided."
+        if [[ ! -f "$LOCAL_PACKAGE" ]]; then
+            echo "No file found at $LOCAL_PACKAGE. Exiting."
+            popd 
+            exit 0
+        else 
+            echo "File found at $LOCAL_PACKAGE. Continuing."
+        fi
+    fi
+fi
+
 mkdir -p $ccw_root/bin
 
-# FOR TESTING PURPOSES
-echo "* Extracting deployment output"
-pushd $ccw_root
-az deployment group show -g $resource_group -n $deployment_name --query properties.outputs > ccwOutputs.json
-
-BRANCH=$(jq -r .branch.value ccwOutputs.json)
 PROJECT_VERSION=$(jq -r .projectVersion.value ccwOutputs.json)
-URI="https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/$BRANCH/bicep/files-to-load"
 SECRETS_FILE_PATH="/root/ccw.secrets.json"
 
 # we don't want slurm-workspace.txt.1 etc if someone reruns this script, so use -O to overwrite existing files
-wget -O slurm-workspace.txt $URI/slurm-workspace.txt
-wget -O create_cc_param.py $URI/create_cc_param.py
-wget -O initial_params.json $URI/initial_params.json
-wget -O cyclecloud_install.py $URI/cyclecloud_install.py
+wget -O slurm-workspace.txt $URI/files-to-load/slurm-workspace.txt
+wget -O create_cc_param.py $URI/files-to-load/create_cc_param.py
+wget -O initial_params.json $URI/files-to-load/initial_params.json
+wget -O cyclecloud_install.py $URI/files-to-load/cyclecloud_install.py
 while [ ! -f "$SECRETS_FILE_PATH" ]; do
     echo "Waiting for VM to create secrets file..."
     sleep 1
@@ -123,18 +168,37 @@ CYCLECLOUD_PASSWORD=$(jq -r .adminPassword "$SECRETS_FILE_PATH")
 CYCLECLOUD_USER_PUBKEY=$(jq -r .publicKey.value ccwOutputs.json)
 CYCLECLOUD_STORAGE="$(jq -r .storageAccountName.value ccwOutputs.json)"
 SLURM_CLUSTER_NAME=$(jq -r .clusterName.value ccwOutputs.json)
-USE_INSIDERS_BUILD=$(jq -r .insidersBuild.value ccwOutputs.json)
+if [[ "$MANUAL" == "true" ]]; then
+    USE_INSIDERS_BUILD="false"
+else
+    USE_INSIDERS_BUILD=$(jq -r .insidersBuild.value ccwOutputs.json)
+fi
+MANAGED_IDENTITY_ID=$(jq -r .managedIdentityId.value ccwOutputs.json)
 INSIDERS_BUILD_ARG=
-if [ "$USE_INSIDERS_BUILD" == "true" ]; then
-    echo Using insiders build - we first need to uninstall cyclecloud8 and remove all files.
-    INSIDERS_BUILD_ARG="--insidersBuild"
+if [ "$USE_INSIDERS_BUILD" == "true" ] || [ "$MANUAL" == "true" ]; then
+    if [ "$USE_INSIDERS_BUILD" == "true" ]; then 
+        echo -n "Using insiders build"
+        INSIDERS_BUILD_ARG="--insidersBuild"
+    else 
+        echo -n "Using local package build"
+    fi
+    echo " - we first need to uninstall cyclecloud8 and remove all files."
     if command -v apt; then
         apt remove -y cyclecloud8
     else
         yum remove -y cyclecloud8
     fi
     rm -rf /opt/cycle_server/*
-    echo cyclecloud8 is uninstalled and all files are removed under /opt/cycle_server
+    echo "cyclecloud8 is uninstalled and all files are removed under /opt/cycle_server."
+    if [ "$MANUAL" == "true" ]; then 
+        echo "Now installing the cyclecloud8 build from local package."
+        if command -v apt; then
+            retry_command "apt install -y $LOCAL_PACKAGE"
+        else
+            retry_command "yum install -y $LOCAL_PACKAGE"
+        fi
+        echo "Successfully installed the cyclecloud8 build from local package."
+    fi
 fi
 
 python3 /opt/ccw/cyclecloud_install.py --acceptTerms \
@@ -142,7 +206,7 @@ python3 /opt/ccw/cyclecloud_install.py --acceptTerms \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
     --storageAccount=${CYCLECLOUD_STORAGE} \
     --azureSovereignCloud="${env}" \
-    --webServerPort=80 --webServerSslPort=443 $INSIDERS_BUILD_ARG
+    --webServerPort=80 --webServerSslPort=443 $INSIDERS_BUILD_ARG --storageManagedIdentity="${MANAGED_IDENTITY_ID}"
 
 echo "CC install script successful"
 # Configuring distribution_method
@@ -214,7 +278,6 @@ echo All Azure.MachineType records are loaded.
 sleep 2
 echo Waiting for accelerated network records to be imported
 timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep 10; done'
-
 
 cyclecloud start_cluster "$SLURM_CLUSTER_NAME"
 echo "CC start_cluster successful"
