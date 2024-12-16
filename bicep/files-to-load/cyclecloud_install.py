@@ -405,11 +405,26 @@ def modify_cs_config(options):
     #_catch_sys_error(["chown", "-R", "cycle_server.", cycle_root])
     _catch_sys_error(["chown", "cycle_server:cycle_server", cs_config_file])
 
-def install_cc_cli():
+def cc_cli_87_patch():
+    print("Installing CycleCloud CLI from insiders build")
+    if "ubuntu" in str(platform.platform()).lower():
+        _catch_sys_error(["apt", "install", "-y", "zip", "python3.8"])
+    else:
+        _catch_sys_error(["yum", "install", "-y", "zip", "python3.8"])
+
+    _catch_sys_error(["rm", "-f", "/bin/python3"])
+    _catch_sys_error(["ln", "-s", "/bin/python3.8", "/bin/python3"])
+
+def install_cc_cli(insiders_build=False):
     # CLI comes with an install script but that installation is user specific
     # rather than system wide.
     # Downloading and installing pip, then using that to install the CLIs
     # from source.
+    # NOTE: When using the insiders build, we always have to install the CLI again
+    if insiders_build:
+        cc_cli_87_patch()
+        os.remove("/usr/local/bin/cyclecloud")
+    
     if os.path.exists("/usr/local/bin/cyclecloud"):
         print("CycleCloud CLI already installed.")
         return
