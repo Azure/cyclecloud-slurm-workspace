@@ -281,11 +281,11 @@ timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep
 
 cyclecloud start_cluster "$SLURM_CLUSTER_NAME"
 echo "CC start_cluster successful"
-rm -f slurm_params.json
+# rm -f slurm_params.json
 echo "Deleted input parameters file" 
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
 popd
-rm -f "$SECRETS_FILE_PATH"
+# rm -f "$SECRETS_FILE_PATH"
 echo "Deleting secrets file"
 echo "exiting after install"
 exit 0
