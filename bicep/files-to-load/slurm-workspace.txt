@@ -483,7 +483,7 @@ Order = 15
         [[[parameter About sched]]]
         HideLabel = true
         Config.Plugin = pico.widget.HtmlTemplateWidget
-        Config.Template = ''' <p>Slurm's configuration is linked in from the <code>/sched</code> directory. It is managed by the scheduler node</p>'''
+        Config.Template = ''' <p>Slurm's configuration is linked in from the <code>/sched</code> directory. It is managed by the scheduler node.</p>'''
         Order = 6
 
         [[[parameter About sched part 2]]]
