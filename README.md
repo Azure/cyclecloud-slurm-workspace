@@ -94,7 +94,7 @@ Before using an existing virtual network, check for the pre-requisites in [Bring
 Specify the VM size and image to use for the Scheduler and the Login nodes. Images are the HPC Images provided in the Azure Marketplace with the associated URIs:
 | Image Name | URI |
 |------------|-----|
-| Alma Linux 8.7 | almalinux:almalinux-hpc:8_7-hpc-gen2:latest |
+| Alma Linux 8.10 | almalinux:almalinux-hpc:8_10-hpc-gen2:latest |
 | Ubuntu 20.04 | microsoft-dsvm:ubuntu-hpc:2004:latest |
 | Ubuntu 22.04 | microsoft-dsvm:ubuntu-hpc:2204:latest |
 
