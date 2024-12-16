@@ -33,8 +33,6 @@ param insidersBuild bool = false
 param branch string = 'main'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
 param projectVersion string = '2024.11.08'
-//Internal developer use only: set true use custom CycleCloud release build 
-param manualInstall bool = false
 
 resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: resourceGroup
@@ -70,6 +68,5 @@ module makeCCWresources 'ccw.bicep' = {
     clusterName: clusterName
     branch: branch
     projectVersion: projectVersion
-    manualInstall: manualInstall
   }
 }
