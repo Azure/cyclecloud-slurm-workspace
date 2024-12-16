@@ -592,7 +592,7 @@
                   "regex": "^\/(?:[\\w-.]+\/)*[\\w-.]+$",
                   "validationMessage": "Must be an absolute path"
                 },
-                "visible": "[equals(steps('filesystem').additional.newexisting, 'existing')]"
+                "visible": "[and(equals(steps('filesystem').additional.newexisting, 'existing'),not(equals(steps('filesystem').additional.filertype,'aml')))]"
               },
               {
                 "name": "mountOptions",
