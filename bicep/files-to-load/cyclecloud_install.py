@@ -423,9 +423,10 @@ def install_cc_cli(insiders_build=False):
     # NOTE: When using the insiders build, we always have to install the CLI again
     if insiders_build:
         cc_cli_87_patch()
-        os.remove("/usr/local/bin/cyclecloud")
+        if os.path.exists("/usr/local/bin/cyclecloud"):
+            os.remove("/usr/local/bin/cyclecloud")
     
-    if os.path.exists("/usr/local/bin/cyclecloud"):
+    if not insiders_build and os.path.exists("/usr/local/bin/cyclecloud"):
         print("CycleCloud CLI already installed.")
         return
 
@@ -436,7 +437,7 @@ def install_cc_cli(insiders_build=False):
         if path.isdir(cli_install_dir) and re.match("cyclecloud-cli-installer", cli_install_dir):
             print("Found CLI install DIR %s" % cli_install_dir)
             chdir(cli_install_dir)
-            _catch_sys_error(["./install.sh", "--system"])
+            _catch_sys_error(["./install.sh", "--system", "-y"])
 
 
 def already_installed():
