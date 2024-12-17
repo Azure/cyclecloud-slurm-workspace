@@ -76,7 +76,7 @@ if command -v apt; then
     retry_command "apt update -y"
     #apt install -y 
 else
-    retry_command "yum update -y --exclude=cyclecloud*"
+    retry_command "yum update -y --exclude=cyclecloud*" 5 60
     retry_command "yum install -y wget jq"
 
 fi
