@@ -12,7 +12,7 @@ param adminUsername string
 @secure()
 param adminPassword string
 param adminSshPublicKey string
-param storedKey types.storedKey_t
+param storedKeyId string
 param ccVMSize string
 param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
@@ -39,7 +39,7 @@ var useEnteredKey = adminSshPublicKey != ''
 module ccwPublicKey './publicKey.bicep' = if (!useEnteredKey && !infrastructureOnly) {
   name: 'ccwPublicKey'
   params: {
-    storedKey: storedKey
+    storedKeyId: storedKeyId
   }
 }
 var publicKey = infrastructureOnly ? '' : (useEnteredKey ? adminSshPublicKey : ccwPublicKey.outputs.publicKey)
@@ -73,26 +73,19 @@ module ccwNetwork './network-new.bicep' = if (create_new_vnet) {
 var subnets = create_new_vnet
   ? ccwNetwork.outputs.subnetsCCW
   : {
-      cyclecloud: { id: join([network.?id, 'subnets', network.?cyclecloudSubnet], '/') }
-      compute: { id: join([network.?id, 'subnets', network.?computeSubnet], '/') }
-      home: { id: join([network.?id, 'subnets', network.?sharedFilerSubnet ?? 'null'], '/') }
-      additional: { id: join([network.?id, 'subnets', network.?additionalFilerSubnet ?? 'null'], '/') }
+      cyclecloud: join([network.?id, 'subnets', network.?cyclecloudSubnet], '/') 
+      compute: join([network.?id, 'subnets', network.?computeSubnet], '/') 
+      home: join([network.?id, 'subnets', network.?sharedFilerSubnet ?? 'null'], '/') 
+      additional: join([network.?id, 'subnets', network.?additionalFilerSubnet ?? 'null'], '/') 
     }
 
-output vnet types.networkOutput_t = union(
-  create_new_vnet
-    ? ccwNetwork.outputs.vnetCCW
-    : {
-        id: network.?id ?? ''
-        name: network.?name
-        rg: split(network.?id ?? '////', '/')[4]
-      },
-  {
-    type: network.type
-    computeSubnetName: network.?computeSubnet ?? 'ccw-compute-subnet'
-    computeSubnetId: subnets.compute.id
-  }
-)
+var existingNetworkId = network.?id ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
+
+output vnet types.networkOutput_t = {
+  type: network.type
+  id: create_new_vnet ? ccwNetwork.outputs.vnetCCWId : existingNetworkId
+  computeSubnetId: subnets.compute
+}
 
 var deploy_bastion = network.?bastion ?? false
 module ccwBastion './bastion.bicep' = if (deploy_bastion) {
@@ -101,7 +94,7 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
   params: {
     location: location
     tags: getTags('Microsoft.Network/bastionHosts', tags)
-    subnetId: subnets.bastion.id
+    subnetId: subnets.?bastion ?? ''
   }
 }
 
@@ -130,7 +123,7 @@ module ccwVM './vm.bicep' = if (!infrastructureOnly) {
             version: split(cyclecloudBaseImage, ':')[3]
           }
     }
-    subnetId: subnets.cyclecloud.id
+    subnetId: subnets.cyclecloud
     adminUser: adminUsername
     adminPassword: adminPassword
     databaseAdminPassword: databaseAdminPassword
@@ -185,7 +178,7 @@ module ccwStorage './storage.bicep' = {
     tags: getTags('Microsoft.Storage/storageAccounts', tags)
     saName: 'ccwstorage${uniqueString(az.resourceGroup().id)}'
     lockDownNetwork: true // Restrict access to the storage account from compute and cyclecloud subnets
-    subnetIds: concat([subnets.compute.id], [subnets.cyclecloud.id])
+    subnetIds: concat([subnets.compute], [subnets.cyclecloud])
   }
 }
 
@@ -200,7 +193,7 @@ module mySQLccw './mysql.bicep' = if (create_database) {
     Name: db_name
     adminUser: adminUsername
     adminPassword: databaseAdminPassword
-    subnetId: subnets.database.id
+    subnetId: subnets.?database ?? ''
   }
 }
 
@@ -210,7 +203,7 @@ module ccwAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
     location: location
     tags: getTags('Microsoft.StorageCache/amlFileSystems', tags)
     name: 'ccw-lustre'
-    subnetId: subnets.?additional.id ?? ''
+    subnetId: subnets.?additional ?? ''
     sku: additionalFilesystem.?lustreTier
     capacity: additionalFilesystem.?lustreCapacityInTib
     infrastructureOnly: infrastructureOnly
@@ -234,8 +227,8 @@ module ccwANF 'anf.bicep' = [
       location: location
       tags: getTags('Microsoft.NetApp/netAppAccounts', tags)
       name: filer.key
-      subnetId: subnets[filer.key].id
-      serviceLevel: filer.value.anfServiceTier
+      subnetId: subnets[filer.key]
+      serviceLevel: filer.value.anfServiceLevel
       sizeTiB: filer.value.anfCapacityInTiB
       defaultMountOptions: anfDefaultMountOptions
       infrastructureOnly: infrastructureOnly
