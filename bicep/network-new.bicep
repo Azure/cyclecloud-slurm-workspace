@@ -221,11 +221,11 @@ var nsg_rules = {
     // This rule is to allow connectivity from Bastion to any VMs in the VNet
     AllowSsh_bastion_In: ['530', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'bastion', 'tag', 'VirtualNetwork']
     // Outbound
-    AllowSsh_bastion_Out: ['500', 'Outbound', 'Allow', 'Tcp', 'SshRdp', 'tag', '*', 'tag', 'VirtualNetwork']
+    AllowSshRdp_bastion_Out: ['500', 'Outbound', 'Allow', 'Tcp', 'SshRdp', 'tag', '*', 'tag', 'VirtualNetwork']
     AllowAzureCloud_bastion_Out: ['502', 'Outbound', 'Allow', 'Tcp', 'Https', 'tag', '*', 'tag', 'AzureCloud']
     AllowBastionHostCommunication_bastion_Out: ['504', 'Outbound', 'Allow', 'Tcp', 'Bastion', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
     AllowHttp_bastion_Out: ['506', 'Outbound', 'Allow', 'Tcp', 'Http', 'tag', '*', 'tag', 'Internet']
-    
+    AllowHttps_bastion_Out: ['508', 'Outbound', 'Allow', 'Tcp', 'Https', 'subnet', 'bastion', 'tag', 'VirtualNetwork']    
   }
 }
 
