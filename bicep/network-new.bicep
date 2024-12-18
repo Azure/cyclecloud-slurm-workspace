@@ -351,66 +351,53 @@ module peer_to_ccw './network-peering.bicep' = if (peeringEnabled) {
   }
 }
 
-//generate outputs for ccw.bicep
-func fetch_rsc_id(subId string, rg string, rscId string) string =>
-  '/subscriptions/${subId}/resourceGroups/${rg}/providers/${rscId}'
-func fetch_rsc_name(rscId string) string => last(split(rscId, '/'))
-func rsc_output(rsc object) types.rsc_t => {
-  id: fetch_rsc_id(rsc.subscriptionId, rsc.resourceGroupName, rsc.resourceId)
-  name: fetch_rsc_name(rsc.resourceId)
-  rg: rsc.resourceGroupName
-}
-
 resource subnetCycleCloud 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
   name: vnet.subnets.cyclecloud.name
   parent: ccwVirtualNetwork
 }
-var subnet_cyclecloud = rsc_output(subnetCycleCloud)
 
 resource subnetCompute 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
   name: vnet.subnets.compute.name
   parent: ccwVirtualNetwork
 }
-var subnet_compute = rsc_output(subnetCompute)
 
 resource subnetNetApp 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = if (create_anf) {
   name: contains(vnet.subnets,'netapp') ? vnet.subnets.netapp.name : 'foo'
   parent: ccwVirtualNetwork
 }
-var subnet_netapp = create_anf ? rsc_output(subnetNetApp) : {}
+var subnet_netapp_id = create_anf ? subnetNetApp.id : ''
 
 resource subnetLustre 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = if (create_lustre) {
   name: contains(vnet.subnets,'lustre') ? vnet.subnets.lustre.name : 'foo'
   parent: ccwVirtualNetwork
 }
-//var subnet_lustre = lustre_count > 0 ? rsc_output(subnetLustre) : {}
-var subnet_lustre = create_lustre ? rsc_output(subnetLustre) : {}
+var subnet_lustre_id = create_lustre ? subnetLustre.id : ''
 
 resource subnetBastion 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = if (deploy_bastion) {
   name: contains(vnet.subnets,'bastion') ? vnet.subnets.bastion.name : 'foo'
   parent: ccwVirtualNetwork
 }
-var subnet_bastion = deploy_bastion ? rsc_output(subnetBastion) : {}
+var subnet_bastion_id = deploy_bastion ? subnetBastion.id : ''
 
 resource subnetDatabase 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = if (create_database) {
   name: contains(vnet.subnets,'database') ? vnet.subnets.database.name : 'foo'
   parent: ccwVirtualNetwork
 }
-var subnet_database = create_database ? rsc_output(subnetDatabase) : {}
+var subnet_database_id = create_database ? subnetDatabase.id : ''
 
 var filerTypeHome = sharedFilesystem.type
 var filerTypeAddl = additionalFilesystem.type
 var output_home_subnet = filerTypeHome == 'anf-new' 
 var output_addl_subnet = contains(['aml-new','anf-new'],filerTypeAddl)
-var home_filer = output_home_subnet ? (filerTypeHome == 'anf-new' ? { home: subnet_netapp } : { home: subnet_lustre }) : {}
-var addl_filer = output_addl_subnet ? (filerTypeAddl == 'anf-new' ? { additional: subnet_netapp } : { additional: subnet_lustre }) : {}
+var home_filer = output_home_subnet ? (filerTypeHome == 'anf-new' ? { home: subnet_netapp_id } : { home: subnet_lustre_id }) : {}
+var addl_filer = output_addl_subnet ? (filerTypeAddl == 'anf-new' ? { additional: subnet_netapp_id } : { additional: subnet_lustre_id }) : {}
 var subnets = union(
-  { cyclecloud: subnet_cyclecloud },
-  { compute: subnet_compute },
+  { cyclecloud: subnetCycleCloud.id },
+  { compute: subnetCompute.id },
   home_filer,
   addl_filer,
-  deploy_bastion ? { bastion: subnet_bastion } : {},
-  create_database ? { database: subnet_database } : {}
+  deploy_bastion ? { bastion: subnet_bastion_id } : {},
+  create_database ? { database: subnet_database_id } : {}
 )
 
 var dbID = databaseConfig.?dbId ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
@@ -440,7 +427,7 @@ resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-11-01' = if (c
   }
 }
 
-output nsgCCW types.rsc_t = rsc_output(ccwCommonNsg)
-output vnetCCW types.rsc_t = rsc_output(ccwVirtualNetwork)
+output nsgCCWId string = ccwCommonNsg.id
+output vnetCCWId string = ccwVirtualNetwork.id
 output subnetsCCW types.subnets_t = subnets
 output databaseFQDN string = create_private_endpoint ? privateEndpoint.properties.customDnsConfigs[0].ipAddresses[0] : ''

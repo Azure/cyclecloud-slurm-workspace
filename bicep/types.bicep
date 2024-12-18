@@ -111,30 +111,20 @@ type vnet_existing_t = {
 type vnet_t = vnet_autocreate_t | vnet_existing_t
 
 @export()
-type rsc_t = {
-  id: string 
-  name: string
-  rg: string
-}
-
-@export()
 type networkOutput_t = {
-  id: string
-  name: string
-  rg: string
   type: string
-  computeSubnetName: string
+  id: string
   computeSubnetId: string
 }
 
 @export()
 type subnets_t = {
-  cyclecloud: rsc_t
-  compute: rsc_t
-  home: rsc_t?
-  additional: rsc_t?
-  bastion: rsc_t?
-  database: rsc_t?
+  cyclecloud: string
+  compute: string
+  home: string?
+  additional: string?
+  bastion: string?
+  database: string?
 }
 
 @export()
