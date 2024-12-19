@@ -3,7 +3,6 @@ set -e
 
 DELETE_RG=0
 RG=""
-VM=""
 HELP=0
 
 while (( "$#" )); do
@@ -14,10 +13,6 @@ while (( "$#" )); do
             ;;
         -rg|--resource-group)
             RG=$2
-            shift 2
-            ;;
-        -vm|--virtual-machine)
-            VM=$2
             shift 2
             ;;
         --help)
@@ -43,13 +38,8 @@ if [ -z "$RG" ] ; then
     HELP=1
 fi
 
-if [ -z "$VM" ] ; then
-    echo "Please ensure that --virtual-machine is provided" >&2
-    HELP=1
-fi
-
 if [ $HELP == 1 ]; then
-    echo Usage: delete_roles.sh --resource-group RG --virtual-machine VM [--delete-resource-group] 1>&2
+    echo Usage: delete_roles.sh --resource-group RG [--delete-resource-group] 1>&2
     exit 1
 fi
 
@@ -73,9 +63,6 @@ cat > $CLEANUP_JSON_PATH<<EOF
         },
         "resourceGroup": {
             "value": "$RG"
-        },
-        "vmName": {
-            "value": "$VM"
         }
     }
 }

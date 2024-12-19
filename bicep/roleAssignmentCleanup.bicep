@@ -2,7 +2,7 @@ targetScope = 'subscription'
 
 param location string
 param resourceGroup string
-param vmName string
+param vmName string = 'ccw-cyclecloud'
 param roles array = [
   'Contributor'
   'Storage Account Contributor'
