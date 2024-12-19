@@ -7,6 +7,8 @@ param adminUsername string
 param adminPassword string
 param adminSshPublicKey string = '' 
 param storedKey types.storedKey_t = {id: 'foo', location: 'foo', name:'foo'}
+@minLength(3)
+@maxLength(64)
 param ccVMName string
 param ccVMSize string
 param resourceGroup string
