@@ -1,7 +1,5 @@
 targetScope = 'subscription'
 
-param name string
-param rgID string
 param roles array
 param principalId string
 
@@ -13,7 +11,7 @@ var role_lookup = {
 }
 
 resource roleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01' = [ for role in roles: {
-  name: guid(name, role, rgID, subscription().id)
+  name: guid(subscription().id, principalId, role_lookup[role])
   properties: {
     roleDefinitionId: role_lookup[role]
     principalId: principalId

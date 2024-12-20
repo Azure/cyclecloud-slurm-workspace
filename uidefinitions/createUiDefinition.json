@@ -5,7 +5,7 @@
   "parameters": {
     "config": {
       "basics": {
-        "description": "Version 2024.11.08",
+        "description": "Version **2024.11.08**: [Release Notes](https://learn.microsoft.com/azure/cyclecloud/release-notes/ccws/release-notes)",
         "resourceGroup": {
           "visible": false
         },
@@ -29,17 +29,17 @@
         "name": "newexisting",
         "type": "Microsoft.Common.DropDown",
         "label": "Resource group options",
-        "defaultValue": "Use existing resource group",
-        "toolTip": "Use an existing resource group or create a new one",
+        "defaultValue": "Create a new resource group",
+        "toolTip": "Create a new resource group or use an existing one",
         "constraints": {
           "allowedValues": [
             {
-              "label": "Use existing resource group",
-              "value": "existing"
+              "label": "Create a new resource group",
+              "value": "new"
             },
             {
-              "label": "Create new resource group",
-              "value": "new"
+              "label": "Use an existing resource group",
+              "value": "existing"
             }
           ],
           "required": true
@@ -613,7 +613,7 @@
                   "regex": "^\/(?:[\\w-.]+\/)*[\\w-.]+$",
                   "validationMessage": "Must be an absolute path"
                 },
-                "visible": "[equals(steps('filesystem').additional.newexisting, 'existing')]"
+                "visible": "[and(equals(steps('filesystem').additional.newexisting, 'existing'),not(equals(steps('filesystem').additional.filertype,'aml')))]"
               },
               {
                 "name": "mountOptions",
@@ -674,26 +674,36 @@
             "label": "Network configuration",
             "elements": [
               {
-                "name": "existing",
-                "type": "Microsoft.Common.TextBlock",
-                "visible": false,
+                "name": "lustreInfoBoxNew",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'new'))]",
                 "options": {
-                  "text": "Placeholder. Scrap?"
-                }
+                  "icon": "Warning",
+                  "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nThe option to create a new virtual network with a CIDR of /24 is therefore omitted in the below menu."
+                  }
+              },
+              {
+                "name": "lustreInfoBoxExisting",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'existing'))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nPlease ensure that the subnet for the additional file-system selected below meets this requirement."
+                  }
               },
               {
                 "name": "cidrPrefix",
                 "type": "Microsoft.Common.DropDown",
                 "label": "CIDR Prefix",
-                "defaultValue": "/24",
+                "defaultValue": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'/23','/24')]",
                 "multiLine": true,
                 "toolTip": "Select the CIDR prefix",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "/24",
-                      "description": "123 compute nodes",
-                      "value": "/24"
+                      "label": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','/24')]",
+                      "description": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','123 compute nodes')]",
+                      "value": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','/24')]"
                     },
                     {
                       "label": "/23",
@@ -702,7 +712,7 @@
                     },
                     {
                       "label": "/22",
-                      "description": "507 compute nodes",
+                      "description": "506 compute nodes",
                       "value": "/22"
                     },
                     {
@@ -959,19 +969,19 @@
                 "name": "slurmVersion",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Slurm Version",
-                "defaultValue": "23.11.7",
+                "defaultValue": "24.05.4",
                 "toolTip": "Select the version of Slurm to use",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "23.02.7",
-                      "description": "Version 23.02.7",
-                      "value": "23.02.7-4"
+                      "label": "23.11.10",
+                      "description": "Version 23.11.10",
+                      "value": "23.11.10-2"
                     },
                     {
-                      "label": "23.11.7",
-                      "description": "Version 23.11.7",
-                      "value": "23.11.7-1"
+                      "label": "24.05.4",
+                      "description": "Version 24.05.4",
+                      "value": "24.05.4-2"
                     }
                   ],
                   "required": true
@@ -1571,7 +1581,8 @@
               "Microsoft.NetApp/netAppAccounts",
               "Microsoft.Network/bastionHosts",
               "Resource group",
-              "Node Array"
+              "Node Array",
+              "Microsoft.ManagedIdentity/userAssignedIdentities"
             ]
           }
         ]
