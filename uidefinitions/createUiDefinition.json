@@ -854,19 +854,6 @@
         "label": "Slurm Settings",
         "elements": [
           {
-            "name": "clusterName",
-            "type": "Microsoft.Common.TextBox",
-            "label": "Cluster name",
-            "defaultValue": "ccw",
-            "toolTip": "Name of cluster in CycleCloud portal",
-            "constraints": {
-              "required": true,
-              "regex": "^[a-zA-Z0-9@_-]{3,}$",
-              "validationMessage": "Cluster name must be at least 3 characters long. Characters must be alphanumeric, @, -, or _."
-            },
-            "visible": false
-          },
-          {
             "name": "clusterSettings",
             "type": "Microsoft.Common.Section",
             "label": "Cluster Configuration",
@@ -890,6 +877,19 @@
                 "constraints": {
                   "required": false
                 }
+              },
+              {
+                "name": "clusterName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Cluster name",
+                "defaultValue": "ccw",
+                "toolTip": "Name of cluster in CycleCloud portal",
+                "constraints": {
+                  "required": true,
+                  "regex": "^[a-zA-Z0-9@_-]{3,}$",
+                  "validationMessage": "Cluster name must be at least 3 characters long. Characters must be alphanumeric, @, -, or _."
+                },
+                "visible": false
               }
             ],
             "visible": true
@@ -1635,7 +1635,7 @@
         "privateIp": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateIp'),steps('scheduler').schedulerSection.databasePIP,basics('nullValue'))]",
         "dbInfo": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint'),steps('scheduler').schedulerSection.dbSelector,basics('nullValue'))]"
       },
-      "clusterName": "[steps('scheduler').clusterName]",
+      "clusterName": "[steps('scheduler').clusterSettings.clusterName]",
       "acceptMarketplaceTerms": "[steps('scheduler').clusterSettings.acceptMarketplaceTerms]",
       "slurmSettings": {
         "version": "[steps('scheduler').schedulerSection.slurmVersion]",
