@@ -241,3 +241,61 @@ type databaseOutput_t = {
   databaseUser: string?
   url: string?
 }
+
+type cluster_init_target_t = 'login' | 'scheduler' | 'htc' | 'hpc' | 'gpu' | 'dynamic' | 'ood'
+
+
+@export()
+type github_cluster_init_t = {
+  type: 'gitHubReleaseURL'
+  gitHubReleaseURL: string
+  spec: string?
+  target: cluster_init_target_t[]
+}
+
+@export()
+type prestaged_cluster_init_t = {
+  type: 'PreStaged'
+  spec: string?
+  version: string
+  target: cluster_init_target_t[]
+}
+
+@discriminator('type')
+@export()
+type cluster_init_t = github_cluster_init_t | prestaged_cluster_init_t
+
+@export()
+type cluster_init_param_t = {
+  ccw: cluster_init_t[]?
+  ood: cluster_init_t[]?
+}
+
+
+type ood_basic_t = {
+  ood_auth_method: 'Basic'
+}
+
+type ood_ldap_t = {
+  ood_auth_method: 'LDAP'
+  ood_ldap_host: string
+  ood_ldap_bind_dn: string
+  ood_ldap_bind_pwd: string
+  ood_ldap_user_base_dn: string
+  ood_ldap_group_base_dn: string
+}
+
+type ood_entra_t = {
+  ood_auth_method: 'Entra'
+  ood_entra_client_secret: string
+  ood_ldap_bind_dn: string
+  ood_entra_tenant_id: string
+}
+
+type ood_disabled_t = {
+  ood_auth_method: 'disabled'
+}
+
+@discriminator('ood_auth_method')
+@export()
+type ood_t = ood_basic_t | ood_ldap_t | ood_entra_t | ood_disabled_t
