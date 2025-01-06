@@ -201,7 +201,7 @@ if [ "$USE_INSIDERS_BUILD" == "true" ] || [ "$MANUAL" == "true" ]; then
     fi
 fi
 
-python3 /opt/ccw/cyclecloud_install.py --acceptTerms \
+python3 /opt/ccw/cyclecloud_install.py --acceptTerms --acceptMarketplaceTerms \
     --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
     --storageAccount=${CYCLECLOUD_STORAGE} \
