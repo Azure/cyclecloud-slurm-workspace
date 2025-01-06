@@ -867,6 +867,24 @@
             "visible": false
           },
           {
+            "name": "clusterSettings",
+            "type": "Microsoft.Common.Section",
+            "label": "Cluster Configuration",
+            "elements": [
+              {
+                "name": "acceptMarketplaceTerms",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Auto-accept VM image terms",
+                "toolTip": "Enable CycleCloud to automatically accept any Azure Marketplace VM image terms for the selected Azure subscription",
+                "defaultValue": false,
+                "constraints": {
+                  "required": false
+                }
+              }
+            ],
+            "visible": true
+          },
+          {
             "name": "schedulerSection",
             "type": "Microsoft.Common.Section",
             "label": "Scheduler",
@@ -1618,6 +1636,7 @@
         "dbInfo": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint'),steps('scheduler').schedulerSection.dbSelector,basics('nullValue'))]"
       },
       "clusterName": "[steps('scheduler').clusterName]",
+      "acceptMarketplaceTerms": "[steps('scheduler').clusterSettings.acceptMarketplaceTerms]",
       "slurmSettings": {
         "version": "[steps('scheduler').schedulerSection.slurmVersion]",
         "healthCheckEnabled": "[steps('scheduler').healthCheck]"
