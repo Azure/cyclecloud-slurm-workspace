@@ -880,6 +880,16 @@
                 "constraints": {
                   "required": false
                 }
+              },
+              {
+                "name": "healthCheck",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Enable health check",
+                "toolTip": "Enable health check scripts (NHC) to be run during allocation",
+                "defaultValue": false,
+                "constraints": {
+                  "required": false
+                }
               }
             ],
             "visible": true
@@ -1229,16 +1239,6 @@
               }
             ],
             "visible": true
-          },
-          {
-            "name": "healthCheck",
-            "type": "Microsoft.Common.CheckBox",
-            "label": "Enable health check",
-            "toolTip": "Enable health check scripts (NHC) to be run during allocation",
-            "defaultValue": false,
-            "constraints": {
-              "required": false
-            }
           }
         ]
       },
@@ -1639,7 +1639,7 @@
       "acceptMarketplaceTerms": "[steps('scheduler').clusterSettings.acceptMarketplaceTerms]",
       "slurmSettings": {
         "version": "[steps('scheduler').schedulerSection.slurmVersion]",
-        "healthCheckEnabled": "[steps('scheduler').healthCheck]"
+        "healthCheckEnabled": "[steps('scheduler').clusterSettings.healthCheck]"
       },
       "schedulerNode": {
         "sku": "[steps('scheduler').schedulerSection.vmsize]",
