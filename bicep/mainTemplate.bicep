@@ -25,6 +25,7 @@ param databaseConfig types.databaseConfig_t = { type: 'disabled' }
 @minLength(3)
 @description('The user-defined name of the cluster. Regex: ^[a-zA-Z0-9@_-]{3,}$')
 param clusterName string = 'ccw'
+param acceptMarketplaceTerms bool = false
 
 param infrastructureOnly bool = false
 param insidersBuild bool = false
@@ -71,5 +72,6 @@ module makeCCWresources 'ccw.bicep' = {
     branch: branch
     projectVersion: projectVersion
     manualInstall: manualInstall
+    acceptMarketplaceTerms: acceptMarketplaceTerms
   }
 }

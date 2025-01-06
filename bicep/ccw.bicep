@@ -30,6 +30,7 @@ param databaseAdminPassword string
 param databaseConfig types.databaseConfig_t
 param clusterName string
 param manualInstall bool
+param acceptMarketplaceTerms bool
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
 
@@ -326,3 +327,4 @@ output branch string = branch
 output projectVersion string = projectVersion
 output insidersBuild bool = insidersBuild
 output manualInstall bool = manualInstall
+output acceptMarketplaceTerms bool = acceptMarketplaceTerms
