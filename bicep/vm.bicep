@@ -40,7 +40,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2023-11-01' = {
 }
 
 resource virtualMachine 'Microsoft.Compute/virtualMachines@2024-03-01' = {
-  name: '${name}-vm'
+  name: name
   location: location
   tags: tags
   plan: contains(image, 'plan') && empty(image.plan) == false ? {
@@ -115,7 +115,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2024-03-01' = {
 }
 
 resource cse 'Microsoft.Compute/virtualMachines/extensions@2024-03-01' = {
-  name: '${name}-vm-customScriptExtension'
+  name: '${name}-customScriptExtension'
   location: location
   parent: virtualMachine
   properties: {
