@@ -6,7 +6,7 @@ param adminUsername string
 @secure()
 param adminPassword string
 param adminSshPublicKey string = '' 
-param storedKey types.storedKey_t = {id: 'foo', location: 'foo', name:'foo'}
+param storedKeyId string = ''
 param ccVMSize string
 param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
@@ -62,7 +62,7 @@ module makeCCWresources 'ccw.bicep' = {
     htc: htc
     hpc: hpc
     gpu: gpu
-    storedKey: storedKey
+    storedKeyId: storedKeyId
     ccVMSize: ccVMSize
     resourceGroup: resourceGroup
     databaseAdminPassword: databaseAdminPassword

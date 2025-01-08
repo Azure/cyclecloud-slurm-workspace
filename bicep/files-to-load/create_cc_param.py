@@ -17,16 +17,13 @@ def get_json_dict(file_name):
 def set_params(params, dbPassword, outputs):
     params['Region'] = outputs['location']['value']
     #params['Credentials']
-    if outputs['vnet']['value']['type'] == 'new':
-        subnetID = outputs['vnet']['value']['computeSubnetId']
-        subnet_toks = subnetID.split("/")
-        if len(subnet_toks) >= 11:
+    subnetID = outputs['vnet']['value']['computeSubnetId']
+    subnet_toks = subnetID.split("/")
+    if len(subnet_toks) >= 11:
             params['SubnetId'] = "/".join([subnet_toks[4], subnet_toks[8], subnet_toks[10]])
-        else:
-            print(f"Unexpected subnet id {subnetID} - passing as SubnetId directly instead of resource_group/vnet_name/subnet_name", file=sys.stderr)
-            params['SubnetId'] = subnetID
     else:
-        params['SubnetId'] = '/'.join([outputs['vnet']['value']['rg'], outputs['vnet']['value']['name'], outputs['vnet']['value']['computeSubnetName']])
+        print(f"Unexpected subnet id {subnetID} - passing as SubnetId directly instead of resource_group/vnet_name/subnet_name", file=sys.stderr)
+        params['SubnetId'] = subnetID
         
     #HTC
     params['HTCMachineType'] = outputs['partitions']['value']['htc']['sku']
