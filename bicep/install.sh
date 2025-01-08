@@ -201,7 +201,13 @@ if [ "$USE_INSIDERS_BUILD" == "true" ] || [ "$MANUAL" == "true" ]; then
     fi
 fi
 
-python3 /opt/ccw/cyclecloud_install.py --acceptTerms \
+ACCEPT_MP_TERMS=$(jq -r .acceptMarketplaceTerms.value ccwOutputs.json)
+MP_TERMS_ARG=
+if [ "$ACCEPT_MP_TERMS" == "true" ]; then
+    MP_TERMS_ARG="--acceptMarketplaceTerms"
+fi
+
+python3 /opt/ccw/cyclecloud_install.py --acceptTerms $MP_TERMS_ARG \
     --useManagedIdentity --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" \
     --publickey="${CYCLECLOUD_USER_PUBKEY}" \
     --storageAccount=${CYCLECLOUD_STORAGE} \
