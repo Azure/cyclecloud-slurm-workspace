@@ -23,6 +23,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-04-01' = {
     {
       accessTier: 'Hot'
       minimumTlsVersion: 'TLS1_2'
+      allowSharedKeyAccess: false
     },
     lockDownNetwork ? {
       networkAcls: {

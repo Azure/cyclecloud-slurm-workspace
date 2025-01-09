@@ -29,6 +29,8 @@ param tags types.resource_tags_t
 param databaseAdminPassword string
 param databaseConfig types.databaseConfig_t
 param clusterName string
+param manualInstall bool
+param acceptMarketplaceTerms bool
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
 
@@ -104,7 +106,7 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
   }
 }
 
-param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.6.520241024'
+param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.7.020241219'
 
 var vmName = 'ccw-cyclecloud'
 module ccwVM './vm.bicep' = if (!infrastructureOnly) {
@@ -150,12 +152,21 @@ module ccwVM './vm.bicep' = if (!infrastructureOnly) {
   ]
 }
 
+var miName = 'ccwLockerManagedIdentity'
+module ccwManagedIdentity 'mi.bicep' = if (!infrastructureOnly) {
+  name: miName
+  params: {
+    name: miName
+    location: location
+    storageAccountName: ccwStorage.outputs.storageAccountName
+    tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
+  }
+}
+
 module ccwRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
   name: 'ccwRoleFor-${vmName}-${location}'
   scope: subscription()
   params: {
-    name: vmName
-    rgID: az.resourceGroup().id
     roles: [
       'Contributor'
       'Storage Account Contributor'
@@ -265,6 +276,8 @@ output filerInfoFinal types.filerInfo_t = {
 
 output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.principalId
 
+output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
+
 output slurmSettings types.slurmSettings_t = slurmSettings
 
 output schedulerNode types.scheduler_t = schedulerNode
@@ -313,3 +326,5 @@ output nodeArrayTags types.tags_t = tags[?'Node Array'] ?? {}
 output branch string = branch
 output projectVersion string = projectVersion
 output insidersBuild bool = insidersBuild
+output manualInstall bool = manualInstall
+output acceptMarketplaceTerms bool = acceptMarketplaceTerms
