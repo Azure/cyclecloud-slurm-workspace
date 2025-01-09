@@ -106,7 +106,7 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
   }
 }
 
-param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.6.520241024'
+param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.7.020241219'
 
 var vmName = 'ccw-cyclecloud'
 module ccwVM './vm.bicep' = if (!infrastructureOnly) {
