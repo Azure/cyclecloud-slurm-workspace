@@ -249,13 +249,22 @@ module ccwANF 'anf.bicep' = [
   }
 ]
 
+module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
+  name: 'oodNIC'
+  params: {
+    location: location
+    name: 'ood-${uniqueString(az.resourceGroup().id)}'
+    networkInterfacesTags: getTags('Microsoft.Network/networkInterfaces', tags)
+    subnetId: subnets.compute.id
+  }
+}
+
 module oodApp 'oodEntraApp.bicep' = if (deployOOD) {
   name: 'oodApp'
   params: {
     location: location
-    appName: 'ood-entra-${uniqueString(az.resourceGroup().id)}'
-    miName: 'ood-mi-${uniqueString(az.resourceGroup().id)}'
-    redirectURI: 'https://ood-fqdn/oidc'
+    name: 'ood-${uniqueString(az.resourceGroup().id)}'
+    redirectURI: 'https://${oodNIC.outputs.privateIp}/oidc'
   }
 }
 

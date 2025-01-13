@@ -5,8 +5,7 @@ param location string
 // Creates a secret-less client application, using a user-assigned managed identity
 // as the credential (configured as part of the application's federated identity credential).
 
-param miName string
-param appName string
+param name string
 param redirectURI string = 'https://ood-fqdn/oidc' // Redirect URI for OIDC
 
 // NOTE: Microsoft Graph Bicep file deployment is only supported in Public Cloud
@@ -43,7 +42,7 @@ resource msGraphSP 'Microsoft.Graph/servicePrincipals@v1.0' existing = {
 var graphScopes = msGraphSP.oauth2PermissionScopes
 // create a user assigned managed identity to be assigned to the OOD VM
 resource oodManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
-  name: miName
+  name: '${name}-mi'
   location: location
 }
 
@@ -51,8 +50,8 @@ resource oodManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@20
 // The FIC is configured with the managed identity as the subject
 // The application is listed under the "App registrations" in the Azure Portal
 resource oodApp 'Microsoft.Graph/applications@v1.0' = {
-  displayName: appName
-  uniqueName: guid(subscription().id, resourceGroup().id, appName) // Need to be unique inside the tenant
+  displayName: '${name}-app'
+  uniqueName: guid(subscription().id, resourceGroup().id, name) // Need to be unique inside the tenant, issue is if you manually delete the app, it will failed if you recreate it with the same name
 
   resource myMsiFic 'federatedIdentityCredentials@v1.0' = {
     name: '${oodApp.uniqueName}/msiAsFic'
