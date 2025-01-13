@@ -248,6 +248,17 @@ module ccwANF 'anf.bicep' = [
   }
 ]
 
+var deployOOD = false
+module oodApp 'oodEntraApp.bicep' = if (deployOOD) {
+  name: 'oodApp'
+  params: {
+    location: location
+    appName: 'ood-entra-${uniqueString(az.resourceGroup().id)}'
+    miName: 'ood-mi-${uniqueString(az.resourceGroup().id)}'
+    oodIPorName: ''
+  }
+}
+
 output filerInfoFinal types.filerInfo_t = {
   home: {
     type: sharedFilesystem.type
