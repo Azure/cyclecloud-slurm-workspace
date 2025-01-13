@@ -31,6 +31,7 @@ param databaseConfig types.databaseConfig_t
 param clusterName string
 param manualInstall bool
 param acceptMarketplaceTerms bool
+param deployOOD bool
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
 
@@ -248,14 +249,13 @@ module ccwANF 'anf.bicep' = [
   }
 ]
 
-var deployOOD = false
 module oodApp 'oodEntraApp.bicep' = if (deployOOD) {
   name: 'oodApp'
   params: {
     location: location
     appName: 'ood-entra-${uniqueString(az.resourceGroup().id)}'
     miName: 'ood-mi-${uniqueString(az.resourceGroup().id)}'
-    fqdn: ''
+    redirectURI: 'https://ood-fqdn/oidc'
   }
 }
 

@@ -7,8 +7,7 @@ param location string
 
 param miName string
 param appName string
-param fqdn string = 'ood-fqdn' // Open OnDemand VM FQDN or IP, default value as a placeholder so this can be manually updated in the azure portal
-
+param redirectURI string = 'https://ood-fqdn/oidc' // Redirect URI for OIDC
 
 // NOTE: Microsoft Graph Bicep file deployment is only supported in Public Cloud
 var audiences = {
@@ -73,7 +72,7 @@ resource oodApp 'Microsoft.Graph/applications@v1.0' = {
     redirectUriSettings: [
       {
         index: 0
-        uri: 'https://${fqdn}/oidc'
+        uri: redirectURI
       }
     ]
   }
