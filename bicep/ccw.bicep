@@ -255,7 +255,7 @@ module oodApp 'oodEntraApp.bicep' = if (deployOOD) {
     location: location
     appName: 'ood-entra-${uniqueString(az.resourceGroup().id)}'
     miName: 'ood-mi-${uniqueString(az.resourceGroup().id)}'
-    oodIPorName: ''
+    fqdn: ''
   }
 }
 

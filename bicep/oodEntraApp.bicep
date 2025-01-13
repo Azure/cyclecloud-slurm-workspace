@@ -7,7 +7,7 @@ param location string
 
 param miName string
 param appName string
-param oodIPorName string = 'ood-vm-ip-or-name' // Open OnDemand VM IP or DNS name, default value as a placeholder so this can be manually updated in the azure portal
+param fqdn string = 'ood-fqdn' // Open OnDemand VM FQDN or IP, default value as a placeholder so this can be manually updated in the azure portal
 
 
 // NOTE: Microsoft Graph Bicep file deployment is only supported in Public Cloud
@@ -73,7 +73,7 @@ resource oodApp 'Microsoft.Graph/applications@v1.0' = {
     redirectUriSettings: [
       {
         index: 0
-        uri: 'https://${oodIPorName}/oidc'
+        uri: 'https://${fqdn}/oidc'
       }
     ]
   }
