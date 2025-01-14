@@ -28,7 +28,7 @@ CLUSTER_INIT_VERSION = parser.parse_args().cluster_init_version
 def deprecation_version(cutoff_version=None):
     def compare_slurm_versions(cutoff_version):
         cutoff_version_parsed = parse_version(cutoff_version)
-        return PROJECT_VERSION_PARSED <= cutoff_version_parsed
+        return PROJECT_VERSION_PARSED < cutoff_version_parsed
     def decorator(func):
         def wrapper(template_file):
             if cutoff_version is None or compare_slurm_versions(cutoff_version):
