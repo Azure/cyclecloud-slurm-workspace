@@ -1,0 +1,6 @@
+        [[[parameter GPUImageName]]]
+        Label = GPU OS
+        ParameterType = Cloud.Image
+        Config.OS = linux
+        DefaultValue = almalinux8
+        Config.Filter := Package in {"cycle.image.ubuntu20", "cycle.image.ubuntu22", "cycle.image.sles15-hpc", "almalinux8"}

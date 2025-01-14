@@ -1,0 +1,5 @@
+        [[[parameter LoginClusterInitSpecs]]]
+        Label = Login Cluster-Init
+        DefaultValue = =undefined
+        Description = Cluster init specs to apply to Login nodes
+        ParameterType = Cloud.ClusterInitSpecs

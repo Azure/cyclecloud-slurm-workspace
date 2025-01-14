@@ -1,0 +1,6 @@
+
+        [[[cluster-init cyclecloud/slurm:default]]]
+        Optional = true
+
+        [[[cluster-init cyclecloud/ccw:default]]]
+        Order = 10000

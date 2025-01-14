@@ -1,0 +1,5 @@
+        [[[parameter GPUUseLowPrio]]]
+        Label = GPU Spot
+        DefaultValue = false
+        Widget.Plugin = pico.form.BooleanCheckBox
+        Widget.Label = Use Spot VMs for GPU execute hosts
