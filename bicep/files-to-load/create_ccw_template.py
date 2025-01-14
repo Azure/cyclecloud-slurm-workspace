@@ -146,16 +146,17 @@ def create_ccw_template(template_file):
     @deprecation_version()
     def update_cluster_init_headers(template_file):
         def add_ccw_cluster_init(template_file):
+            @deprecation_version()
+            def relabel_cluster_init_headers(template_file):
+                cluster_init_headers = ['cyclecloud/slurm:default','cyclecloud/ccw:default','cyclecloud/slurm:scheduler','cyclecloud/slurm:login','cyclecloud/slurm:execute']
+                for cluster_init_header in cluster_init_headers:
+                    template_file = replace_line(template_file,cluster_init_header,DOUBLE_INDENT+f'[[[cluster-init {cluster_init_header}:{CLUSTER_INIT_VERSION}]]]')
+                return template_file            
             template_file = remove_lines(template_file,'cyclecloud/slurm:default','[[[')
             template_file = insert_below(template_file,'cluster.identities.default',read_file('util/cluster_inits_slurm_ccw.txt'))
+            template_file = relabel_cluster_init_headers(template_file)
             return template_file
-        @deprecation_version()
-        def relabel_cluster_init_headers(template_file):
-            cluster_init_headers = ['cyclecloud/slurm:default','cyclecloud/ccw:default','cyclecloud/slurm:scheduler','cyclecloud/slurm:login','cyclecloud/slurm:execute']
-            for cluster_init_header in cluster_init_headers:
-                template_file = replace_line(template_file,cluster_init_header,DOUBLE_INDENT+f'[[[cluster-init {cluster_init_header}:{CLUSTER_INIT_VERSION}]]]')
-            return template_file
-        return apply_all_changes(template_file,[func for _, func in locals().items() if callable(func)])
+        return add_ccw_cluster_init(template_file)
     @deprecation_version()
     def set_sched_to_persistent(template_file):
         return replace_line(template_file,'Persistent = False',DOUBLE_INDENT+'Persistent = True')
