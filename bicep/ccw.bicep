@@ -325,6 +325,7 @@ output nodeArrayTags types.tags_t = tags[?'Node Array'] ?? {}
 
 output branch string = branch
 output projectVersion string = projectVersion
+output slurmProjectVersion string = trim(loadTextContent('./files-to-load/cyclecloud-slurm-version.txt'))
 output insidersBuild bool = insidersBuild
 output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
