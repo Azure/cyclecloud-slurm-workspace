@@ -1,40 +1,37 @@
-import os
 import argparse
+import os
+import subprocess
 
 SINGLE_INDENT = ' ' * 4
 DOUBLE_INDENT = ' ' * 8
 CCW_TEMPLATE_NAME = 'Slurm-Workspace'
 
-parser = argparse.ArgumentParser(description='Generate the CycleCloud Workspace for Slurm template')
-parser.add_argument('--project-version',
-                    required=True,
-                    type=str,
-                    dest='project_version',
-                    help='Version of the cyclecloud-slurm project')
-parser.add_argument('--cluster-init-version',
-                    required=True,
-                    type=str,
-                    dest='cluster_init_version',
-                    help='Version to append in cluster-init section headers')
+# Read in slurm project version and utility text files
+def read_file(file_name):
+    current_dir = os.getcwd()
+    file_path = os.path.join(current_dir, file_name)
+    with open(file_path, 'r') as file:
+        return file.read()
 
 # Vectorizes the version string into a tuple of integers
 def parse_version(version): 
         return tuple([int(part) for part in version.split('.')])
 
-PROJECT_VERSION_PARSED = parse_version(parser.parse_args().project_version)
-CLUSTER_INIT_VERSION = parser.parse_args().cluster_init_version
+AZSLURM_VERSION = read_file('cyclecloud-slurm-version.txt').strip()
+AZSLURM_VERSION_PARSED = parse_version(AZSLURM_VERSION)
 
 # Decorator for deprecating features based on the slurm project version
 def deprecation_version(cutoff_version=None):
     def compare_slurm_versions(cutoff_version):
         cutoff_version_parsed = parse_version(cutoff_version)
-        return PROJECT_VERSION_PARSED < cutoff_version_parsed
+        return AZSLURM_VERSION_PARSED < cutoff_version_parsed
     def decorator(func):
         def wrapper(template_file):
             if cutoff_version is None or compare_slurm_versions(cutoff_version):
                 return func(template_file)
             else:
                 return template_file
+        wrapper.wrapped = func
         return wrapper
     return decorator
 
@@ -97,17 +94,16 @@ def replace_line(input_template, substring, replacement_string,replace_count=1):
 
 # Apply all nested functions to the input_template
 def apply_all_changes(input_template,funcs):
-    for func in funcs:
+    def get_line_number(func):
+        if hasattr(func,'wrapped'):
+            return func.wrapped.__code__.co_firstlineno
+        return func.__code__.co_firstlineno
+    all_line_numbers = [get_line_number(func) for func in funcs]
+    assert len(all_line_numbers) == len(set(all_line_numbers)), 'Multiple functions map to the same line. Please use the wrapped attribute for decorators.'
+    sorted_funcs = sorted(funcs, key=get_line_number)
+    for func in sorted_funcs:
         input_template = func(input_template)
     return input_template
-
-# Read in slurm project template
-def read_file(file_name):
-    current_dir = os.getcwd()
-    file_path = os.path.join(current_dir, file_name)
-    with open(file_path, 'r') as file:
-        contents = file.read()
-    return contents
 
 # Write out CCW template 
 def write_file(contents):
@@ -148,9 +144,10 @@ def create_ccw_template(template_file):
         def add_ccw_cluster_init(template_file):
             @deprecation_version()
             def relabel_cluster_init_headers(template_file):
-                cluster_init_headers = ['cyclecloud/slurm:default','cyclecloud/ccw:default','cyclecloud/slurm:scheduler','cyclecloud/slurm:login','cyclecloud/slurm:execute']
+                cluster_init_headers = ['cyclecloud/slurm:default','cyclecloud/slurm:scheduler','cyclecloud/slurm:login','cyclecloud/slurm:execute']
+                aslurm_major_version = f'{AZSLURM_VERSION_PARSED[0]}.{AZSLURM_VERSION_PARSED[1]}.x'
                 for cluster_init_header in cluster_init_headers:
-                    template_file = replace_line(template_file,cluster_init_header,DOUBLE_INDENT+f'[[[cluster-init {cluster_init_header}:{CLUSTER_INIT_VERSION}]]]')
+                    template_file = replace_line(template_file,cluster_init_header,DOUBLE_INDENT+f'[[[cluster-init {cluster_init_header}:{aslurm_major_version}]]]')
                 return template_file            
             template_file = remove_lines(template_file,'cyclecloud/slurm:default','[[[')
             template_file = insert_below(template_file,'cluster.identities.default',read_file('util/cluster_inits_slurm_ccw.txt'))
@@ -224,7 +221,23 @@ def create_ccw_template(template_file):
     return apply_all_changes(template_file,[func for _, func in locals().items() if callable(func)])  
 
 def main():
-    write_file(create_ccw_template(read_file('slurm.txt')))
+    parser = argparse.ArgumentParser(description='Generate the CycleCloud Workspace for Slurm template')
+    parser.add_argument("--validate",
+                        dest="run_validation",
+                        default=False,
+                        action="store_true",
+                        help="Check template generated by this file against what\'s stored on disk")
+    validate = parser.parse_args().run_validation
+
+    template_uri = f'https://raw.githubusercontent.com/Azure/cyclecloud-slurm/refs/tags/{AZSLURM_VERSION}/templates/slurm.txt'
+    azslurm_template = subprocess.check_output(['curl', '-s', template_uri]).decode('utf-8')
+    ccw_template = create_ccw_template(azslurm_template)
+    if validate:
+        if ccw_template != read_file('slurm-workspace.txt'):
+            print(ccw_template)
+            raise Exception('Please compare what is available on disk with the template generated by this file and update slurm-workspace.txt.')
+    else:
+        write_file(ccw_template)    
 
 if __name__ == '__main__':
     main()
