@@ -4,6 +4,9 @@ set -e
 
 VERSION="2024.12.18"
 
+echo "Running template validation..."
+bash util/validate_template.sh
+
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
