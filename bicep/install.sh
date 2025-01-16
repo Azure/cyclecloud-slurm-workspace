@@ -168,6 +168,7 @@ CYCLECLOUD_PASSWORD=$(jq -r .adminPassword "$SECRETS_FILE_PATH")
 CYCLECLOUD_USER_PUBKEY=$(jq -r .publicKey.value ccwOutputs.json)
 CYCLECLOUD_STORAGE="$(jq -r .storageAccountName.value ccwOutputs.json)"
 SLURM_CLUSTER_NAME=$(jq -r .clusterName.value ccwOutputs.json)
+AZSLURM_PROJECT_VERSION=$(jq -r .azslurmProjectVersion.value ccwOutputs.json)
 if [[ "$MANUAL" == "true" ]]; then
     USE_INSIDERS_BUILD="false"
 else
@@ -251,6 +252,9 @@ curl -k https://localhost
 cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=$SLURM_CLUSTER_NAME
 echo "CC initialize successful"
 sleep 5
+
+exit 0
+
 cyclecloud import_template Slurm-Workspace -f slurm-workspace.txt
 echo "CC import template successful"
 cyclecloud create_cluster Slurm-Workspace $SLURM_CLUSTER_NAME -p slurm_params.json
