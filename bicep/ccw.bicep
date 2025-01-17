@@ -31,6 +31,7 @@ param databaseConfig types.databaseConfig_t
 param clusterName string
 param manualInstall bool
 param acceptMarketplaceTerms bool
+param deployOOD bool
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
 
@@ -247,6 +248,25 @@ module ccwANF 'anf.bicep' = [
     ]
   }
 ]
+
+module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
+  name: 'oodNIC'
+  params: {
+    location: location
+    name: 'ood-${uniqueString(az.resourceGroup().id)}'
+    networkInterfacesTags: getTags('Microsoft.Network/networkInterfaces', tags)
+    subnetId: subnets.compute.id
+  }
+}
+
+module oodApp 'oodEntraApp.bicep' = if (deployOOD) {
+  name: 'oodApp'
+  params: {
+    location: location
+    name: 'ood-${uniqueString(az.resourceGroup().id)}'
+    redirectURI: 'https://${oodNIC.outputs.privateIp}/oidc'
+  }
+}
 
 output filerInfoFinal types.filerInfo_t = {
   home: {
