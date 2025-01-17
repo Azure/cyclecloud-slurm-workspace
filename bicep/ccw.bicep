@@ -159,25 +159,8 @@ module ccwManagedIdentity 'mi.bicep' = if (!infrastructureOnly) {
   params: {
     name: miName
     location: location
-    storageAccountName: ccwStorage.outputs.storageAccountName
     tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
   }
-}
-
-module ccwRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
-  name: 'ccwRoleFor-${vmName}-${location}'
-  scope: subscription()
-  params: {
-    roles: [
-      'Contributor'
-      'Storage Account Contributor'
-      'Storage Blob Data Contributor'
-    ]
-    principalId: ccwVM.outputs.principalId
-  }
-  dependsOn: [
-    ccwVM
-  ]
 }
 
 module ccwStorage './storage.bicep' = {
@@ -188,6 +171,51 @@ module ccwStorage './storage.bicep' = {
     saName: 'ccwstorage${uniqueString(az.resourceGroup().id)}'
     lockDownNetwork: true // Restrict access to the storage account from compute and cyclecloud subnets
     subnetIds: concat([subnets.compute.id], [subnets.cyclecloud.id])
+  }
+}
+
+var servicePrincipals = {
+  ccwVM :{
+    spName: vmName
+    principalId: ccwVM.outputs.principalId
+    roles: [
+      'Contributor'
+      'Storage Account Contributor'
+      'Storage Blob Data Contributor'
+    ]
+  }
+  storageMI: {
+    spName: miName
+    principalId: ccwManagedIdentity.outputs.principalId
+    roles: [
+      'Storage Blob Data Reader'
+    ]
+  }
+}
+
+module ccwVMRoleAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
+  name: 'ccwRoleFor-${vmName}-${location}'
+  scope: subscription()
+  params: {
+    principalId: servicePrincipals.ccwVM.principalId
+    roles: servicePrincipals.ccwVM.roles
+    principalName: servicePrincipals.ccwVM.spName
+    resourceGroupName: az.resourceGroup().name
+    storageAccountName: ccwStorage.outputs.storageAccountName
+    vmName: vmName
+  }
+}
+
+module ccwMIRoleAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
+  name: 'ccwRoleFor-${miName}-${location}'
+  scope: subscription()
+  params: {
+    principalId: servicePrincipals.storageMI.principalId
+    roles: servicePrincipals.storageMI.roles
+    principalName: servicePrincipals.storageMI.spName
+    resourceGroupName: az.resourceGroup().name
+    storageAccountName: ccwStorage.outputs.storageAccountName
+    vmName: vmName
   }
 }
 
