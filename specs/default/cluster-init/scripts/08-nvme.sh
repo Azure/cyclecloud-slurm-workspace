@@ -28,6 +28,16 @@ function setup_nvme_disks() {
     logger -s "/mnt/nvme mounted"
 }
 
+# mount NVME disks on reboot
+function setup_cron_onreboot()
+{
+    if ! [ -f /etc/crontab.orig ]; then
+        cp /etc/crontab /etc/crontab.orig
+        echo "@reboot root ${CYCLECLOUD_SPEC_PATH}/files/mount_nvme.sh" | tee -a /etc/crontab
+    fi
+}
+
 if is_compute; then
     setup_nvme_disks
+    setup_cron_onreboot
 fi
