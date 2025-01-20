@@ -47,24 +47,24 @@ function install_enroot() {
 
 function configure_enroot() 
 {
-    # if enroot.conf already exists, do not overwrite it
-    [ -f /etc/enroot/enroot.conf ] && return
-
-    # enroot default scratch dir to /mnt/enrot
+    # enroot default scratch dir to /mnt/enroot
     # If NVMe disks exists link /mnt/enroot to /mnt/nvme/enroot
     ENROOT_SCRATCH_DIR=/mnt/enroot
     if [ -d /mnt/nvme ]; then
         # If /mnt/nvme exists, use it as the default scratch dir
         mkdir -pv /mnt/nvme/enroot
-        ln -s /mnt/nvme/enroot /mnt/enroot
+        ln -s /mnt/nvme/enroot $ENROOT_SCRATCH_DIR
     else
         mkdir -pv /mnt/scratch/enroot
-        ln -s /mnt/scratch/enroot /mnt/enroot
+        ln -s /mnt/scratch/enroot $ENROOT_SCRATCH_DIR
     fi
 
     logger -s "Creating enroot scratch directories in $ENROOT_SCRATCH_DIR"
     mkdir -pv /run/enroot $ENROOT_SCRATCH_DIR/{enroot-cache,enroot-data,enroot-temp,enroot-runtime}
     chmod -v 777 /run/enroot $ENROOT_SCRATCH_DIR/{enroot-cache,enroot-data,enroot-temp,enroot-runtime}
+
+    # if enroot.conf already exists, do not overwrite it
+    [ -f /etc/enroot/enroot.conf ] && return
 
     # Configure enroot
     # https://github.com/NVIDIA/pyxis/wiki/Setup

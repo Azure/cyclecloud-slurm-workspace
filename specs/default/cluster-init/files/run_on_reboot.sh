@@ -7,3 +7,6 @@ else
    ${script_dir}/../scripts/08-nvme.sh
 fi
 
+# Reconfigure enroot directories
+${script_dir}/../scripts/22-enroot.sh
+
