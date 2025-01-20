@@ -12,6 +12,8 @@ function link_plugstack() {
 }
 
 function install_plugstack() {
+   # if pyxis.conf already exists, do not overwrite it
+   [ -f /sched/plugstack.conf.d/pyxis.conf ] && return
    mkdir -p /sched/plugstack.conf.d
    echo 'include /sched/plugstack.conf.d/*' > /sched/plugstack.conf
    chown -R slurm:slurm /sched/plugstack.conf
@@ -20,6 +22,8 @@ function install_plugstack() {
 }
 
 function install_pyxis_library() {
+   # if /usr/lib64/slurm/spank_pyxis.so exists, return
+   [ -f /usr/lib64/slurm/spank_pyxis.so ] && return
    # Wait for the pyxis library to be available
    echo "Waiting for pyxis library to be available"
    timeout 360s bash -c "until (ls $SHARED_DIR/spank_pyxis.so); do sleep 10; done"
@@ -31,6 +35,9 @@ function install_pyxis_library() {
 
 function build_pyxis() {
 
+   # if ${SHARED_DIR}/spank_pyxis.so exists, return
+   [ -f ${SHARED_DIR}/spank_pyxis.so ] && return
+   
    logger -s "Downloading Pyxis source code $PYXIS_VERSION"
 
    cd /tmp
