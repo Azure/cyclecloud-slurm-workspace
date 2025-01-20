@@ -47,6 +47,9 @@ function install_enroot() {
 
 function configure_enroot() 
 {
+    # if enroot.conf already exists, do not overwrite it
+    [ -f /etc/enroot/enroot.conf ] && return
+
     # enroot default scratch dir to /mnt/enrot
     # If NVMe disks exists link /mnt/enroot to /mnt/nvme/enroot
     ENROOT_SCRATCH_DIR=/mnt/enroot
