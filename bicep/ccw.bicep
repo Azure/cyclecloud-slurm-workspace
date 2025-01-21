@@ -31,7 +31,7 @@ param databaseConfig types.databaseConfig_t
 param clusterName string
 param manualInstall bool
 param acceptMarketplaceTerms bool
-param deployOOD bool
+param ood types.oodConfig_t
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
 
@@ -248,6 +248,8 @@ module ccwANF 'anf.bicep' = [
     ]
   }
 ]
+
+var deployOOD = ood.type != 'disabled'
 
 module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
   name: 'oodNIC'
