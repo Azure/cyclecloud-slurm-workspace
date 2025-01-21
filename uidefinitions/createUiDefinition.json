@@ -539,17 +539,19 @@
               },
               {
                 "name": "azurelustrecapacity",
-                "type": "Microsoft.Common.TextBox",
+                "type": "Microsoft.Common.Slider",
+                "min": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),48,if(endsWith(steps('filesystem').additional.lustretier,'-125'),16,if(endsWith(steps('filesystem').additional.lustretier,'-250'),8,4))))]",
+                "max": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),768,128))]",
+                "step": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),48,if(endsWith(steps('filesystem').additional.lustretier,'-125'),16,if(endsWith(steps('filesystem').additional.lustretier,'-250'),8,4))))]",
                 "label": "Capacity",
-                "toolTip": "Capacity of the Azure Managed Lustre volume",
                 "subLabel": "TiB",
-                "defaultValue": "48",
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]",
+                "defaultValue": 48,
+                "showStepMarkers": true,
+                "toolTip": "Capacity of the Azure Managed Lustre volume",
                 "constraints": {
-                  "required": true,
-                  "regex": "^[4-9]$|^[1-9][0-9]$|^[1-6][0-9]{2}$|^7[0-6][0-9]$|^768$",
-                  "validationMessage": "Please enter an integer between 4 and 768"
-                }
+                  "required": true
+                },
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]"
               },
               {
                 "name": "ipAddress",
