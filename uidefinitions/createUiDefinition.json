@@ -494,16 +494,6 @@
                 "visible": "[and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'))]"
               },
               {
-                "name": "amlInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "Please consult the linked page for the capacity range of each Azure Managed Lustre Tier.",
-                  "uri": "https://learn.microsoft.com/azure/azure-managed-lustre/create-file-system-portal?WT.mc_id=Portal-Microsoft_Azure_CreateUIDef#throughput-configurations"
-                }
-              },
-              {
                 "name": "lustretier",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Lustre Tier",
