@@ -75,6 +75,27 @@
         "visible": "[equals(basics('newexisting'),'new')]"
       },
       {
+        "name": "CycleCloudVmName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "CycleCloud VM Name",
+        "defaultValue": "ccw-cyclecloud-vm",
+        "toolTip": "Name for the CycleCloud VM",
+        "constraints": {
+          "required": true,
+          "validations": [
+            {
+              "regex": "^[a-zA-Z0-9.-]{1,64}$",
+              "message": "Azure Linux VM names must be between 1 and 64 characters long and contain only letters, numbers, '.', and '-'."
+            },
+            {
+              "regex": "^(?![.-])(.*)(?<![.-])$",
+              "message": "Azure resource names may neither begin nor end with '.' or '-'."
+            }
+          ]
+        },
+        "visible": true
+      },
+      {
         "name": "CycleCloudVmSize",
         "type": "Microsoft.Compute.SizeSelector",
         "label": "CycleCloud VM Size",
@@ -1583,6 +1604,7 @@
       "adminPassword": "[basics('adminPasswordBox')]",
       "adminSshPublicKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
       "storedKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'stored'),basics('keySelector'),basics('nullValue'))]",
+      "ccVMName": "[basics('CycleCloudVmName')]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
       "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
       "sharedFilesystem": {
