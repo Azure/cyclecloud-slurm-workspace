@@ -32,7 +32,7 @@ param clusterName string
 param manualInstall bool
 param acceptMarketplaceTerms bool
 
-var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
+var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8'
 
 func getTags(resource_type string, tags types.resource_tags_t) types.tags_t => tags[?resource_type] ?? {}
 
