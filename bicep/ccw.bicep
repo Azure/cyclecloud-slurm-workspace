@@ -163,7 +163,7 @@ module ccwManagedIdentity 'mi.bicep' = if (!infrastructureOnly) {
   }
 }
 
-module ccwRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
+module ccwRoleAssignments './vmRoleAssignments.bicep' = if (!infrastructureOnly) {
   name: 'ccwRoleFor-${ccVMName}-${location}'
   scope: subscription()
   params: {
