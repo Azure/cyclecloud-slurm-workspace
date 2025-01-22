@@ -1,7 +1,9 @@
 targetScope = 'resourceGroup'
 import * as types from './types.bicep'
 
-param location string 
+param location string
+
+param startCluster bool
 param infrastructureOnly bool
 param insidersBuild bool
 
@@ -19,6 +21,8 @@ param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t 
 param network types.vnet_t 
+param clusterInitSpecs types.cluster_init_param_t
+param ood object
 param slurmSettings types.slurmSettings_t 
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
@@ -32,7 +36,9 @@ param databaseConfig types.databaseConfig_t
 param clusterName string
 param manualInstall bool
 param acceptMarketplaceTerms bool
-param deployOOD bool
+
+var deployOOD = ood.ood_auth_method != 'disabled'
+
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8'
 
@@ -163,6 +169,18 @@ module ccwManagedIdentity 'mi.bicep' = if (!infrastructureOnly) {
     tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
   }
 }
+
+var oodMIName = 'ccwOpenOnDemandManagedIdentity'
+var makeOODMI = deployOOD && !infrastructureOnly
+module ccwOODmanagedIdentity 'ood-mi.bicep' = if (makeOODMI) {
+  name: miName
+  params: {
+    name: oodMIName
+    location: location
+    tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
+  }
+}
+
 
 module ccwRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
   name: 'ccwRoleFor-${ccVMName}-${location}'
@@ -297,6 +315,9 @@ output filerInfoFinal types.filerInfo_t = {
 output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.principalId
 
 output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
+output oodManagedIdentityId string = makeOODMI ? ccwOODmanagedIdentity.outputs.managedIdentityId : ''
+
+output clusterInitSpecs types.cluster_init_param_t = clusterInitSpecs
 
 output slurmSettings types.slurmSettings_t = slurmSettings
 
@@ -345,6 +366,11 @@ output nodeArrayTags types.tags_t = tags[?'Node Array'] ?? {}
 
 output branch string = branch
 output projectVersion string = projectVersion
+output startCluster bool = startCluster
 output insidersBuild bool = insidersBuild
 output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
+
+output ood object = union(ood, {
+  version: '2024-11-25'
+})

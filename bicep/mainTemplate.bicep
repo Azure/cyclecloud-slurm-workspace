@@ -15,6 +15,7 @@ param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t = { type: 'disabled' }
 param network types.vnet_t
+param clusterInitSpecs types.cluster_init_param_t = {}
 param slurmSettings types.slurmSettings_t = { version: '23.11.7-1', healthCheckEnabled: false }
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
@@ -29,7 +30,10 @@ param databaseConfig types.databaseConfig_t = { type: 'disabled' }
 @description('The user-defined name of the cluster. Regex: ^[a-zA-Z0-9@_-]{3,}$')
 param clusterName string = 'ccw'
 param acceptMarketplaceTerms bool = false
-param deployOOD bool = false
+
+param ood types.ood_t = { ood_auth_method: 'disabled' }
+
+param startCluster bool = true
 param infrastructureOnly bool = false
 param insidersBuild bool = false
 
@@ -51,6 +55,7 @@ module makeCCWresources 'ccw.bicep' = {
   scope: ccwResourceGroup
   params: {
     location: location
+    startCluster: startCluster
     infrastructureOnly: infrastructureOnly
     insidersBuild: insidersBuild
     adminUsername: adminUsername
@@ -59,6 +64,8 @@ module makeCCWresources 'ccw.bicep' = {
     sharedFilesystem: sharedFilesystem
     additionalFilesystem: additionalFilesystem
     network: network
+    clusterInitSpecs: clusterInitSpecs
+    ood: ood
     slurmSettings: slurmSettings
     schedulerNode: schedulerNode
     loginNodes: loginNodes
@@ -77,6 +84,5 @@ module makeCCWresources 'ccw.bicep' = {
     projectVersion: projectVersion
     manualInstall: manualInstall
     acceptMarketplaceTerms: acceptMarketplaceTerms
-    deployOOD : deployOOD
   }
 }

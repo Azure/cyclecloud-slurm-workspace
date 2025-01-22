@@ -33,6 +33,8 @@ def main() -> None:
     ui_params = json.load(open(args.sandbox_ui_json))
 
     if args.resource_group:
+        if "resourceGroup" not in ui_params:
+            ui_params["resourceGroup"] = {}
         ui_params["resourceGroup"]["value"] = args.resource_group
 
     if args.vnet_address_space:
@@ -56,6 +58,8 @@ def main() -> None:
         ui_params['insidersBuild'] = {'value': args.insiders}
 
     if args.location:
+        if "location" not in ui_params:
+            ui_params["location"] = {}
         ui_params["location"]["value"] = args.location
 
     if args.vm_size:
