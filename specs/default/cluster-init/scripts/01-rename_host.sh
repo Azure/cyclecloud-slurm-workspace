@@ -3,6 +3,8 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$script_dir/../files/common.sh" 
 read_os
 
+JETPACK=/opt/cycle/jetpack/bin/jetpack
+
 source $script_dir/../files/$os_release/rename_host.sh
 
 function check_host_renaming() {
@@ -10,10 +12,10 @@ function check_host_renaming() {
   n=1
   max_retry=3
 
-  standalone_dns=$(jetpack config cyclecloud.hosts.standalone_dns.enabled | tr '[:upper:]' '[:lower:]')
+  standalone_dns=$($JETPACK config cyclecloud.hosts.standalone_dns.enabled | tr '[:upper:]' '[:lower:]')
   if [[ $standalone_dns != "true" ]]; then
     # Get the target hostname
-    target_hostname=$(jetpack config cyclecloud.node.name | tr '[:upper:]' '[:lower:]')
+    target_hostname=$($JETPACK config cyclecloud.node.name | tr '[:upper:]' '[:lower:]')
     while true; do
       # Get current hostname
       current_hostname=$(hostname | tr '[:upper:]' '[:lower:]')
