@@ -146,7 +146,7 @@
         "toolTip": "SSH-RSA Public Key for the Virtual Machines",
         "constraints": {
           "required": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]",
-          "regex": "^ssh-rsa AAAAB3NzaC1yc2[0-9A-Za-z+/]+[=]{0,3}(\\s.*)?$",
+          "regex": "^ssh-[a-zA-Z0-9]+ [A-Za-z0-9+/=]+(?: .*)?$",
           "validationMessage": "Invalid ssh-rsa public key"
         },
         "visible": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]"
