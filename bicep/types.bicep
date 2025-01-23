@@ -251,6 +251,7 @@ type ood_enabled_t = {
   domain: string
   sku: string
   osImage: string
+  registerEntraID: bool
 }
 
 @export()
