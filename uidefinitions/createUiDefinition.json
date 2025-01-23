@@ -1626,6 +1626,17 @@
                   "validationMessage": "Image Name is required."
                 },
                 "visible": "[steps('ood').OODSection.deployOOD]"
+              },
+              {
+                "name": "registration",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Authenticate with Microsoft EntraID",
+                "toolTip": "Authenticate the Open OnDemand application using Microsoft EntraID",
+                "defaultValue": true,
+                "constraints": {
+                  "required": false
+                },
+                "visible": "[steps('ood').OODSection.deployOOD]"
               }
             ],
             "visible": true
@@ -1744,7 +1755,8 @@
         "type": "[if(steps('ood').OODSection.deployOOD,'enabled','disabled')]",
         "domain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.domain,basics('nullValue'))]",
         "sku": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.vmsize,basics('nullValue'))]",
-        "osImage": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.ImageName,basics('nullValue'))]"
+        "osImage": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.ImageName,basics('nullValue'))]",
+        "registerEntraID": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.registration,basics('nullValue'))]"
       },
       "tags": "[steps('tags').tagsByResource]"
     }
