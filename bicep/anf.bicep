@@ -16,7 +16,7 @@ resource anfAccount 'Microsoft.NetApp/netAppAccounts@2023-11-01' existing = if(!
   name: 'hpcanfaccount-${take(resourcePostfix,10)}'
 }
 
-resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2024-01-01' = if(!infrastructureOnly){
+resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2024-07-01' = if(!infrastructureOnly){
   name: '${name}-anf-pool'
   location: location
   tags: tags
@@ -27,7 +27,7 @@ resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2024-01-01' = if
   }
 }
 
-resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2023-11-01' = if(!infrastructureOnly){
+resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2024-07-01' = if(!infrastructureOnly){
   name: '${name}-anf-volume'
   location: location
   tags: tags
