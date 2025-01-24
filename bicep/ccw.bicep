@@ -264,7 +264,7 @@ module oodApp 'oodEntraApp.bicep' = if (deployOOD) {
   params: {
     location: location
     name: 'ood-${uniqueString(az.resourceGroup().id)}'
-    redirectURI: 'https://${oodNIC.outputs.privateIp}/oidc'
+    redirectURI: uri('https://${oodNIC.outputs.privateIp}','/oidc')
   }
 }
 
