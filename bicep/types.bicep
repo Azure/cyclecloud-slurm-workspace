@@ -248,10 +248,10 @@ type ood_none_t = {
 
 type ood_enabled_t = {
   type: 'enabled'
-  domain: string
   sku: string
   osImage: string
-  registerEntraID: bool
+  userDomain: string
+  registerEntraIDApp: bool
 }
 
 @export()
