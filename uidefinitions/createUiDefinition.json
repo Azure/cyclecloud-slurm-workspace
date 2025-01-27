@@ -1615,11 +1615,11 @@
                 "visible": "[steps('ood').OODSection.deployOOD]"
               },
               {
-                "name": "userMapMatch",
+                "name": "userDomain",
                 "type": "Microsoft.Common.TextBox",
-                "label": "User domain to map users",
+                "label": "User domain",
                 "defaultValue": "contoso.com",
-                "toolTip": "Domain used to extract the username from the email address",
+                "toolTip": "Domain of user email addresses",
                 "constraints": {
                   "required": true,
                   "regex": "^[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}$",
