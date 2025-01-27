@@ -1615,17 +1615,6 @@
                 "visible": "[steps('ood').OODSection.deployOOD]"
               },
               {
-                "name": "registerEntraIDApp",
-                "type": "Microsoft.Common.CheckBox",
-                "label": "Register an EntraID Application",
-                "toolTip": "Register an EntraID Application for Open OnDemand authentication using Open ID Connect",
-                "defaultValue": true,
-                "constraints": {
-                  "required": false
-                },
-                "visible": "[steps('ood').OODSection.deployOOD]"
-              },
-              {
                 "name": "userMapMatch",
                 "type": "Microsoft.Common.TextBox",
                 "label": "User domain to map users",
@@ -1635,6 +1624,17 @@
                   "required": true,
                   "regex": "^[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}$",
                   "validationMessage": "Enter a valid domain name"
+                },
+                "visible": "[steps('ood').OODSection.deployOOD]"
+              },
+              {
+                "name": "registerEntraIDApp",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Register an EntraID Application",
+                "toolTip": "Register an EntraID Application for Open OnDemand authentication using Open ID Connect",
+                "defaultValue": true,
+                "constraints": {
+                  "required": false
                 },
                 "visible": "[steps('ood').OODSection.deployOOD]"
               }
