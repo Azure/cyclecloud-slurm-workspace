@@ -1630,8 +1630,8 @@
               {
                 "name": "registerEntraIDApp",
                 "type": "Microsoft.Common.CheckBox",
-                "label": "Register an EntraID Application",
-                "toolTip": "Register an EntraID Application for Open OnDemand authentication using Open ID Connect",
+                "label": "Register an Entra ID Application",
+                "toolTip": "Register an Entra ID Application for Open OnDemand authentication using OpenID Connect",
                 "defaultValue": true,
                 "constraints": {
                   "required": false
