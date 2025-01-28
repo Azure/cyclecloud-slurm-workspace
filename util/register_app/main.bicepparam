@@ -1,4 +1,4 @@
 using './main.bicep'
-param miName = 'ood_mi'
-param name = 'ood_ccws_01211133_app2'
+param miName = 'ccw_ood_shared_mi'
+param name = 'ccw_ood_shared_app'
 param fqdn = 'foo'
