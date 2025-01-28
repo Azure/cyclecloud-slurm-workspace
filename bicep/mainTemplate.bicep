@@ -29,7 +29,7 @@ param databaseConfig types.databaseConfig_t = { type: 'disabled' }
 @description('The user-defined name of the cluster. Regex: ^[a-zA-Z0-9@_-]{3,}$')
 param clusterName string = 'ccw'
 param acceptMarketplaceTerms bool = false
-param deployOOD bool = false
+param ood types.oodConfig_t = { type: 'disabled' }
 param infrastructureOnly bool = false
 param insidersBuild bool = false
 
@@ -77,6 +77,6 @@ module makeCCWresources 'ccw.bicep' = {
     projectVersion: projectVersion
     manualInstall: manualInstall
     acceptMarketplaceTerms: acceptMarketplaceTerms
-    deployOOD : deployOOD
+    ood : ood
   }
 }

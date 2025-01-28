@@ -672,7 +672,7 @@
                 "options": {
                   "icon": "Warning",
                   "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nThe option to create a new virtual network with a CIDR of /24 is therefore omitted in the below menu."
-                  }
+                }
               },
               {
                 "name": "lustreInfoBoxExisting",
@@ -681,7 +681,7 @@
                 "options": {
                   "icon": "Warning",
                   "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nPlease ensure that the subnet for the additional file-system selected below meets this requirement."
-                  }
+                }
               },
               {
                 "name": "cidrPrefix",
@@ -1573,6 +1573,90 @@
         ]
       },
       {
+        "name": "ood",
+        "label": "Open OnDemand",
+        "elements": [
+          {
+            "name": "OODSection",
+            "type": "Microsoft.Common.Section",
+            "label": "Open OnDemand",
+            "elements": [
+              {
+                "name": "deployOOD",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Deploy Open OnDemand",
+                "toolTip": "Deploy Open OnDemand alongside the Slurm cluster",
+                "constraints": {
+                  "required": false
+                },
+                "visible": true
+              },
+              {
+                "name": "vmsize",
+                "type": "Microsoft.Compute.SizeSelector",
+                "label": "Open OnDemand VM Size",
+                "toolTip": "Select a SKU for the Open OnDemand VM",
+                "recommendedSizes": [
+                  "Standard_D4as_v4"
+                ],
+                "options": {
+                  "hideDiskTypeFilter": true
+                },
+                "osPlatform": "Linux",
+                "visible": "[steps('ood').OODSection.deployOOD]"
+              },
+              {
+                "name": "ImageName",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Image Name",
+                "defaultValue": "Ubuntu 22.04",
+                "toolTip": "Select the image to use for the OOD virtual machine",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Alma Linux 8",
+                      "value": "almalinux:almalinux-x86_64:8-gen2:latest"
+                    },
+                    {
+                      "label": "Ubuntu 22.04",
+                      "value": "canonical:0001-com-ubuntu-server-jammy:22_04-lts-gen2:latest"
+                    }
+                  ],
+                  "required": true,
+                  "validationMessage": "Image Name is required."
+                },
+                "visible": "[steps('ood').OODSection.deployOOD]"
+              },
+              {
+                "name": "userDomain",
+                "type": "Microsoft.Common.TextBox",
+                "label": "User domain",
+                "defaultValue": "contoso.com",
+                "toolTip": "Domain of user email addresses",
+                "constraints": {
+                  "required": true,
+                  "regex": "^[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}$",
+                  "validationMessage": "Enter a valid domain name"
+                },
+                "visible": "[steps('ood').OODSection.deployOOD]"
+              },
+              {
+                "name": "registerEntraIDApp",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Register an Entra ID Application",
+                "toolTip": "Register an Entra ID Application for Open OnDemand authentication using OpenID Connect",
+                "defaultValue": true,
+                "constraints": {
+                  "required": false
+                },
+                "visible": "[steps('ood').OODSection.deployOOD]"
+              }
+            ],
+            "visible": true
+          }
+        ]
+      },
+      {
         "name": "tags",
         "label": "Tags",
         "elements": [
@@ -1680,6 +1764,13 @@
         "sku": "[steps('slurmSettings').GPUSection.vmsize]",
         "maxNodes": "[int(steps('slurmSettings').GPUSection.maxNodes)]",
         "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').GPUSection.ImageName,'custom'),steps('slurmSettings').GPUSection.customImageName,steps('slurmSettings').GPUSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]"
+      },
+      "ood": {
+        "type": "[if(steps('ood').OODSection.deployOOD,'enabled','disabled')]",
+        "sku": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.vmsize,basics('nullValue'))]",
+        "osImage": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.ImageName,basics('nullValue'))]",
+        "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",
+        "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.registerEntraIDApp,basics('nullValue'))]"
       },
       "tags": "[steps('tags').tagsByResource]"
     }
