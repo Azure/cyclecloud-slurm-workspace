@@ -157,10 +157,8 @@ var nsg_rules = {
     // Allow https incoming connections
     AllowHttpsIn: ['100', 'Inbound', 'Allow', 'Tcp', 'Https', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
 
-    // Allow ssh from cyclecloud to compute
-    AllowSshCyclecloudComputeIn: ['200', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'cyclecloud', 'subnet', 'compute']
-    // Allow ssh from VirtualNetwork to CycleCloud
-    AllowSshVnetCyclecloudIn: ['250', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'tag', 'VirtualNetwork', 'subnet', 'cyclecloud']
+    // Allow ssh from VirtualNetwork to VirtualNetwork to allow SSH from peered or VPN connected VNets
+    AllowSshVnetVnetIn: ['250', 'Inbound', 'Allow', 'Tcp', 'Ssh', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
 
     // All communications inside compute subnet
     AllowAllComputeComputeIn: ['365', 'Inbound', 'Allow', 'Tcp', 'All', 'subnet', 'compute', 'subnet', 'compute']
