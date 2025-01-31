@@ -1,0 +1,8 @@
+
+        [[[parameter GPUSpotMaxPrice]]]
+        Label = Max Price GPU
+        DefaultValue = -1
+        Description = Max price for Spot VMs in USD (value of -1 will not evict based on price)
+        Config.Plugin = pico.form.NumberTextBox
+        Conditions.Excluded := GPUUseLowPrio isnt true
+        Config.MinValue = -1

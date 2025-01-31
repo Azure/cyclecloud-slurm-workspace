@@ -1,0 +1,5 @@
+        [[[parameter GPUClusterInitSpecs]]]
+        Label = GPU Cluster-Init
+        DefaultValue = =undefined
+        Description = Cluster init specs to apply to GPU execute nodes
+        ParameterType = Cloud.ClusterInitSpecs

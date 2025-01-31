@@ -1,0 +1,7 @@
+
+        [[[parameter NodeTags]]]
+        Label = VM Tags
+        Description = Tags applied to all nodes
+        ParameterType = Record
+        DefaultValue := {}
+        Config.MultiSelect = false

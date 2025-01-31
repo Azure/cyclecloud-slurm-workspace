@@ -251,6 +251,20 @@ curl -k https://localhost
 cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=$SLURM_CLUSTER_NAME
 echo "CC initialize successful"
 sleep 5
+
+AZSLURM_PROJECT_VERSION=$(jq -r .azslurmProjectVersion.value ccwOutputs.json)
+CLOUD_SLURM_PROJECT_VERSION=$(/opt/cycle_server/./cycle_server execute 'SELECT Version FROM Cloud.Project WHERE name == "slurm"' | cut -d'"' -f2)
+if [ $CLOUD_SLURM_PROJECT_VERSION != $AZSLURM_PROJECT_VERSION ]; then 
+    OLDEST_PROJECT_VERSION=$(printf '%s\n' $AZSLURM_PROJECT_VERSION $CLOUD_SLURM_PROJECT_VERSION | sort --version-sort | head -n 1) 
+    if [ $OLDEST_PROJECT_VERSION == $AZSLURM_PROJECT_VERSION ]; then 
+        echo "AzSlurm project version is older than the Slurm project version in CycleCloud."
+    else
+        echo "AzSlurm project version is newer than the Slurm project version in CycleCloud."
+    fi
+    echo "Exiting without adding CCW for Slurm template."
+    exit 0
+fi
+
 cyclecloud import_template Slurm-Workspace -f slurm-workspace.txt
 echo "CC import template successful"
 cyclecloud create_cluster Slurm-Workspace $SLURM_CLUSTER_NAME -p slurm_params.json

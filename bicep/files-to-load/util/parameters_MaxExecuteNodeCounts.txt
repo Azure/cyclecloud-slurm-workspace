@@ -1,0 +1,23 @@
+        [[[parameter MaxHPCExecuteNodeCount]]]
+        Label = Max HPC Nodes
+        Description = The total number of HPC execute nodes to start
+        DefaultValue = 4
+        Config.Plugin = pico.form.NumberTextBox
+        Config.MinValue = 1
+        Config.IntegerOnly = true
+
+        [[[parameter MaxHTCExecuteNodeCount]]]
+        Label = Max HTC Nodes
+        Description = The total number of HTC execute nodes to start
+        DefaultValue = 4
+        Config.Plugin = pico.form.NumberTextBox
+        Config.MinValue = 1
+        Config.IntegerOnly = true
+
+        [[[parameter MaxGPUExecuteNodeCount]]]
+        Label = Max GPU Nodes
+        Description = The total number of GPU execute nodes to start
+        DefaultValue = 4
+        Config.Plugin = pico.form.NumberTextBox
+        Config.MinValue = 1
+        Config.IntegerOnly = true

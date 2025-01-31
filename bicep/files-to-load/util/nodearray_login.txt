@@ -1,0 +1,6 @@
+
+    [[nodearray login]]
+        InitialCount = $NumberLoginNodes
+        MachineType = $loginMachineType
+        AdditionalClusterInitSpecs = $LoginClusterInitSpecs
+        ImageName = $LoginImageName

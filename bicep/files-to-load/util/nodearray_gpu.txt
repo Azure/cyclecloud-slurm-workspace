@@ -1,0 +1,16 @@
+    [[nodearray gpu]]
+    Extends = nodearraybase
+    MachineType = $GPUMachineType
+    ImageName = $GPUImageName
+    MaxCount = $MaxGPUExecuteNodeCount
+    Azure.MaxScalesetSize = $HPCMaxScalesetSize
+    EnableNodeHealthChecks = $EnableNodeHealthChecks
+
+    Interruptible = $GPUUseLowPrio
+    MaxPrice = $GPUSpotMaxPrice
+    AdditionalClusterInitSpecs = $GPUClusterInitSpecs
+
+        [[[configuration]]]
+        slurm.default_partition = true
+        slurm.hpc = true
+        slurm.partition = gpu
