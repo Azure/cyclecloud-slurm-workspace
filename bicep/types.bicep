@@ -218,3 +218,19 @@ type databaseOutput_t = {
   databaseUser: string?
   url: string?
 }
+
+type ood_none_t = {
+  type: 'disabled'
+}
+
+type ood_enabled_t = {
+  type: 'enabled'
+  sku: string
+  osImage: string
+  userDomain: string
+  registerEntraIDApp: bool
+}
+
+@export()
+@discriminator('type')
+type oodConfig_t = ood_none_t | ood_enabled_t

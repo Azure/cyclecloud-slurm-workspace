@@ -7,6 +7,9 @@ param adminUsername string
 param adminPassword string
 param adminSshPublicKey string = '' 
 param storedKeyId string = ''
+@minLength(1)
+@maxLength(64)
+param ccVMName string
 param ccVMSize string
 param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
@@ -25,14 +28,15 @@ param databaseConfig types.databaseConfig_t = { type: 'disabled' }
 @minLength(3)
 @description('The user-defined name of the cluster. Regex: ^[a-zA-Z0-9@_-]{3,}$')
 param clusterName string = 'ccw'
-
+param acceptMarketplaceTerms bool = false
+param ood types.oodConfig_t = { type: 'disabled' }
 param infrastructureOnly bool = false
 param insidersBuild bool = false
 
 // build.sh will override this, but for development please set this yourself as a parameter
 param branch string = 'main'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
-param projectVersion string = '2024.11.08'
+param projectVersion string = '2024.12.18'
 //Internal developer use only: set true use custom CycleCloud release build 
 param manualInstall bool = false
 
@@ -61,7 +65,8 @@ module makeCCWresources 'ccw.bicep' = {
     htc: htc
     hpc: hpc
     gpu: gpu
-    storedKeyId: storedKeyId
+    storedKey: storedKey
+    ccVMName: ccVMName
     ccVMSize: ccVMSize
     resourceGroup: resourceGroup
     databaseAdminPassword: databaseAdminPassword
@@ -71,5 +76,7 @@ module makeCCWresources 'ccw.bicep' = {
     branch: branch
     projectVersion: projectVersion
     manualInstall: manualInstall
+    acceptMarketplaceTerms: acceptMarketplaceTerms
+    ood : ood
   }
 }
