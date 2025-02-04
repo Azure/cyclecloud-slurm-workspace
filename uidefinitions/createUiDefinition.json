@@ -1582,6 +1582,15 @@
             "label": "Open OnDemand",
             "elements": [
               {
+                "name": "oodInfo",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": true,
+                "options": {
+                  "icon": "None",
+                  "text": "Open OnDemand is..."
+                }
+              },
+              {
                 "name": "deployOOD",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Deploy Open OnDemand",
@@ -1590,6 +1599,24 @@
                   "required": false
                 },
                 "visible": true
+              },
+              {
+                "name": "oodFilesystemInfo",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[steps('ood').OODSection.deployOOD]",
+                "options": {
+                  "icon": "Info",
+                  "text": "Open OnDemand for Azure CycleCloud is best deployed with Azure NetApp Files used as the file-system for the /shared and /home directories."
+                }
+              },
+              {
+                "name": "oodLoginNodeInfo",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[steps('ood').OODSection.deployOOD]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Open OnDemand for Azure CycleCloud requires a minimum of one login node for use as a proxy between Azure CycleCloud and the Open OnDemand web server. Please review selections made under the Slurm Settings menu."
+                }
               },
               {
                 "name": "vmsize",
