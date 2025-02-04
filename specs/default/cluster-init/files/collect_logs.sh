@@ -34,11 +34,19 @@ path="${path%/}"
 
 source_dir="/opt/azurehpc/diagnostics"
 
-# Run the built-in script to gather diagnostics
-yes | bash "$source_dir"/gather_azhpc_vm_diagnostics.sh
+# Check if the diagnostics script is available (i.e., if node is using an AzureHPC image)
+if [ -d "$source_dir" ]; then
+  # Run the built-in script to gather diagnostics
+  yes | bash "$source_dir"/gather_azhpc_vm_diagnostics.sh
 
-# Identify the log file created by the above script
-log_file_name=$(ls -t "$source_dir" | head -n 1 | sed 's/\.tar\.gz$//')
+  # Identify the log file created by the above script
+  log_file_name=$(ls -t "$source_dir" | head -n 1 | sed 's/\.tar\.gz$//')
+else
+  # Create log file name in the same manner as diagnostics script if using a custom VM image
+  vm_id=$(curl -s -H Metadata:true "http://169.254.169.254/metadata/instance/compute/vmId?api-version=2021-03-01&format=text")
+  timestamp=$(date -u +"%Y-%m-%d.UTC%H.%M.%S")
+  log_file_name="$vm_id"."$timestamp"
+fi
 # Move datetime to the beginning of the file name 
 final_log_file_name=$(echo "$log_file_name" | sed -E 's/^([^.]+)\.(.+)$/\2.\1/')
 
@@ -46,9 +54,14 @@ final_log_file_name=$(echo "$log_file_name" | sed -E 's/^([^.]+)\.(.+)$/\2.\1/')
 tmp_dir="/tmp/logs"
 mkdir -p "$tmp_dir" && cd "$tmp_dir"
 
-# Move the log archive to the temporary directory and extract it
-mv "$source_dir"/"$log_file_name".tar.gz .
-tar -xzf "$log_file_name".tar.gz && rm "$log_file_name".tar.gz
+if [ -d "$source_dir" ]; then 
+  # Move the log archive to the temporary directory and extract it
+  mv "$source_dir"/"$log_file_name".tar.gz .
+  tar -xzf "$log_file_name".tar.gz && rm "$log_file_name".tar.gz
+else
+  # Create empty directory in which to store the node logs
+  mkdir -p "$log_file_name"
+fi
 
 # Create a subdirectory named "cluster" and add more logs to it
 cd "$log_file_name" && mkdir -p cluster && cd cluster

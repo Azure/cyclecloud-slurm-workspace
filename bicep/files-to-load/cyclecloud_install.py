@@ -120,7 +120,7 @@ def reset_cyclecloud_pw(username):
   
 def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, application_id, application_secret,
                              admin_user, azure_cloud, accept_terms, password, storageAccount, no_default_account, 
-                             webserver_port):
+                             webserver_port, storage_managed_identity, accept_marketplace_terms):
 
     print("Setting up azure account in CycleCloud and initializing cyclecloud CLI")
 
@@ -166,7 +166,8 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
         "Provider": "azure",
         "ProviderId": subscription_id,
         "RMStorageAccount": storage_account_name,
-        "RMStorageContainer": "cyclecloud"
+        "RMStorageContainer": "cyclecloud",
+        "AcceptMarketplaceTerms": accept_marketplace_terms
     }
     distribution_method ={
         "Category": "system",
@@ -178,6 +179,12 @@ def cyclecloud_account_setup(vm_metadata, use_managed_identity, tenant_id, appli
     }
     if use_managed_identity:
         azure_data["AzureRMUseManagedIdentity"] = True
+
+    if storage_managed_identity:
+        azure_data["LockerIdentity"] = storage_managed_identity
+        azure_data["LockerAuthMode"] = "ManagedIdentity"
+    else:
+        azure_data["LockerAuthMode"] = "SharedAccessKey"
 
     app_setting_installation = {
         "AdType": "Application.Setting",
@@ -600,6 +607,14 @@ def main():
                         default=False,
                         action="store_true",
                         help="Use insiders build of CycleCloud")
+    parser.add_argument("--storageManagedIdentity",
+                        dest="storageManagedIdentity",
+                        default=None,
+                        help="Use a specified Managed Identity for storage access from the compute nodes")
+    parser.add_argument("--acceptMarketplaceTerms",
+                        dest="acceptMarketplaceTerms",
+                        action="store_true",
+                        help="Accept the Azure Marketplace terms for OS images")
     args = parser.parse_args()
 
     print("Debugging arguments: %s" % args)
@@ -636,7 +651,8 @@ def main():
     cyclecloud_account_setup(vm_metadata, args.useManagedIdentity, args.tenantId, args.applicationId,
                              args.applicationSecret, args.username, args.azureSovereignCloud,
                              args.acceptTerms, args.password, args.storageAccount, 
-                             args.no_default_account, args.webServerSslPort)
+                             args.no_default_account, args.webServerSslPort, args.storageManagedIdentity,
+                             args.acceptMarketplaceTerms)
 
     if args.useLetsEncrypt:
         letsEncrypt(args.hostname)

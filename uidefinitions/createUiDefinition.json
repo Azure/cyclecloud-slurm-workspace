@@ -5,7 +5,7 @@
   "parameters": {
     "config": {
       "basics": {
-        "description": "Version 2024.11.08",
+        "description": "Version **2024.12.18**: [Release Notes](https://learn.microsoft.com/azure/cyclecloud/release-notes/ccws/release-notes)",
         "resourceGroup": {
           "visible": false
         },
@@ -29,17 +29,17 @@
         "name": "newexisting",
         "type": "Microsoft.Common.DropDown",
         "label": "Resource group options",
-        "defaultValue": "Use existing resource group",
-        "toolTip": "Use an existing resource group or create a new one",
+        "defaultValue": "Create a new resource group",
+        "toolTip": "Create a new resource group or use an existing one",
         "constraints": {
           "allowedValues": [
             {
-              "label": "Use existing resource group",
-              "value": "existing"
+              "label": "Create a new resource group",
+              "value": "new"
             },
             {
-              "label": "Create new resource group",
-              "value": "new"
+              "label": "Use an existing resource group",
+              "value": "existing"
             }
           ],
           "required": true
@@ -73,6 +73,27 @@
           "required": true
         },
         "visible": "[equals(basics('newexisting'),'new')]"
+      },
+      {
+        "name": "CycleCloudVmName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "CycleCloud VM Name",
+        "defaultValue": "ccw-cyclecloud-vm",
+        "toolTip": "Name for the CycleCloud VM",
+        "constraints": {
+          "required": true,
+          "validations": [
+            {
+              "regex": "^[a-zA-Z0-9.-]{1,64}$",
+              "message": "Azure Linux VM names must be between 1 and 64 characters long and contain only letters, numbers, '.', and '-'."
+            },
+            {
+              "regex": "^(?![.-])(.*)(?<![.-])$",
+              "message": "Azure resource names may neither begin nor end with '.' or '-'."
+            }
+          ]
+        },
+        "visible": true
       },
       {
         "name": "CycleCloudVmSize",
@@ -143,11 +164,11 @@
         "name": "adminSshPublicKey",
         "type": "Microsoft.Common.TextBox",
         "label": "Admin SSH Public Key",
-        "toolTip": "SSH-RSA Public Key for the Virtual Machines",
+        "toolTip": "SSH Public Key for the Virtual Machines",
         "constraints": {
           "required": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]",
-          "regex": "^ssh-rsa AAAAB3NzaC1yc2[0-9A-Za-z+/]+[=]{0,3}(\\s.*)?$",
-          "validationMessage": "Invalid ssh-rsa public key"
+          "regex": "^ssh-[a-zA-Z0-9]+ [A-Za-z0-9+/=]+(?: .*)?$",
+          "validationMessage": "Invalid SSH public key"
         },
         "visible": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]"
       },
@@ -494,16 +515,6 @@
                 "visible": "[and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'))]"
               },
               {
-                "name": "amlInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "Please consult the linked page for the capacity range of each Azure Managed Lustre Tier.",
-                  "uri": "https://learn.microsoft.com/azure/azure-managed-lustre/create-file-system-portal?WT.mc_id=Portal-Microsoft_Azure_CreateUIDef#throughput-configurations"
-                }
-              },
-              {
                 "name": "lustretier",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Lustre Tier",
@@ -539,17 +550,19 @@
               },
               {
                 "name": "azurelustrecapacity",
-                "type": "Microsoft.Common.TextBox",
+                "type": "Microsoft.Common.Slider",
+                "min": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),48,if(endsWith(steps('filesystem').additional.lustretier,'-125'),16,if(endsWith(steps('filesystem').additional.lustretier,'-250'),8,4))))]",
+                "max": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),768,128))]",
+                "step": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),48,if(endsWith(steps('filesystem').additional.lustretier,'-125'),16,if(endsWith(steps('filesystem').additional.lustretier,'-250'),8,4))))]",
                 "label": "Capacity",
-                "toolTip": "Capacity of the Azure Managed Lustre volume",
                 "subLabel": "TiB",
-                "defaultValue": "48",
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]",
+                "defaultValue": 48,
+                "showStepMarkers": true,
+                "toolTip": "Capacity of the Azure Managed Lustre volume",
                 "constraints": {
-                  "required": true,
-                  "regex": "^[4-9]$|^[1-9][0-9]$|^[1-6][0-9]{2}$|^7[0-6][0-9]$|^768$",
-                  "validationMessage": "Please enter an integer between 4 and 768"
-                }
+                  "required": true
+                },
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]"
               },
               {
                 "name": "ipAddress",
@@ -592,7 +605,7 @@
                   "regex": "^\/(?:[\\w-.]+\/)*[\\w-.]+$",
                   "validationMessage": "Must be an absolute path"
                 },
-                "visible": "[equals(steps('filesystem').additional.newexisting, 'existing')]"
+                "visible": "[and(equals(steps('filesystem').additional.newexisting, 'existing'),not(equals(steps('filesystem').additional.filertype,'aml')))]"
               },
               {
                 "name": "mountOptions",
@@ -630,7 +643,7 @@
             "name": "newexisting",
             "type": "Microsoft.Common.DropDown",
             "label": "Virtual network options",
-            "defaultValue": "Automatically create new virtual networks and subnets",
+            "defaultValue": "Automatically create new virtual network and subnets",
             "toolTip": "Auto-create new networking resources or use an existing virtual network and subnets",
             "constraints": {
               "allowedValues": [
@@ -653,26 +666,36 @@
             "label": "Network configuration",
             "elements": [
               {
-                "name": "existing",
-                "type": "Microsoft.Common.TextBlock",
-                "visible": false,
+                "name": "lustreInfoBoxNew",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'new'))]",
                 "options": {
-                  "text": "Placeholder. Scrap?"
+                  "icon": "Warning",
+                  "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nThe option to create a new virtual network with a CIDR of /24 is therefore omitted in the below menu."
+                }
+              },
+              {
+                "name": "lustreInfoBoxExisting",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'existing'))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nPlease ensure that the subnet for the additional file-system selected below meets this requirement."
                 }
               },
               {
                 "name": "cidrPrefix",
                 "type": "Microsoft.Common.DropDown",
                 "label": "CIDR Prefix",
-                "defaultValue": "/24",
+                "defaultValue": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'/23','/24')]",
                 "multiLine": true,
                 "toolTip": "Select the CIDR prefix",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "/24",
-                      "description": "123 compute nodes",
-                      "value": "/24"
+                      "label": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','/24')]",
+                      "description": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','123 compute nodes')]",
+                      "value": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','/24')]"
                     },
                     {
                       "label": "/23",
@@ -681,7 +704,7 @@
                     },
                     {
                       "label": "/22",
-                      "description": "507 compute nodes",
+                      "description": "506 compute nodes",
                       "value": "/22"
                     },
                     {
@@ -844,17 +867,45 @@
         "label": "Slurm Settings",
         "elements": [
           {
-            "name": "clusterName",
-            "type": "Microsoft.Common.TextBox",
-            "label": "Cluster name",
-            "defaultValue": "ccw",
-            "toolTip": "Name of cluster in CycleCloud portal",
-            "constraints": {
-              "required": true,
-              "regex": "^[a-zA-Z0-9@_-]{3,}$",
-              "validationMessage": "Cluster name must be at least 3 characters long. Characters must be alphanumeric, @, -, or _."
-            },
-            "visible": false
+            "name": "clusterSettings",
+            "type": "Microsoft.Common.Section",
+            "label": "Cluster Configuration",
+            "elements": [
+              {
+                "name": "acceptMarketplaceTerms",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Auto-accept VM image terms",
+                "toolTip": "Enable CycleCloud to automatically accept any Azure Marketplace VM image terms for the selected Azure subscription",
+                "defaultValue": false,
+                "constraints": {
+                  "required": false
+                }
+              },
+              {
+                "name": "healthCheck",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Enable health check",
+                "toolTip": "Enable health check scripts (NHC) to be run during allocation",
+                "defaultValue": false,
+                "constraints": {
+                  "required": false
+                }
+              },
+              {
+                "name": "clusterName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Cluster name",
+                "defaultValue": "ccw",
+                "toolTip": "Name of cluster in CycleCloud portal",
+                "constraints": {
+                  "required": true,
+                  "regex": "^[a-zA-Z0-9@_-]{3,}$",
+                  "validationMessage": "Cluster name must be at least 3 characters long. Characters must be alphanumeric, @, -, or _."
+                },
+                "visible": false
+              }
+            ],
+            "visible": true
           },
           {
             "name": "schedulerSection",
@@ -938,19 +989,19 @@
                 "name": "slurmVersion",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Slurm Version",
-                "defaultValue": "23.11.7",
+                "defaultValue": "24.05.4",
                 "toolTip": "Select the version of Slurm to use",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "23.02.7",
-                      "description": "Version 23.02.7",
-                      "value": "23.02.7-4"
+                      "label": "23.11.10",
+                      "description": "Version 23.11.10",
+                      "value": "23.11.10-2"
                     },
                     {
-                      "label": "23.11.7",
-                      "description": "Version 23.11.7",
-                      "value": "23.11.7-1"
+                      "label": "24.05.4",
+                      "description": "Version 24.05.4",
+                      "value": "24.05.4-2"
                     }
                   ],
                   "required": true
@@ -1201,16 +1252,6 @@
               }
             ],
             "visible": true
-          },
-          {
-            "name": "healthCheck",
-            "type": "Microsoft.Common.CheckBox",
-            "label": "Enable health check",
-            "toolTip": "Enable health check scripts (NHC) to be run during allocation",
-            "defaultValue": false,
-            "constraints": {
-              "required": false
-            }
           }
         ]
       },
@@ -1532,6 +1573,90 @@
         ]
       },
       {
+        "name": "ood",
+        "label": "Open OnDemand",
+        "elements": [
+          {
+            "name": "OODSection",
+            "type": "Microsoft.Common.Section",
+            "label": "Open OnDemand",
+            "elements": [
+              {
+                "name": "deployOOD",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Deploy Open OnDemand",
+                "toolTip": "Deploy Open OnDemand alongside the Slurm cluster",
+                "constraints": {
+                  "required": false
+                },
+                "visible": true
+              },
+              {
+                "name": "vmsize",
+                "type": "Microsoft.Compute.SizeSelector",
+                "label": "Open OnDemand VM Size",
+                "toolTip": "Select a SKU for the Open OnDemand VM",
+                "recommendedSizes": [
+                  "Standard_D4as_v4"
+                ],
+                "options": {
+                  "hideDiskTypeFilter": true
+                },
+                "osPlatform": "Linux",
+                "visible": "[steps('ood').OODSection.deployOOD]"
+              },
+              {
+                "name": "ImageName",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Image Name",
+                "defaultValue": "Ubuntu 22.04",
+                "toolTip": "Select the image to use for the OOD virtual machine",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Alma Linux 8",
+                      "value": "almalinux:almalinux-x86_64:8-gen2:latest"
+                    },
+                    {
+                      "label": "Ubuntu 22.04",
+                      "value": "canonical:0001-com-ubuntu-server-jammy:22_04-lts-gen2:latest"
+                    }
+                  ],
+                  "required": true,
+                  "validationMessage": "Image Name is required."
+                },
+                "visible": "[steps('ood').OODSection.deployOOD]"
+              },
+              {
+                "name": "userDomain",
+                "type": "Microsoft.Common.TextBox",
+                "label": "User domain",
+                "defaultValue": "contoso.com",
+                "toolTip": "Domain of user email addresses",
+                "constraints": {
+                  "required": true,
+                  "regex": "^[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}$",
+                  "validationMessage": "Enter a valid domain name"
+                },
+                "visible": "[steps('ood').OODSection.deployOOD]"
+              },
+              {
+                "name": "registerEntraIDApp",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Register an Entra ID Application",
+                "toolTip": "Register an Entra ID Application for Open OnDemand authentication using OpenID Connect",
+                "defaultValue": true,
+                "constraints": {
+                  "required": false
+                },
+                "visible": "[steps('ood').OODSection.deployOOD]"
+              }
+            ],
+            "visible": true
+          }
+        ]
+      },
+      {
         "name": "tags",
         "label": "Tags",
         "elements": [
@@ -1550,7 +1675,8 @@
               "Microsoft.NetApp/netAppAccounts",
               "Microsoft.Network/bastionHosts",
               "Resource group",
-              "Node Array"
+              "Node Array",
+              "Microsoft.ManagedIdentity/userAssignedIdentities"
             ]
           }
         ]
@@ -1562,6 +1688,7 @@
       "adminPassword": "[basics('adminPasswordBox')]",
       "adminSshPublicKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
       "storedKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'stored'),basics('keySelector'),basics('nullValue'))]",
+      "ccVMName": "[basics('CycleCloudVmName')]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
       "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
       "sharedFilesystem": {
@@ -1606,10 +1733,11 @@
         "privateIp": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateIp'),steps('scheduler').schedulerSection.databasePIP,basics('nullValue'))]",
         "dbInfo": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint'),steps('scheduler').schedulerSection.dbSelector,basics('nullValue'))]"
       },
-      "clusterName": "[steps('scheduler').clusterName]",
+      "clusterName": "[steps('scheduler').clusterSettings.clusterName]",
+      "acceptMarketplaceTerms": "[steps('scheduler').clusterSettings.acceptMarketplaceTerms]",
       "slurmSettings": {
         "version": "[steps('scheduler').schedulerSection.slurmVersion]",
-        "healthCheckEnabled": "[steps('scheduler').healthCheck]"
+        "healthCheckEnabled": "[steps('scheduler').clusterSettings.healthCheck]"
       },
       "schedulerNode": {
         "sku": "[steps('scheduler').schedulerSection.vmsize]",
@@ -1636,6 +1764,13 @@
         "sku": "[steps('slurmSettings').GPUSection.vmsize]",
         "maxNodes": "[int(steps('slurmSettings').GPUSection.maxNodes)]",
         "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').GPUSection.ImageName,'custom'),steps('slurmSettings').GPUSection.customImageName,steps('slurmSettings').GPUSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]"
+      },
+      "ood": {
+        "type": "[if(steps('ood').OODSection.deployOOD,'enabled','disabled')]",
+        "sku": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.vmsize,basics('nullValue'))]",
+        "osImage": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.ImageName,basics('nullValue'))]",
+        "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",
+        "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.registerEntraIDApp,basics('nullValue'))]"
       },
       "tags": "[steps('tags').tagsByResource]"
     }

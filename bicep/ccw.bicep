@@ -13,6 +13,7 @@ param adminUsername string
 param adminPassword string
 param adminSshPublicKey string
 param storedKey types.storedKey_t
+param ccVMName string
 param ccVMSize string
 param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
@@ -29,8 +30,11 @@ param tags types.resource_tags_t
 param databaseAdminPassword string
 param databaseConfig types.databaseConfig_t
 param clusterName string
+param manualInstall bool
+param acceptMarketplaceTerms bool
+param ood types.oodConfig_t
 
-var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
+var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8'
 
 func getTags(resource_type string, tags types.resource_tags_t) types.tags_t => tags[?resource_type] ?? {}
 
@@ -104,16 +108,15 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
   }
 }
 
-param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.6.520241024'
+param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.7.020241219'
 
-var vmName = 'ccw-cyclecloud'
 module ccwVM './vm.bicep' = if (!infrastructureOnly) {
   name: 'ccwVM-cyclecloud'
   params: {
     location: location
     tags: getTags('Microsoft.Compute/virtualMachines', tags)
     networkInterfacesTags: getTags('Microsoft.Network/networkInterfaces', tags)
-    name: vmName
+    name: ccVMName
     deployScript: loadTextContent('./install.sh')
     osDiskSku: 'StandardSSD_LRS'
     image: {
@@ -137,7 +140,7 @@ module ccwVM './vm.bicep' = if (!infrastructureOnly) {
     vmSize: ccVMSize
     dataDisks: [
       {
-        name: 'ccw-cyclecloud-vm-datadisk0'
+        name: '${ccVMName}-datadisk0'
         disksku: 'Premium_LRS'
         size: split(cyclecloudBaseImage, ':')[0] == 'azurecyclecloud' ? 0 : 128
         caching: 'ReadWrite'
@@ -150,12 +153,21 @@ module ccwVM './vm.bicep' = if (!infrastructureOnly) {
   ]
 }
 
-module ccwRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
-  name: 'ccwRoleFor-${vmName}-${location}'
+var miName = 'ccwLockerManagedIdentity'
+module ccwManagedIdentity 'mi.bicep' = if (!infrastructureOnly) {
+  name: miName
+  params: {
+    name: miName
+    location: location
+    storageAccountName: ccwStorage.outputs.storageAccountName
+    tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
+  }
+}
+
+module ccwRoleAssignments './vmRoleAssignments.bicep' = if (!infrastructureOnly) {
+  name: 'ccwRoleFor-${ccVMName}-${location}'
   scope: subscription()
   params: {
-    name: vmName
-    rgID: az.resourceGroup().id
     roles: [
       'Contributor'
       'Storage Account Contributor'
@@ -237,6 +249,33 @@ module ccwANF 'anf.bicep' = [
   }
 ]
 
+var deployOOD = ood.type != 'disabled'
+
+module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
+  name: 'oodNIC'
+  params: {
+    location: location
+    name: 'ood-${uniqueString(az.resourceGroup().id)}'
+    networkInterfacesTags: getTags('Microsoft.Network/networkInterfaces', tags)
+    subnetId: subnets.compute.id
+  }
+}
+
+// create a user assigned managed identity to be assigned to the OOD VM
+resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (deployOOD) {
+  name: 'ood-${uniqueString(az.resourceGroup().id)}-mi'
+  location: location
+}
+
+module oodApp 'oodEntraApp.bicep' = if (deployOOD) {
+  name: 'oodApp'
+  params: {
+    umiName: 'ood-${uniqueString(az.resourceGroup().id)}-mi'
+    appName: 'ood-${uniqueString(az.resourceGroup().id)}-app'
+    fqdn: oodNIC.outputs.privateIp
+  }
+}
+
 output filerInfoFinal types.filerInfo_t = {
   home: {
     type: sharedFilesystem.type
@@ -264,6 +303,8 @@ output filerInfoFinal types.filerInfo_t = {
 }
 
 output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.principalId
+
+output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
 
 output slurmSettings types.slurmSettings_t = slurmSettings
 
@@ -313,3 +354,5 @@ output nodeArrayTags types.tags_t = tags[?'Node Array'] ?? {}
 output branch string = branch
 output projectVersion string = projectVersion
 output insidersBuild bool = insidersBuild
+output manualInstall bool = manualInstall
+output acceptMarketplaceTerms bool = acceptMarketplaceTerms
