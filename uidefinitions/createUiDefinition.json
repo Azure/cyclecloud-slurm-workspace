@@ -1647,12 +1647,38 @@
                     {
                       "label": "Ubuntu 22.04",
                       "value": "canonical:0001-com-ubuntu-server-jammy:22_04-lts-gen2:latest"
+                    },
+                    {
+                      "label": "Custom image",
+                      "value": "custom"
                     }
                   ],
                   "required": true,
                   "validationMessage": "Image Name is required."
                 },
                 "visible": "[steps('ood').OODSection.deployOOD]"
+              },
+              {
+                "name": "customImageInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('ood').OODSection.ImageName,'custom')]",
+                "options": {
+                  "icon": "Info",
+                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
+                }
+              },
+              {
+                "name": "customImageName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Custom Image ID",
+                "defaultValue": "",
+                "toolTip": "Enter a custom image ID or URN",
+                "constraints": {
+                  "required": true,
+                  "regex": "^.{1,}$",
+                  "validationMessage": "Please enter a custom image resource ID or URN"
+                },
+                "visible": "[equals(steps('ood').OODSection.ImageName,'custom')]"
               },
               {
                 "name": "userDomain",
@@ -1795,7 +1821,7 @@
       "ood": {
         "type": "[if(steps('ood').OODSection.deployOOD,'enabled','disabled')]",
         "sku": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.vmsize,basics('nullValue'))]",
-        "osImage": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.ImageName,basics('nullValue'))]",
+        "osImage": "[if(steps('ood').OODSection.deployOOD,if(equals(steps('ood').OODSection.ImageName,'custom'),steps('ood').OODSection.customImageName,steps('ood').OODSection.ImageName),basics('nullValue'))]",
         "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",
         "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.registerEntraIDApp,basics('nullValue'))]"
       },
