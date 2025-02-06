@@ -31,12 +31,14 @@ param clusterName string = 'ccw'
 param acceptMarketplaceTerms bool = false
 
 param infrastructureOnly bool = false
+// TODO RDH change before release
 param insidersBuild bool = true
 
 // build.sh will override this, but for development please set this yourself as a parameter
-param branch string = 'main'
+// TODO RDH change before release
+param branch string = 'release/8.7.1'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
-param projectVersion string = '2024.12.18'
+param projectVersion string = '2025.02.06'
 //Internal developer use only: set true use custom CycleCloud release build 
 param manualInstall bool = false
 
