@@ -55,6 +55,14 @@ done
 nvme_direct_disk_count=${#nvme_direct_disks[@]}
 printf "Found $nvme_direct_disk_count NVMe Direct Disks\n"
 
+# CCW MODIFICATION: Early exit if there are no nvme devices
+# TODO this is added since we run this on every node. Ideally we would only
+# run this on compute nodes that actually have nvme
+if [ "$nvme_direct_disk_count" -eq 0 ]; then
+    printf "No NVMe Direct Disks found\n"
+    exit 0
+fi
+
 # Check if there's already an NVMe Direct Disk RAID 0 disk (or remnant data)
 if grep "$RAID0_FILESYSTEM_LABEL" /etc/fstab > /dev/null; then
     fstab_entry_present=true
