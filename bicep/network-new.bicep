@@ -91,18 +91,14 @@ var vnet  = {
         name: network.?cyclecloudSubnet ?? 'ccw-cyclecloud-subnet'
         cidr: subnet_cidr.cyclecloud
         nat_gateway: true
-        service_endpoints: [
-          'Microsoft.Storage'
-        ]
+        service_endpoints: []
         delegations: []
       }
       compute: {
         name: network.?computeSubnet ?? 'ccw-compute-subnet'
         cidr: subnet_cidr.compute
         nat_gateway : true 
-        service_endpoints: [
-          'Microsoft.Storage'
-        ]
+        service_endpoints: []
         delegations: []
       }
     },
