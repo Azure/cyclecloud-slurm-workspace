@@ -6,10 +6,10 @@ param tags tags_t
 param saName string
 param lockDownNetwork bool
 // param allowableIps array
-param subnetIds array
+param subnets object
 
 // var ips = [ for ip in allowableIps : { value: ip } ]
-var subIds = [ for id in subnetIds : { id: id } ]
+var subIds = [ for subnet in items(subnets) : { id: subnet.value } ]
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-04-01' = {
   name: saName
