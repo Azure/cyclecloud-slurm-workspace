@@ -4,11 +4,7 @@ import {tags_t} from './types.bicep'
 param location string
 param tags tags_t
 param saName string
-param lockDownNetwork bool
-// param allowableIps array
-param subnets object
-
-// var ips = [ for ip in allowableIps : { value: ip } ]
+param subnetId string
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-04-01' = {
   name: saName
@@ -18,33 +14,27 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-04-01' = {
     name: 'Standard_LRS'
   }
   kind: 'StorageV2'
-  properties: union(
-    {
-      accessTier: 'Hot'
-      minimumTlsVersion: 'TLS1_2'
-      allowSharedKeyAccess: false
-      publicNetworkAccess: 'Disabled'
-    },
-    lockDownNetwork ? {
-      networkAcls: {
-        defaultAction: 'Deny'
-        // ipRules: ips
-          //map(allowableIps, ip => { value: ip })
-      }
-    } : {}
-  )
+  properties:{
+    accessTier: 'Hot'
+    minimumTlsVersion: 'TLS1_2'
+    allowSharedKeyAccess: false
+    publicNetworkAccess: 'Disabled'
+    networkAcls: {
+      defaultAction: 'Deny'
+      }      
+  }
 }
 
 var storagePrivateEndpointBlobPrefix = 'ccwstorage-blob-pe'
 
-resource storagePrivateEndpointBlob 'Microsoft.Network/privateEndpoints@2023-04-01' = [ for subnet in items(subnets): {
-  name: '${storagePrivateEndpointBlobPrefix}-${subnet.key}'
+resource storagePrivateEndpointBlob 'Microsoft.Network/privateEndpoints@2023-04-01' =  {
+  name: storagePrivateEndpointBlobPrefix
   location: location
   tags: tags
   properties: {
     privateLinkServiceConnections: [
       { 
-        name: '${storagePrivateEndpointBlobPrefix}-${subnet.key}'
+        name: storagePrivateEndpointBlobPrefix
         properties: {
           groupIds: [
             'blob'
@@ -58,12 +48,12 @@ resource storagePrivateEndpointBlob 'Microsoft.Network/privateEndpoints@2023-04-
         }
       }
     ]
-    customNetworkInterfaceName: '${storagePrivateEndpointBlobPrefix}-${subnet.key}-nic'
+    customNetworkInterfaceName: '${storagePrivateEndpointBlobPrefix}-nic'
     subnet: {
-      id: subnet.value
+      id: subnetId
     }
   }
-}] 
+}
 
 var blobPrivateDnsZoneName = 'privatelink.blob.${environment().suffixes.storage}'
 
@@ -72,8 +62,9 @@ resource blobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' = {
   location: 'global'
 }
 
-resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2023-04-01' = [ for subnet in items(subnets):{
-  name: '${storagePrivateEndpointBlobPrefix}-${subnet.key}/dnsGroup'
+resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2023-04-01' = {
+  parent: storagePrivateEndpointBlob
+  name: 'dnsGroup'
   properties:{
     privateDnsZoneConfigs: [
       {
@@ -84,12 +75,9 @@ resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGr
       }
     ]
   }
-  dependsOn: [
-    storagePrivateEndpointBlob[subnet.key == 'compute' ? 0 : 1]
-  ]
-}]
+}
 
-var virtualNetworkId = resourceId('Microsoft.Network/virtualNetworks', split(subnets.compute, '/')[8])
+var virtualNetworkId = resourceId('Microsoft.Network/virtualNetworks', split(subnetId, '/')[8])
 
 resource blobPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
   parent: blobPrivateDnsZone

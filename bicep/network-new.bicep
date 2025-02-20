@@ -168,6 +168,8 @@ var nsg_rules = {
     //
     // OUTBOUND RULES
     //    
+    // Allow https outgoing connections
+    AllowHttpsOut: ['100', 'Outbound', 'Allow', 'Tcp', 'Https', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
     // Allow ssh from cyclecloud to compute
     AllowSshCyclecloudComputeOut: ['200', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'cyclecloud', 'subnet', 'compute']
 
