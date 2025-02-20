@@ -25,16 +25,16 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-04-01' = {
   }
 }
 
-var storagePrivateEndpointBlobPrefix = 'ccwstorage-blob-pe'
+var storageBlobPrivateEndpointName = 'ccwstorage-blob-pe'
 
-resource storagePrivateEndpointBlob 'Microsoft.Network/privateEndpoints@2023-04-01' =  {
-  name: storagePrivateEndpointBlobPrefix
+resource storageBlobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-04-01' =  {
+  name: storageBlobPrivateEndpointName
   location: location
   tags: tags
   properties: {
     privateLinkServiceConnections: [
       { 
-        name: storagePrivateEndpointBlobPrefix
+        name: storageBlobPrivateEndpointName
         properties: {
           groupIds: [
             'blob'
@@ -48,7 +48,7 @@ resource storagePrivateEndpointBlob 'Microsoft.Network/privateEndpoints@2023-04-
         }
       }
     ]
-    customNetworkInterfaceName: '${storagePrivateEndpointBlobPrefix}-nic'
+    customNetworkInterfaceName: '${storageBlobPrivateEndpointName}-nic'
     subnet: {
       id: subnetId
     }
@@ -63,7 +63,7 @@ resource blobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' = {
 }
 
 resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2023-04-01' = {
-  parent: storagePrivateEndpointBlob
+  parent: storageBlobPrivateEndpoint
   name: 'dnsGroup'
   properties:{
     privateDnsZoneConfigs: [
