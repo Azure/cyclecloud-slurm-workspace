@@ -60,6 +60,7 @@ var blobPrivateDnsZoneName = 'privatelink.blob.${environment().suffixes.storage}
 resource blobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' = {
   name: blobPrivateDnsZoneName
   location: 'global'
+  tags: tags
 }
 
 resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2023-04-01' = {
@@ -83,6 +84,7 @@ resource blobPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNe
   parent: blobPrivateDnsZone
   name: uniqueString(storageAccount.id)
   location: 'global'
+  tags: tags
   properties: {
     registrationEnabled: false
     virtualNetwork: {
