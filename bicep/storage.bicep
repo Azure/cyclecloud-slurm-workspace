@@ -65,7 +65,7 @@ resource blobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' = {
 
 resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2023-04-01' = {
   parent: storageBlobPrivateEndpoint
-  name: 'dnsGroup'
+  name: 'default'
   properties:{
     privateDnsZoneConfigs: [
       {
