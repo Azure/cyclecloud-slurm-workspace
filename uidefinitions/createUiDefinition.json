@@ -774,8 +774,7 @@
             "visible": true,
             "options": {
               "icon": "Info",
-              "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment.\n\nIf proceeding with the latter, then please confirm that the chosen subnets have the necessary Service Endpoints and delegations as specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
-              "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
+              "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment.\n\nPlease note that private endpoint, DNS zone, DNS zone group, and virtual network link resources will be created to establish network connectivity with the storage account that will be concurrently deployed for use by the cluster."
             }
           },
           {
@@ -811,15 +810,6 @@
                 "options": {
                   "icon": "Warning",
                   "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nThe option to create a new virtual network with a CIDR of /24 is therefore omitted in the below menu."
-                }
-              },
-              {
-                "name": "lustreInfoBoxExisting",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'existing'))]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nPlease ensure that the subnet for the additional file-system selected below meets this requirement."
                 }
               },
               {
@@ -901,7 +891,7 @@
                 "type": "Microsoft.Solutions.ArmApiControl",
                 "request": {
                   "method": "GET",
-                  "path": "[concat(substring(steps('networking').networkSettings.networkSelector.id,0,length(steps('networking').networkSettings.networkSelector.id)),'/subnets?api-version=2023-09-01')]"
+                  "path": "[concat(substring(steps('networking').networkSettings.networkSelector.id,0,length(steps('networking').networkSettings.networkSelector.id)),'/subnets?api-version=2024-05-01')]"
                 }
               },
               {
@@ -910,7 +900,7 @@
                 "label": "Select subnet for CycleCloud",
                 "toolTip": "Select subnet for CycleCloud",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
                 "visible": "[equals(steps('networking').newexisting,'existing')]"
@@ -921,10 +911,20 @@
                 "label": "Select subnet for compute nodes",
                 "toolTip": "Select subnet for compute nodes",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
                 "visible": "[equals(steps('networking').newexisting,'existing')]"
+              },
+              {
+                "name": "anfInfoBox1",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Please confirm that the subnet selected below has the required Microsoft.NetApp/volumes delegation configured\nas specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
+                  "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
+                }
               },
               {
                 "name": "filersubnet1",
@@ -932,10 +932,29 @@
                 "label": "Select subnet for primary file-system",
                 "toolTip": "Select subnet for primary file-system",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
-                "visible": "[and(not(equals(steps('filesystem').shared.filertype, 'nfs')), equals(steps('networking').newexisting,'existing'))]"
+                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'))]"
+              },
+              {
+                "name": "anfInfoBox2",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.filertype,'anf'))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Please confirm that the subnet selected below has the required Microsoft.NetApp/volumes delegation configured\nas specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
+                  "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
+                }
+              },
+              {
+                "name": "lustreInfoBoxExisting",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'existing'))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nPlease ensure that the subnet selected below meets this requirement."
+                }
               },
               {
                 "name": "filersubnet2",
@@ -943,10 +962,10 @@
                 "label": "Select subnet for additional file-system",
                 "toolTip": "Select subnet for additional file-system",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
-                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox)]"
+                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new'))]"
               },
               {
                 "name": "bastion",
