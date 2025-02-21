@@ -819,15 +819,6 @@
                 }
               },
               {
-                "name": "lustreInfoBoxExisting",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'existing'))]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nPlease ensure that the subnet for the additional file-system selected below meets this requirement."
-                }
-              },
-              {
                 "name": "cidrPrefix",
                 "type": "Microsoft.Common.DropDown",
                 "label": "CIDR Prefix",
@@ -960,6 +951,15 @@
                   "icon": "Warning",
                   "text": "Please confirm that the subnet selected below has the required Microsoft.NetApp/volumes delegation configured\nas specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
                   "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
+                }
+              },
+              {
+                "name": "lustreInfoBoxExisting",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'existing'))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nPlease ensure that the subnet selected below meets this requirement."
                 }
               },
               {
