@@ -1850,6 +1850,140 @@
         ]
       },
       {
+        "name": "clusterInitSpecs",
+        "label": "Additional Cluster-Init",
+        "elements": [
+          {
+            "name": "slurmSection",
+            "type": "Microsoft.Common.Section",
+            "label": "Slurm",
+            "elements": [
+              {
+                "name": "gitHubReleaseURLGrid",
+                "type": "Microsoft.Common.EditableGrid",
+                "ariaLabel": "GitHub Release URLs",
+                "label": "Slurm GitHub Release URLs",
+                "constraints": {
+                  "width": "Full",
+                  "rows": {
+                    "count": {
+                      "min": 0,
+                      "max": 50
+                    }
+                  },
+                  "columns": [
+                    {
+                      "id": "gitHubReleaseURL",
+                      "header": "GitHub Release URL",
+                      "width": "5fr",
+                      "element": {
+                        "type": "Microsoft.Common.TextBox",
+                        "placeholder": "https://github.com/ORG/REPO/releases/VERSION",
+                        "constraints": {
+                          "required": true,
+                          "validations": [
+                            {
+                              "regex": "^https://(www.)?github.com/[a-z0-9A-Z-_]{1,50}/[a-z0-9A-Z-_]{1,50}/releases/(tag/)?[a-z.A-Z0-9-_]{1,30}$",
+                              "message": "Expected https://github.com/ORG/REPO/releases/VERSION"
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "id": "target",
+                      "header": "Target",
+                      "width": "1fr",
+                      "element": {
+                        "name": "targetDropDown",
+                        "type": "Microsoft.Common.DropDown",
+                        "multiselect": true,
+                        "selectAll": true,
+                        "multiLine": true,
+                        "placeholder": "",
+                        "defaultValue": [
+                          {
+                            "value": "htc"
+                          }
+                        ],
+                        "constraints": {
+                          "allowedValues": [
+                            {
+                              "label": "Scheduler",
+                              "value": "scheduler"
+                            },
+                            {
+                              "label": "Login Nodes",
+                              "value": "login"
+                            },
+                            {
+                              "label": "HPC Nodes",
+                              "value": "hpc"
+                            },
+                            {
+                              "label": "HTC Nodes",
+                              "value": "htc"
+                            },
+                            {
+                              "label": "GPU Nodes",
+                              "value": "gpu"
+                            },
+                            {
+                              "label": "Open OnDemand",
+                              "value": "ood"
+                            }
+                          ],
+                          "required": true
+                        }
+                      }
+                    },
+                    {
+                      "id": "spec",
+                      "header": "Spec",
+                      "width": "1fr",
+                      "element": {
+                        "name": "specBox",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Spec Name",
+                        "placeholder": "e.g. default",
+                        "defaultValue": "default",
+                        "toolTip": "Use only allowed characters",
+                        "constraints": {
+                          "required": true,
+                          "regex": "^[a-z0-9A-Z]{1,30}$",
+                          "validationMessage": "Only alphanumeric characters are allowed, and the value must be 1-30 characters long."
+                        },
+                        "visible": true
+                      }
+                    },
+                    {
+                      "id": "type",
+                      "header": "",
+                      "width": "1px",
+                      "element": {
+                        "name": "targetDropDown",
+                        "type": "Microsoft.Common.DropDown",
+                        "multiselect": true,
+                        "constraints": {
+                          "allowedValues": [
+                            {
+                              "label": "gitHubReleaseURL",
+                              "value": "gitHubReleaseURL"
+                            }
+                          ],
+                          "required": true
+                        },
+                        "visible": false
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
         "name": "tags",
         "label": "Tags",
         "elements": [
@@ -1964,6 +2098,9 @@
         "osImage": "[if(steps('ood').OODSection.deployOOD,if(equals(steps('ood').OODSection.ImageName,'custom'),steps('ood').OODSection.customImageName,steps('ood').OODSection.ImageName),basics('nullValue'))]",
         "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",
         "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.registerEntraIDApp,basics('nullValue'))]"
+      },
+      "clusterInitSpecs": {
+        "ccw": "[steps('clusterInitSpecs').slurmSection.gitHubReleaseURLGrid]"
       },
       "tags": "[steps('tags').tagsByResource]"
     }
