@@ -78,7 +78,8 @@ resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGr
   }
 }
 
-var virtualNetworkId = resourceId('Microsoft.Network/virtualNetworks', split(subnetId, '/')[8])
+var virtualNetworkResourceGroup = split(subnetId, '/')[4]
+var virtualNetworkName = split(subnetId, '/')[8]
 
 resource blobPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
   parent: blobPrivateDnsZone
@@ -88,7 +89,7 @@ resource blobPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNe
   properties: {
     registrationEnabled: false
     virtualNetwork: {
-      id: virtualNetworkId
+      id: resourceId(virtualNetworkResourceGroup,'Microsoft.Network/virtualNetworks', virtualNetworkName)
     }
   }
 }
