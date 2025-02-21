@@ -872,7 +872,7 @@
               {
                 "name": "networkSelector",
                 "type": "Microsoft.Solutions.ResourceSelector",
-                "label": "Select virtual network",
+                "label": "Virtual network",
                 "toolTip": "Select existing virtual network",
                 "resourceType": "Microsoft.Network/virtualNetworks",
                 "options": {
@@ -897,7 +897,7 @@
               {
                 "name": "ccsubnet",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Select subnet for CycleCloud",
+                "label": "CycleCloud subnet",
                 "toolTip": "Select subnet for CycleCloud",
                 "constraints": {
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
@@ -908,7 +908,7 @@
               {
                 "name": "computesubnet",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Select subnet for compute nodes",
+                "label": "Compute node subnet",
                 "toolTip": "Select subnet for compute nodes",
                 "constraints": {
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
@@ -929,7 +929,7 @@
               {
                 "name": "filersubnet1",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Select subnet for primary file-system",
+                "label": "Primary file-system subnet",
                 "toolTip": "Select subnet for primary file-system",
                 "constraints": {
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
@@ -959,7 +959,7 @@
               {
                 "name": "filersubnet2",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Select subnet for additional file-system",
+                "label": "Additional file-system subnet",
                 "toolTip": "Select subnet for additional file-system",
                 "constraints": {
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
