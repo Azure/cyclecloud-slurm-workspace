@@ -91,18 +91,14 @@ var vnet  = {
         name: network.?cyclecloudSubnet ?? 'ccw-cyclecloud-subnet'
         cidr: subnet_cidr.cyclecloud
         nat_gateway: true
-        service_endpoints: [
-          'Microsoft.Storage'
-        ]
+        service_endpoints: []
         delegations: []
       }
       compute: {
         name: network.?computeSubnet ?? 'ccw-compute-subnet'
         cidr: subnet_cidr.compute
         nat_gateway : true 
-        service_endpoints: [
-          'Microsoft.Storage'
-        ]
+        service_endpoints: []
         delegations: []
       }
     },
@@ -172,6 +168,8 @@ var nsg_rules = {
     //
     // OUTBOUND RULES
     //    
+    // Allow https outgoing connections
+    AllowHttpsOut: ['100', 'Outbound', 'Allow', 'Tcp', 'Https', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
     // Allow ssh from cyclecloud to compute
     AllowSshCyclecloudComputeOut: ['200', 'Outbound', 'Allow', 'Tcp', 'Ssh', 'subnet', 'cyclecloud', 'subnet', 'compute']
 
