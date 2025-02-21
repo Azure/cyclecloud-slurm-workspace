@@ -44,6 +44,8 @@ def process_bicep(input_path: str, output_path: str) -> None:
             if line.startswith("param") or line.startswith("output"):
                 fw.write(process_param(line))
             elif line.startswith("import"):
+                if "exports.bicep" in line:
+                    fw.write(line)
                 continue
             elif line.startswith("func "):
                 fw.write(process_func(line))

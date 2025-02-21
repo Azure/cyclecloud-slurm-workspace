@@ -13,6 +13,7 @@ param adminUsername string
 param adminPassword string
 param adminSshPublicKey string
 param storedKey types.storedKey_t
+param ccVMName string
 param ccVMSize string
 param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
@@ -32,7 +33,7 @@ param clusterName string
 param manualInstall bool
 param acceptMarketplaceTerms bool
 
-var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev'
+var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8'
 
 func getTags(resource_type string, tags types.resource_tags_t) types.tags_t => tags[?resource_type] ?? {}
 
@@ -106,16 +107,15 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
   }
 }
 
-param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.7.020241219'
+param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.7.120250213'
 
-var vmName = 'ccw-cyclecloud'
 module ccwVM './vm.bicep' = if (!infrastructureOnly) {
   name: 'ccwVM-cyclecloud'
   params: {
     location: location
     tags: getTags('Microsoft.Compute/virtualMachines', tags)
     networkInterfacesTags: getTags('Microsoft.Network/networkInterfaces', tags)
-    name: vmName
+    name: ccVMName
     deployScript: loadTextContent('./install.sh')
     osDiskSku: 'StandardSSD_LRS'
     image: {
@@ -139,7 +139,7 @@ module ccwVM './vm.bicep' = if (!infrastructureOnly) {
     vmSize: ccVMSize
     dataDisks: [
       {
-        name: 'ccw-cyclecloud-vm-datadisk0'
+        name: '${ccVMName}-datadisk0'
         disksku: 'Premium_LRS'
         size: split(cyclecloudBaseImage, ':')[0] == 'azurecyclecloud' ? 0 : 128
         caching: 'ReadWrite'
@@ -163,8 +163,8 @@ module ccwManagedIdentity 'mi.bicep' = if (!infrastructureOnly) {
   }
 }
 
-module ccwRolesAssignments './roleAssignments.bicep' = if (!infrastructureOnly) {
-  name: 'ccwRoleFor-${vmName}-${location}'
+module ccwRoleAssignments './vmRoleAssignments.bicep' = if (!infrastructureOnly) {
+  name: 'ccwRoleFor-${ccVMName}-${location}'
   scope: subscription()
   params: {
     roles: [
@@ -185,8 +185,7 @@ module ccwStorage './storage.bicep' = {
     location: location
     tags: getTags('Microsoft.Storage/storageAccounts', tags)
     saName: 'ccwstorage${uniqueString(az.resourceGroup().id)}'
-    lockDownNetwork: true // Restrict access to the storage account from compute and cyclecloud subnets
-    subnetIds: concat([subnets.compute.id], [subnets.cyclecloud.id])
+    subnetId: subnets.cyclecloud.id 
   }
 }
 

@@ -5,7 +5,7 @@
   "parameters": {
     "config": {
       "basics": {
-        "description": "Version **2024.12.18**: [Release Notes](https://learn.microsoft.com/azure/cyclecloud/release-notes/ccws/release-notes)",
+        "description": "Version **2025.02.06**: [Release Notes](https://learn.microsoft.com/azure/cyclecloud/release-notes/ccws/release-notes)",
         "resourceGroup": {
           "visible": false
         },
@@ -75,13 +75,173 @@
         "visible": "[equals(basics('newexisting'),'new')]"
       },
       {
+        "name": "CycleCloudVmName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "CycleCloud VM Name",
+        "defaultValue": "ccw-cyclecloud-vm",
+        "toolTip": "Name for the CycleCloud VM",
+        "constraints": {
+          "required": true,
+          "validations": [
+            {
+              "regex": "^[a-zA-Z0-9.-]{1,64}$",
+              "message": "Azure Linux VM names must be between 1 and 64 characters long and contain only letters, numbers, '.', and '-'."
+            },
+            {
+              "regex": "^(?![.-])(.*)(?<![.-])$",
+              "message": "Azure resource names may neither begin nor end with '.' or '-'."
+            }
+          ]
+        },
+        "visible": true
+      },
+      {
         "name": "CycleCloudVmSize",
         "type": "Microsoft.Compute.SizeSelector",
         "label": "CycleCloud VM Size",
         "toolTip": "Select a size for the CycleCloud VM",
         "recommendedSizes": [
+          "Standard_D4as_v5",
           "Standard_D4as_v4"
         ],
+        "constraints": {
+          "excludedSizes": [
+            "Standard_D16pds_v5",
+            "Standard_D16pds_v6",
+            "Standard_D16plds_v5",
+            "Standard_D16plds_v6",
+            "Standard_D16pls_v5",
+            "Standard_D16pls_v6",
+            "Standard_D16ps_v5",
+            "Standard_D16ps_v6",
+            "Standard_D2pds_v5",
+            "Standard_D2pds_v6",
+            "Standard_D2plds_v5",
+            "Standard_D2plds_v6",
+            "Standard_D2pls_v5",
+            "Standard_D2pls_v6",
+            "Standard_D2ps_v5",
+            "Standard_D2ps_v6",
+            "Standard_D32pds_v5",
+            "Standard_D32pds_v6",
+            "Standard_D32plds_v5",
+            "Standard_D32plds_v6",
+            "Standard_D32pls_v5",
+            "Standard_D32pls_v6",
+            "Standard_D32ps_v5",
+            "Standard_D32ps_v6",
+            "Standard_D48pds_v5",
+            "Standard_D48pds_v6",
+            "Standard_D48plds_v5",
+            "Standard_D48plds_v6",
+            "Standard_D48pls_v5",
+            "Standard_D48pls_v6",
+            "Standard_D48ps_v5",
+            "Standard_D48ps_v6",
+            "Standard_D4pds_v5",
+            "Standard_D4pds_v6",
+            "Standard_D4plds_v5",
+            "Standard_D4plds_v6",
+            "Standard_D4pls_v5",
+            "Standard_D4pls_v6",
+            "Standard_D4ps_v5",
+            "Standard_D4ps_v6",
+            "Standard_D64pds_v5",
+            "Standard_D64pds_v6",
+            "Standard_D64plds_v5",
+            "Standard_D64plds_v6",
+            "Standard_D64pls_v5",
+            "Standard_D64pls_v6",
+            "Standard_D64ps_v5",
+            "Standard_D64ps_v6",
+            "Standard_D8pds_v5",
+            "Standard_D8pds_v6",
+            "Standard_D8plds_v5",
+            "Standard_D8plds_v6",
+            "Standard_D8pls_v5",
+            "Standard_D8pls_v6",
+            "Standard_D8ps_v5",
+            "Standard_D8ps_v6",
+            "Standard_D96pds_v6",
+            "Standard_D96plds_v6",
+            "Standard_D96pls_v6",
+            "Standard_D96ps_v6",
+            "Standard_E16pds_v5",
+            "Standard_E16pds_v6",
+            "Standard_E16ps_v5",
+            "Standard_E16ps_v6",
+            "Standard_E20pds_v5",
+            "Standard_E20ps_v5",
+            "Standard_E2pds_v5",
+            "Standard_E2pds_v6",
+            "Standard_E2ps_v5",
+            "Standard_E2ps_v6",
+            "Standard_E32pds_v5",
+            "Standard_E32pds_v6",
+            "Standard_E32ps_v5",
+            "Standard_E32ps_v6",
+            "Standard_E48pds_v6",
+            "Standard_E48ps_v6",
+            "Standard_E4pds_v5",
+            "Standard_E4pds_v6",
+            "Standard_E4ps_v5",
+            "Standard_E4ps_v6",
+            "Standard_E64pds_v6",
+            "Standard_E64ps_v6",
+            "Standard_E8pds_v5",
+            "Standard_E8pds_v6",
+            "Standard_E8ps_v5",
+            "Standard_E8ps_v6",
+            "Standard_E96pds_v6",
+            "Standard_E96ps_v6",
+            "Standard_A1_v2",
+            "Standard_A2_v2",
+            "Standard_A2m_v2",
+            "Standard_A4_v2",
+            "Standard_A4m_v2",
+            "Standard_A8_v2",
+            "Standard_A8m_v2",
+            "Standard_D1",
+            "Standard_D11",
+            "Standard_D11_v2",
+            "Standard_D12",
+            "Standard_D12_v2",
+            "Standard_D13",
+            "Standard_D13_v2",
+            "Standard_D14",
+            "Standard_D14_v2",
+            "Standard_D15_v2",
+            "Standard_D16_v3",
+            "Standard_D1_v2",
+            "Standard_D2",
+            "Standard_D2_v2",
+            "Standard_D2_v3",
+            "Standard_D3",
+            "Standard_D32_v3",
+            "Standard_D3_v2",
+            "Standard_D4",
+            "Standard_D48_v3",
+            "Standard_D4_v2",
+            "Standard_D4_v3",
+            "Standard_D5_v2",
+            "Standard_D64_v3",
+            "Standard_D8_v3",
+            "Standard_E16_v3",
+            "Standard_E20_v3",
+            "Standard_E2_v3",
+            "Standard_E32_v3",
+            "Standard_E48_v3",
+            "Standard_E4_v3",
+            "Standard_E64_v3",
+            "Standard_E64i_v3",
+            "Standard_E8_v3",
+            "Standard_F1",
+            "Standard_F16",
+            "Standard_F2",
+            "Standard_F4",
+            "Standard_F8"
+          ]
+        },
         "options": {
           "hideDiskTypeFilter": true
         },
@@ -143,11 +303,11 @@
         "name": "adminSshPublicKey",
         "type": "Microsoft.Common.TextBox",
         "label": "Admin SSH Public Key",
-        "toolTip": "SSH-RSA Public Key for the Virtual Machines",
+        "toolTip": "SSH Public Key for the Virtual Machines",
         "constraints": {
           "required": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]",
-          "regex": "^ssh-rsa AAAAB3NzaC1yc2[0-9A-Za-z+/]+[=]{0,3}(\\s.*)?$",
-          "validationMessage": "Invalid ssh-rsa public key"
+          "regex": "^ssh-[a-zA-Z0-9]+ [A-Za-z0-9+/=]+(?: .*)?$",
+          "validationMessage": "Invalid SSH public key"
         },
         "visible": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]"
       },
@@ -494,16 +654,6 @@
                 "visible": "[and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'))]"
               },
               {
-                "name": "amlInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "Please consult the linked page for the capacity range of each Azure Managed Lustre Tier.",
-                  "uri": "https://learn.microsoft.com/azure/azure-managed-lustre/create-file-system-portal?WT.mc_id=Portal-Microsoft_Azure_CreateUIDef#throughput-configurations"
-                }
-              },
-              {
                 "name": "lustretier",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Lustre Tier",
@@ -539,17 +689,19 @@
               },
               {
                 "name": "azurelustrecapacity",
-                "type": "Microsoft.Common.TextBox",
+                "type": "Microsoft.Common.Slider",
+                "min": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),48,if(endsWith(steps('filesystem').additional.lustretier,'-125'),16,if(endsWith(steps('filesystem').additional.lustretier,'-250'),8,4))))]",
+                "max": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),768,128))]",
+                "step": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),48,if(endsWith(steps('filesystem').additional.lustretier,'-125'),16,if(endsWith(steps('filesystem').additional.lustretier,'-250'),8,4))))]",
                 "label": "Capacity",
-                "toolTip": "Capacity of the Azure Managed Lustre volume",
                 "subLabel": "TiB",
-                "defaultValue": "48",
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]",
+                "defaultValue": 48,
+                "showStepMarkers": true,
+                "toolTip": "Capacity of the Azure Managed Lustre volume",
                 "constraints": {
-                  "required": true,
-                  "regex": "^[4-9]$|^[1-9][0-9]$|^[1-6][0-9]{2}$|^7[0-6][0-9]$|^768$",
-                  "validationMessage": "Please enter an integer between 4 and 768"
-                }
+                  "required": true
+                },
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]"
               },
               {
                 "name": "ipAddress",
@@ -622,8 +774,7 @@
             "visible": true,
             "options": {
               "icon": "Info",
-              "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment.\n\nIf proceeding with the latter, then please confirm that the chosen subnets have the necessary Service Endpoints and delegations as specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
-              "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
+              "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment.\n\nPlease note that private endpoint, DNS zone, DNS zone group, and virtual network link resources will be created to establish network connectivity with the storage account that will be concurrently deployed for use by the cluster."
             }
           },
           {
@@ -659,15 +810,6 @@
                 "options": {
                   "icon": "Warning",
                   "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nThe option to create a new virtual network with a CIDR of /24 is therefore omitted in the below menu."
-                  }
-              },
-              {
-                "name": "lustreInfoBoxExisting",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'existing'))]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nPlease ensure that the subnet for the additional file-system selected below meets this requirement."
                   }
               },
               {
@@ -730,7 +872,7 @@
               {
                 "name": "networkSelector",
                 "type": "Microsoft.Solutions.ResourceSelector",
-                "label": "Select virtual network",
+                "label": "Virtual network",
                 "toolTip": "Select existing virtual network",
                 "resourceType": "Microsoft.Network/virtualNetworks",
                 "options": {
@@ -749,16 +891,16 @@
                 "type": "Microsoft.Solutions.ArmApiControl",
                 "request": {
                   "method": "GET",
-                  "path": "[concat(substring(steps('networking').networkSettings.networkSelector.id,0,length(steps('networking').networkSettings.networkSelector.id)),'/subnets?api-version=2023-09-01')]"
+                  "path": "[concat(substring(steps('networking').networkSettings.networkSelector.id,0,length(steps('networking').networkSettings.networkSelector.id)),'/subnets?api-version=2024-05-01')]"
                 }
               },
               {
                 "name": "ccsubnet",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Select subnet for CycleCloud",
+                "label": "CycleCloud subnet",
                 "toolTip": "Select subnet for CycleCloud",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
                 "visible": "[equals(steps('networking').newexisting,'existing')]"
@@ -766,35 +908,64 @@
               {
                 "name": "computesubnet",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Select subnet for compute nodes",
+                "label": "Compute node subnet",
                 "toolTip": "Select subnet for compute nodes",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
                 "visible": "[equals(steps('networking').newexisting,'existing')]"
               },
               {
+                "name": "anfInfoBox1",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Please confirm that the subnet selected below has the required Microsoft.NetApp/volumes delegation configured\nas specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
+                  "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
+                }
+              },
+              {
                 "name": "filersubnet1",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Select subnet for primary file-system",
+                "label": "Primary file-system subnet",
                 "toolTip": "Select subnet for primary file-system",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
-                "visible": "[and(not(equals(steps('filesystem').shared.filertype, 'nfs')), equals(steps('networking').newexisting,'existing'))]"
+                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'))]"
+              },
+              {
+                "name": "anfInfoBox2",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.filertype,'anf'))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Please confirm that the subnet selected below has the required Microsoft.NetApp/volumes delegation configured\nas specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
+                  "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
+                }
+              },
+              {
+                "name": "lustreInfoBoxExisting",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'existing'))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nPlease ensure that the subnet selected below meets this requirement."
+                }
               },
               {
                 "name": "filersubnet2",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Select subnet for additional file-system",
+                "label": "Additional file-system subnet",
                 "toolTip": "Select subnet for additional file-system",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
-                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox)]"
+                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new'))]"
               },
               {
                 "name": "bastion",
@@ -1591,6 +1762,7 @@
       "adminPassword": "[basics('adminPasswordBox')]",
       "adminSshPublicKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
       "storedKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'stored'),basics('keySelector'),basics('nullValue'))]",
+      "ccVMName": "[basics('CycleCloudVmName')]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
       "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
       "sharedFilesystem": {

@@ -150,8 +150,7 @@ mkdir -p $ccw_root/bin
 PROJECT_VERSION=$(jq -r .projectVersion.value ccwOutputs.json)
 SECRETS_FILE_PATH="/root/ccw.secrets.json"
 
-# we don't want slurm-workspace.txt.1 etc if someone reruns this script, so use -O to overwrite existing files
-wget -O slurm-workspace.txt $URI/files-to-load/slurm-workspace.txt
+# we don't want create_cc_param.py.1 etc if someone reruns this script, so use -O to overwrite existing files
 wget -O create_cc_param.py $URI/files-to-load/create_cc_param.py
 wget -O initial_params.json $URI/files-to-load/initial_params.json
 wget -O cyclecloud_install.py $URI/files-to-load/cyclecloud_install.py
@@ -229,16 +228,6 @@ chown cycle_server:cycle_server /tmp/ccw_site_id.txt
 chmod 664 /tmp/ccw_site_id.txt
 mv /tmp/ccw_site_id.txt /opt/cycle_server/config/data/ccw_site_id.txt
 
-# Create the project file
-cat > /opt/cycle_server/config/data/ccw_project.txt <<EOF
-AdType = "Cloud.Project"
-Version = "$PROJECT_VERSION"
-ProjectType = "scheduler"
-Url = "https://github.com/Azure/cyclecloud-slurm-workspace/releases/$PROJECT_VERSION"
-AutoUpgrade = false
-Name = "ccw"
-EOF
-
 echo Waiting for records to be imported
 timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep 10; done'
 
@@ -250,11 +239,20 @@ curl -k https://localhost
 
 cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=$SLURM_CLUSTER_NAME
 echo "CC initialize successful"
-sleep 5
-cyclecloud import_template Slurm-Workspace -f slurm-workspace.txt
-echo "CC import template successful"
-cyclecloud create_cluster Slurm-Workspace $SLURM_CLUSTER_NAME -p slurm_params.json
+
+SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Cloud.Project WHERE Name=="Slurm"' | jq -r '.[0].Version')
+
+cyclecloud create_cluster slurm_template_${SLURM_PROJ_VERSION} $SLURM_CLUSTER_NAME -p slurm_params.json
 echo "CC create_cluster successful"
+
+# TODO RDH Begin remove this when additional cluster init support is added.
+CCW_PROJECT_URL="https://github.com/Azure/cyclecloud-slurm-workspace/releases/${PROJECT_VERSION}"
+echo $CCW_PROJECT_URL
+cyclecloud project fetch $CCW_PROJECT_URL ccw-project
+pushd ccw-project
+cyclecloud project upload azure-storage
+popd
+# TODO RDH End remove this when additional cluster init support is added.
 
 # ensure machine types are loaded ASAP
 cycle_server run_action 'Run:Application.Timer' -eq 'Name' 'plugin.azure.monitor_reference'
@@ -291,6 +289,7 @@ rm -f slurm_params.json
 echo "Deleted input parameters file" 
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
 popd
+
 rm -f "$SECRETS_FILE_PATH"
 echo "Deleting secrets file"
 echo "exiting after install"

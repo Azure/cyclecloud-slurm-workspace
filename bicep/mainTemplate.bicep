@@ -7,6 +7,9 @@ param adminUsername string
 param adminPassword string
 param adminSshPublicKey string = '' 
 param storedKey types.storedKey_t = {id: 'foo', location: 'foo', name:'foo'}
+@minLength(1)
+@maxLength(64)
+param ccVMName string
 param ccVMSize string
 param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
@@ -31,9 +34,9 @@ param infrastructureOnly bool = false
 param insidersBuild bool = false
 
 // build.sh will override this, but for development please set this yourself as a parameter
-param branch string = 'main'
+param branch string = '2025.02.06'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
-param projectVersion string = '2024.12.18'
+param projectVersion string = '2025.02.06'
 //Internal developer use only: set true use custom CycleCloud release build 
 param manualInstall bool = false
 
@@ -63,6 +66,7 @@ module makeCCWresources 'ccw.bicep' = {
     hpc: hpc
     gpu: gpu
     storedKey: storedKey
+    ccVMName: ccVMName
     ccVMSize: ccVMSize
     resourceGroup: resourceGroup
     databaseAdminPassword: databaseAdminPassword
