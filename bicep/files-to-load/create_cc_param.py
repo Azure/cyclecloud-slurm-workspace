@@ -65,6 +65,16 @@ def set_params(params, dbPassword, outputs):
 
     #Execute node tags
     params['NodeTags'] = outputs['nodeArrayTags']['value']
+    
+    # Addtional cluster init specs for ccw project. To be removed in future release.
+    project_version = outputs['projectVersion']['value']
+    ccw_cluster_init = {"Name": "ccw", "Version": project_version, "Spec": "default", "Project": "ccw", "Order": 10000}
+    ccw_key = "ccw:default:{project_version}"
+    for prefix in ['HTC','HPC','GPU', 'Login', 'Scheduler', 'Dynamic']:
+        key = f"{prefix}ClusterInitSpecs"
+        if not params.get(key):
+            params[key] = {}
+        params[key][ccw_key] = ccw_cluster_init
 
     #Network Attached Storage
     params['UseBuiltinShared'] = outputs['filerInfoFinal']['value']['home']['type'] == 'nfs-new' 

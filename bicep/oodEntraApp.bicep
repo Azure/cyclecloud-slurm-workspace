@@ -1,12 +1,12 @@
 extension microsoftGraphV1
 targetScope = 'resourceGroup'
-param location string
 
 // Creates a secret-less client application, using a user-assigned managed identity
 // as the credential (configured as part of the application's federated identity credential).
 
-param name string
-param redirectURI string = 'https://ood-fqdn/oidc' // Redirect URI for OIDC
+param appName string
+param umiName string
+param fqdn string
 
 // NOTE: Microsoft Graph Bicep file deployment is only supported in Public Cloud
 var audiences = {
@@ -40,18 +40,18 @@ resource msGraphSP 'Microsoft.Graph/servicePrincipals@v1.0' existing = {
   appId: graphAppId
 }
 var graphScopes = msGraphSP.oauth2PermissionScopes
-// create a user assigned managed identity to be assigned to the OOD VM
-resource oodManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
-  name: '${name}-mi'
-  location: location
+
+// Retrieve the user assigned managed identity assigned to the OOD VM
+resource oodManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
+  name: umiName
 }
 
 // Create a (client) application registration with a federated identity credential (FIC)
 // The FIC is configured with the managed identity as the subject
 // The application is listed under the "App registrations" in the Azure Portal
 resource oodApp 'Microsoft.Graph/applications@v1.0' = {
-  displayName: '${name}-app'
-  uniqueName: guid(subscription().id, resourceGroup().id, name) // Need to be unique inside the tenant, issue is if you manually delete the app, it will failed if you recreate it with the same name
+  displayName: appName
+  uniqueName: guid(subscription().id, resourceGroup().id, appName) // Need to be unique inside the tenant, issue is if you manually delete the app, it will failed if you recreate it with the same name
 
   resource myMsiFic 'federatedIdentityCredentials@v1.0' = {
     name: '${oodApp.uniqueName}/msiAsFic'
@@ -71,7 +71,7 @@ resource oodApp 'Microsoft.Graph/applications@v1.0' = {
     redirectUriSettings: [
       {
         index: 0
-        uri: redirectURI
+        uri: uri('https://${fqdn}','/oidc')
       }
     ]
   }

@@ -179,8 +179,7 @@ module ccwStorage './storage.bicep' = {
     location: location
     tags: getTags('Microsoft.Storage/storageAccounts', tags)
     saName: 'ccwstorage${uniqueString(az.resourceGroup().id)}'
-    lockDownNetwork: true // Restrict access to the storage account from compute and cyclecloud subnets
-    subnetIds: concat([subnets.compute], [subnets.cyclecloud])
+    subnetId: subnets.cyclecloud
   }
 }
 
@@ -254,12 +253,18 @@ module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
   }
 }
 
+// create a user assigned managed identity to be assigned to the OOD VM
+resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (deployOOD) {
+  name: 'ood-${uniqueString(az.resourceGroup().id)}-mi'
+  location: location
+}
+
 module oodApp 'oodEntraApp.bicep' = if (deployOOD) {
   name: 'oodApp'
   params: {
-    location: location
-    name: 'ood-${uniqueString(az.resourceGroup().id)}'
-    redirectURI: uri('https://${oodNIC.outputs.privateIp}','/oidc')
+    umiName: 'ood-${uniqueString(az.resourceGroup().id)}-mi'
+    appName: 'ood-${uniqueString(az.resourceGroup().id)}-app'
+    fqdn: oodNIC.outputs.privateIp
   }
 }
 
