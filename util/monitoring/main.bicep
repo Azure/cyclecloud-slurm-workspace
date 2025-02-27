@@ -14,5 +14,5 @@ module managedMonitoring 'managedMonitoring.bicep' = {
   }
 }
 
-output maganagedIdentityId string = managedMonitoring.outputs.maganagedIdentityId
+output maganagedIdentityclientId string = managedMonitoring.outputs.maganagedIdentityclientId
 output ingestionEndpoint string = managedMonitoring.outputs.metricsIngestionEndpoint

@@ -92,4 +92,4 @@ module ingestionEndpoint './ingestionEndpoint.bicep' = {
 }
 
 output metricsIngestionEndpoint string = ingestionEndpoint.outputs.metricsIngestionEndpoint
-output maganagedIdentityId string = managedIdentity.id
+output maganagedIdentityclientId string = managedIdentity.properties.clientId
