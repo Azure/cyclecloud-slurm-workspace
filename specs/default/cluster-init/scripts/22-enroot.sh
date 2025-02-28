@@ -60,14 +60,14 @@ function configure_enroot()
     fi
 
     logger -s "Creating enroot scratch directories in $ENROOT_SCRATCH_DIR"
-    mkdir -pv /run/enroot $ENROOT_SCRATCH_DIR/{enroot-cache,enroot-data,enroot-temp,enroot-runtime}
-    chmod -v 777 /run/enroot $ENROOT_SCRATCH_DIR/{enroot-cache,enroot-data,enroot-temp,enroot-runtime}
+    mkdir -pv $ENROOT_SCRATCH_DIR/{enroot-cache,enroot-data,enroot-temp,enroot-runtime,enroot-run}
+    chmod -v 777 $ENROOT_SCRATCH_DIR/{enroot-cache,enroot-data,enroot-temp,enroot-runtime,enroot-run}
 
     # Configure enroot
     # https://github.com/NVIDIA/pyxis/wiki/Setup
     logger -s "Configure /etc/enroot/enroot.conf"
     cat <<EOF > /etc/enroot/enroot.conf
-ENROOT_RUNTIME_PATH /run/enroot/user-\$(id -u)
+ENROOT_RUNTIME_PATH $ENROOT_SCRATCH_DIR/enroot-run/user-\$(id -u)
 ENROOT_CACHE_PATH $ENROOT_SCRATCH_DIR/enroot-cache/group-\$(id -g)
 ENROOT_DATA_PATH $ENROOT_SCRATCH_DIR/enroot-data/user-\$(id -u)
 ENROOT_TEMP_PATH $ENROOT_SCRATCH_DIR/enroot-temp
