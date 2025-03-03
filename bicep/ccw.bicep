@@ -7,6 +7,8 @@ param insidersBuild bool
 
 param branch string
 param projectVersion string
+param pyxisProjectVersion string
+param nvmeProjectVersion string
 
 param adminUsername string
 @secure()
@@ -19,6 +21,7 @@ param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t 
 param network types.vnet_t 
+param clusterInitSpecs types.cluster_init_param_t
 param slurmSettings types.slurmSettings_t 
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
@@ -305,6 +308,36 @@ output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.pr
 
 output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
 
+// Automatically inject the ccw cluster init spec
+
+var ccwClusterInitSpec = {
+  type: 'gitHubReleaseURL'
+  gitHubReleaseURL: 'https://github.com/Azure/cyclecloud-slurm-workspace/releases/tag/${projectVersion}'
+  spec: 'default'
+  target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
+}
+
+// We will need to uncomment this when we have the pyxis and nvme cluster init specs
+// var pyxisClusterInitSpec = {
+//   type: 'gitHubReleaseURL'
+//   gitHubReleaseURL: 'https://github.com/Azure/cyclecloud-pyxis/releases/tag/${pyxisProjectVersion}'
+//   spec: 'default'
+//   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
+// }
+
+// var nvmeClusterInitSpec = {
+//   type: 'gitHubReleaseURL'
+//   gitHubReleaseURL: 'https://github.com/Azure/cyclecloud-nvme/releases/tag/${nvmeProjectVersion}'
+//   spec: 'default'
+//   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
+// }
+
+// Projects <= 2025.02.06 have the nvme and pyxis logic embedded in the ccw cluster init spec
+// var requiredClusterInitSpecs = projectVersion >= '2025.02.06' ? [ccwClusterInitSpec, nvmeClusterInitSpec, pyxisClusterInitSpec] : [ccwClusterInitSpec]
+// For now, assume we just need ccwClusterInitSpec until we remove the scripts from the ccw repo
+var requiredClusterInitSpecs = [ccwClusterInitSpec]
+output clusterInitSpecs types.cluster_init_param_t = union(requiredClusterInitSpecs, requiredClusterInitSpecs)
+
 output slurmSettings types.slurmSettings_t = slurmSettings
 
 output schedulerNode types.scheduler_t = schedulerNode
@@ -355,3 +388,8 @@ output projectVersion string = projectVersion
 output insidersBuild bool = insidersBuild
 output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
+
+output ood object = union(ood, {
+  version: '1.0.0'
+  nic: deployOOD ? oodNIC.outputs.NICId : ''
+})

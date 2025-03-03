@@ -1,22 +1,23 @@
 #!/usr/bin/env python
 
+import argparse
+import hashlib
 import json
 import os
+import shutil
+from subprocess import check_output
 import sys
-import argparse
+import typing
 
 
 def get_json_dict(file_name):
-    file_path = os.path.join(os.getcwd(),file_name)
-    with open(file_path, 'r') as file:
-        content = file.read()
-        data = json.loads(content)
-    return data
+    abs_path = os.path.abspath(file_name)
+    with open(abs_path) as fr:
+        return json.load(fr)
 
 
-def set_params(params, dbPassword, outputs):
+def set_slurm_params(params, dbPassword, outputs):
     params['Region'] = outputs['location']['value']
-    #params['Credentials']
     if outputs['vnet']['value']['type'] == 'new':
         subnetID = outputs['vnet']['value']['computeSubnetId']
         subnet_toks = subnetID.split("/")
@@ -68,16 +69,6 @@ def set_params(params, dbPassword, outputs):
 
     #Execute node tags
     params['NodeTags'] = outputs['nodeArrayTags']['value']
-    
-    # Addtional cluster init specs for ccw project. To be removed in future release.
-    project_version = outputs['projectVersion']['value']
-    ccw_cluster_init = {"Name": "ccw", "Version": project_version, "Spec": "default", "Project": "ccw", "Order": 10000}
-    ccw_key = "ccw:default:{project_version}"
-    for prefix in ['HTC','HPC','GPU', 'Login', 'Scheduler', 'Dynamic']:
-        key = f"{prefix}ClusterInitSpecs"
-        if not params.get(key):
-            params[key] = {}
-        params[key][ccw_key] = ccw_cluster_init
 
     #Network Attached Storage
     params['UseBuiltinShared'] = outputs['filerInfoFinal']['value']['home']['type'] == 'nfs-new' 
@@ -99,15 +90,139 @@ def set_params(params, dbPassword, outputs):
         params['AdditionalNFSMountOptions'] = outputs['filerInfoFinal']['value']['additional']['mountOptions']
         params['AdditionalNFSAddress'] = outputs['filerInfoFinal']['value']['additional']['ipAddress']
 
-def main():
-    parser = argparse.ArgumentParser(description="Accept database password")
-    parser.add_argument("--dbPassword", dest="dbPassword", default="", help="MySQL database password")
-    args = parser.parse_args()
-    
+
+def set_ood_params(params, outputs):
     slurm_params = get_json_dict('initial_params.json')
+    # We want to essentially inherit certain settings from the slurm cluster.
+    set_slurm_params(slurm_params, "", outputs)
+    params['NFSAddress'] = slurm_params.get('NFSAddress') or 'ccw-scheduler'
+    params['NFSSharedExportPath'] = slurm_params.get('NFSSharedExportPath') or '/shared'
+    params['NFSSharedMountOptions'] = slurm_params.get('NFSSharedMountOptions')
+    params['SubnetId'] = slurm_params["SubnetId"]
+    params['Region'] = slurm_params['Region']
+    params['Credentials'] = slurm_params['Credentials']
+
+    params['MachineType'] = outputs['ood']['value'].get('sku')
+    params['ManagedIdentity'] = outputs['ood']['value'].get('managed_identity')
+    params['BootDiskSize'] = outputs['ood']['value'].get('BootDiskSize')
+    params['ImageName'] = outputs['ood']['value'].get('ImageName')
+
+    params['ood_server_name'] = outputs['ood']['value'].get('ood_server_name')
+    params['ood_ldap_host'] = outputs['ood']['value'].get('ood_ldap_host')
+    params['ood_ldap_bind_dn'] = outputs['ood']['value'].get('ood_ldap_bind_dn')
+    params['ood_ldap_bind_pwd'] = outputs['ood']['value'].get('ood_ldap_bind_pwd')
+    params['ood_ldap_user_base_dn'] = outputs['ood']['value'].get('ood_ldap_user_base_dn')
+    params['ood_ldap_group_base_dn'] = outputs['ood']['value'].get('ood_ldap_group_base_dn')
+    params['ood_entra_client_id'] = outputs['ood']['value'].get('ood_entra_client_id')
+    params['ood_entra_client_secret'] = outputs['ood']['value'].get('ood_entra_client_secret')
+    params['ood_entra_tenant_id'] = outputs['ood']['value'].get('ood_entra_tenant_id')
+    params['ood_nic'] = outputs['ood']['value'].get('nic')
+
+class ClusterInitSpec:
+    def __init__(self, project: str, version: str, spec: str, targets: typing.List[str]):
+        self.project = project
+        self.version = version
+        self.spec = spec
+        self.targets = targets
+        self.cluster_init_key = f"{self.project}:{self.spec}:{self.version}"
+
+
+def download_cluster_init(outputs, root_folder, locker) -> typing.List[ClusterInitSpec]:
+    ret = []
+    for record in (outputs['clusterInitSpecs'].get("value") or []):
+        url = _strip_tags_from_github_url(record)
+        url_hash = hashlib.sha256(url.encode())
+        
+        folder = os.path.join(root_folder, url_hash.hexdigest())
+        if not os.path.exists(folder):
+            # download and move to avoid repeated failures with partial downloads/uploads
+            check_output(["/usr/local/bin/cyclecloud", "project", "fetch", url, folder + ".tmp"])
+            check_output(["/usr/local/bin/cyclecloud", "project", "upload", locker], cwd=folder + ".tmp")
+            shutil.move(folder + ".tmp", folder)
+            with open(os.path.join(folder, "download-url"), "w") as fw:
+                fw.write(url)
+        proj_info_raw = check_output(["/usr/local/bin/cyclecloud", "project", "info"], cwd=folder).decode()
+        proj_info = {}
+        for line in proj_info_raw.splitlines():
+            key, rest = line.split(":", 1)
+            proj_info[key.lower()] = rest.strip()
+        ret.append(ClusterInitSpec(proj_info["name"],
+                                   proj_info["version"],
+                                   record.get("spec") or "default",
+                                   record["target"]))
+    return ret
+
+
+def _strip_tags_from_github_url(record):
+    url = record["gitHubReleaseURL"]
+    if "/tag/" in url:
+        return url.replace("/tag", "")
+    return url
+
+
+def _version_from_url(record):
+    if record.get("version"):
+        return record["version"]
+    return record["gitHubReleaseURL"].split("/")[-1]
+
+
+def set_cluster_init_params(params: dict, specs: typing.List[ClusterInitSpec], cluster_name: str, target_params: dict) -> None:
+    order = 10000
+    for spec in specs:
+        for target in spec.targets:
+            target_key = f"{target_params[target.lower()]}"
+            if not params.get(target_key):
+                params[target_key] = {}
+
+            params[target_key][spec.cluster_init_key] = {
+                "Order": order,
+                "Spec": spec.spec,
+                "Name": spec.cluster_init_key,
+                "Project": spec.project,
+                "Locker": "azure-storage",
+                "Version": spec.version
+            }
+            order += 100
+
+
+def main():
+    parser = argparse.ArgumentParser(description="TODO RDH")
+    parser.add_argument("--locker", default="azure-storage")
+    parser.add_argument("--cluster-init-working-dir", default="cluster-init")
+    subparsers = parser.add_subparsers()
+    ccw_parser = subparsers.add_parser("slurm")
+    # TODO this needs to be by cluster type
+    target_params = {
+        "login": "LoginClusterInitSpecs",
+        "gpu": "GPUClusterInitSpecs",
+        "hpc": "HPCClusterInitSpecs",
+        "htc": "HTCClusterInitSpecs",
+        "scheduler": "SchedulerClusterInitSpecs",
+        "dynamic": "DynamicClusterInitSpecs",
+        "ood": "ClusterInitSpecs"
+    }
+    ccw_parser.set_defaults(cluster_type="slurm", target_params=target_params)
+    ccw_parser.add_argument("--dbPassword", dest="dbPassword", default="", help="MySQL database password")
+    
+    ood_parser = subparsers.add_parser("ood")
+    ood_parser.set_defaults(cluster_type="ood", target_params=target_params)
+    
+    args = parser.parse_args()
+
+    if args.cluster_type == "slurm":
+        output_params = get_json_dict('initial_params.json')
+    else:
+        output_params = {}
     ccw_outputs = get_json_dict('ccwOutputs.json')
-    set_params(slurm_params,args.dbPassword,ccw_outputs)
-    print(json.dumps(slurm_params,indent=4))
+
+    specs = download_cluster_init(ccw_outputs, os.path.join(os.getcwd(), args.cluster_init_working_dir), args.locker)
+    set_cluster_init_params(output_params, specs, args.cluster_type, args.target_params)
+    if args.cluster_type == "slurm":
+        set_slurm_params(output_params, args.dbPassword, ccw_outputs)
+    else:
+        set_ood_params(output_params, ccw_outputs)
+    print(json.dumps(output_params, indent=4))
+
 
 if __name__ == '__main__':
     main()

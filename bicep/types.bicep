@@ -257,3 +257,25 @@ type ood_enabled_t = {
 @export()
 @discriminator('type')
 type oodConfig_t = ood_none_t | ood_enabled_t
+type cluster_init_target_t = 'login' | 'scheduler' | 'htc' | 'hpc' | 'gpu' | 'dynamic' | 'ood'
+
+
+type github_cluster_init_t = {
+  type: 'gitHubReleaseURL'
+  gitHubReleaseURL: string
+  spec: string?
+  target: cluster_init_target_t[]
+}
+
+type prestaged_cluster_init_t = {
+  type: 'PreStaged'
+  spec: string?
+  version: string
+  target: cluster_init_target_t[]
+}
+
+@discriminator('type')
+type cluster_init_t = github_cluster_init_t | prestaged_cluster_init_t
+
+@export()
+type cluster_init_param_t = cluster_init_t[]?
