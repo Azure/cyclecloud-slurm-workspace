@@ -1771,7 +1771,7 @@
               {
                 "name": "oodLoginNodeInfo",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[steps('ood').OODSection.deployOOD]",
+                "visible": "[and(steps('ood').OODSection.deployOOD,equals(int(steps('scheduler').loginNodesSection.initialNodes),0))]",
                 "options": {
                   "icon": "Warning",
                   "text": "Open OnDemand for Azure CycleCloud requires a minimum of one login node for use as a proxy between Azure CycleCloud and the Open OnDemand web server. Please review selections made under the Slurm Settings menu."
