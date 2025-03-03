@@ -1760,21 +1760,21 @@
                 "visible": true
               },
               {
-                "name": "oodFilesystemInfo",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[steps('ood').OODSection.deployOOD]",
-                "options": {
-                  "icon": "Info",
-                  "text": "Open OnDemand for Azure CycleCloud is best deployed with Azure NetApp Files used as the file-system for the /shared and /home directories."
-                }
-              },
-              {
                 "name": "oodLoginNodeInfo",
                 "type": "Microsoft.Common.InfoBox",
                 "visible": "[and(steps('ood').OODSection.deployOOD,equals(int(steps('scheduler').loginNodesSection.initialNodes),0))]",
                 "options": {
                   "icon": "Warning",
                   "text": "Open OnDemand for Azure CycleCloud requires a minimum of one login node for use as a proxy between Azure CycleCloud and the Open OnDemand web server. Please review selections made under the Slurm Settings menu."
+                }
+              },
+              {
+                "name": "oodFilesystemInfo",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[steps('ood').OODSection.deployOOD]",
+                "options": {
+                  "icon": "Info",
+                  "text": "Open OnDemand for Azure CycleCloud is best deployed with Azure NetApp Files used as the file-system for the /shared and /home directories."
                 }
               },
               {
