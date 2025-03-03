@@ -1771,7 +1771,7 @@
               {
                 "name": "oodFilesystemInfo",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[steps('ood').OODSection.deployOOD]",
+                "visible": "[and(steps('ood').OODSection.deployOOD,not(equals(steps('filesystem').shared.filertype,'anf')))]",
                 "options": {
                   "icon": "Info",
                   "text": "Open OnDemand for Azure CycleCloud is best deployed with Azure NetApp Files used as the file-system for the /shared and /home directories."
