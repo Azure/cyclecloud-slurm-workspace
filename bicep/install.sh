@@ -277,7 +277,7 @@ while [ $(/opt/cycle_server/./cycle_server execute --format json "
                         OUTER JOIN Azure.MachineType M
                         ON  MachineType === M.Name &&
                             Region === M.Location
-                        WHERE clustername in {"OpenOnDemand", \"$SLURM_CLUSTER_NAME\"}" | jq -r ".[] | select(.MachineType == null).Name" | wc -l) != 0 ]; do
+                        WHERE (ClusterName == "OpenOnDemand" || ClusterName == \"$SLURM_CLUSTER_NAME\")" | jq -r ".[] | select(.MachineType == null).Name" | wc -l) != 0 ]; do
     echo "Waiting for Azure.MachineType to be populated..."
     sleep 10
 done
