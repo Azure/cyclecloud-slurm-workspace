@@ -704,7 +704,7 @@
                 "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]"
               },
               {
-                "name": "ipAddress",
+                "name": "ipAddressNfs",
                 "type": "Microsoft.Common.TextBox",
                 "label": "IP Address",
                 "toolTip": "IP address of the filer mount",
@@ -718,7 +718,24 @@
                     }
                   ]
                 },
-                "visible": "[equals(steps('filesystem').additional.newexisting,'existing')]"
+                "visible": "[and(equals(steps('filesystem').additional.newexisting,'existing'),equals(steps('filesystem').additional.filertype,'nfs'))]"
+              },
+              {
+                "name": "ipAddressAml",
+                "type": "Microsoft.Common.TextBox",
+                "label": "MGS IP Address",
+                "toolTip": "The IP address for the Azure Managed Lustre file system's Lustre Management Service",
+                "defaultValue": "",
+                "constraints": {
+                  "required": true,
+                  "validations": [
+                    {
+                      "regex": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$",
+                      "message": "Invalid IP address"
+                    }
+                  ]
+                },
+                "visible": "[and(equals(steps('filesystem').additional.newexisting,'existing'),equals(steps('filesystem').additional.filertype,'aml'))]"
               },
               {
                 "name": "mountPath",
@@ -747,7 +764,7 @@
                 "visible": "[and(equals(steps('filesystem').additional.newexisting, 'existing'),not(equals(steps('filesystem').additional.filertype,'aml')))]"
               },
               {
-                "name": "mountOptions",
+                "name": "mountOptionsNfs",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Mount options",
                 "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev",
@@ -757,7 +774,20 @@
                   "regex": "^.+$",
                   "validationMessage": "Please enter a mount option."
                 },
-                "visible": "[equals(steps('filesystem').additional.newexisting,'existing')]"
+                "visible": "[and(equals(steps('filesystem').additional.newexisting,'existing'),equals(steps('filesystem').additional.filertype,'nfs'))]"
+              },
+              {
+                "name": "mountOptionsAml",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Mount options",
+                "defaultValue": "",
+                "toolTip": "Mount options for the additional filer",
+                "constraints": {
+                  "required": false,
+                  "regex": "^.+$",
+                  "validationMessage": "Please enter a mount option."
+                },
+                "visible": "[and(equals(steps('filesystem').additional.newexisting,'existing'),equals(steps('filesystem').additional.filertype,'aml'))]"
               }
             ],
             "visible": "[steps('filesystem').additionalCheck.checkbox]"
@@ -1918,10 +1948,10 @@
         "anfCapacityInTiB": "[if(equals(steps('filesystem').additional.filertype,'anf'),int(steps('filesystem').additional.anfcapacity),basics('nullValue'))]",
         "lustreTier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,basics('nullValue'))]",
         "lustreCapacityInTib": "[if(equals(steps('filesystem').additional.filertype,'aml'),int(steps('filesystem').additional.azurelustrecapacity),basics('nullValue'))]",
-        "ipAddress": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.ipAddress,basics('nullValue'))]",
+        "ipAddress": "[if(equals(steps('filesystem').additional.newexisting,'existing'),if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.ipAddressAml,steps('filesystem').additional.ipAddressNfs),basics('nullValue'))]",
         "mountPath": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountPath, basics('nullValue'))]",
         "exportPath": "[if(or(and(equals(steps('filesystem').additional.filertype, 'anf'),equals(steps('filesystem').additional.newexisting,'existing')),and(equals(steps('filesystem').additional.filertype, 'nfs'),equals(steps('filesystem').additional.newexisting,'existing'))), steps('filesystem').additional.exportPath,basics('nullValue'))]",
-        "mountOptions": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountOptions, basics('nullValue'))]"
+        "mountOptions": "[if(steps('filesystem').additionalCheck.checkbox,if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.mountOptionsAml,steps('filesystem').additional.mountOptionsNfs), basics('nullValue'))]"
       },
       "network": {
         "type": "[steps('networking').newexisting]",
