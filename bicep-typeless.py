@@ -7,6 +7,8 @@ if we want to type check our parameters, then we need to propagate this type che
 mainTemplate all the way down. This script simply strips all type checking.
 """
 
+OUTPUT_ARRAY_TYPES = ["types.cluster_init_param_t"]
+
 def run() -> None:
     biceps = os.listdir("bicep")
     if os.path.exists("bicep-typeless"):
@@ -20,7 +22,7 @@ def run() -> None:
 
 def process_param(line: str) -> str:
     toks = line.split()
-    if toks[2] == "types.cluster_init_param_t":
+    if toks[2] in OUTPUT_ARRAY_TYPES:
         toks[2] = "array"
     elif toks[2].endswith("_t"):
         toks[2] = "object"
