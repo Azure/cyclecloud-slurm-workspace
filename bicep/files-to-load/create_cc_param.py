@@ -107,7 +107,7 @@ def set_ood_params(params, outputs):
     params['BootDiskSize'] = outputs['ood']['value'].get('BootDiskSize')
     params['ImageName'] = outputs['ood']['value'].get('osImage')
 
-    params['ood_server_name'] = outputs['ood']['value'].get('ood_fqdn')
+    params['ood_server_name'] = outputs['ood']['value'].get('fqdn','')
     params['ood_entra_user_map_match'] = outputs['ood']['value'].get('userDomain')
     params['ood_entra_client_id'] = outputs['ood']['value'].get('clientId')
     params['ood_entra_tenant_id'] = outputs['ood']['value'].get('tenantId')
