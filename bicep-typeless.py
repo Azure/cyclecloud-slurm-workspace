@@ -20,7 +20,9 @@ def run() -> None:
 
 def process_param(line: str) -> str:
     toks = line.split()
-    if toks[2].endswith("_t"):
+    if toks[2] == "types.cluster_init_param_t":
+        toks[2] = "array"
+    elif toks[2].endswith("_t"):
         toks[2] = "object"
     return " ".join(toks) + "\n"
 
