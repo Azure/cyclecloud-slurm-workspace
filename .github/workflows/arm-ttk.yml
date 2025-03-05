@@ -1,0 +1,44 @@
+#
+# Copyright (c) Microsoft Corporation
+# Licensed under the MIT License.
+#
+name : arm-ttk
+on:
+  push:
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'bicep/**'
+      - 'uidefinitions/**'
+  workflow_dispatch:
+
+env:
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}  # https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  arm_validation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read    
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup arm-ttk
+        id: setup
+        run: |
+          set -e
+          ./util/install-arm-ttk.sh
+
+      - name: Build ARM
+        id: build
+        run: |
+          set -e
+          ./build.sh
