@@ -1010,7 +1010,7 @@
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Create a NAT Gateway",
                 "toolTip": "Create a NAT Gateway for outbound traffic",
-                "defaultValue": false,
+                "defaultValue": true,
                 "visible": "[equals(steps('networking').newexisting,'new')]"
               },
               {
