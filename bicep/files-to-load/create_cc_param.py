@@ -103,19 +103,14 @@ def set_ood_params(params, outputs):
     params['Credentials'] = slurm_params['Credentials']
 
     params['MachineType'] = outputs['ood']['value'].get('sku')
-    params['ManagedIdentity'] = outputs['ood']['value'].get('managed_identity')
+    params['ManagedIdentity'] = outputs['ood']['value'].get('managedIdentity')
     params['BootDiskSize'] = outputs['ood']['value'].get('BootDiskSize')
-    params['ImageName'] = outputs['ood']['value'].get('ImageName')
+    params['ImageName'] = outputs['ood']['value'].get('osImage')
 
-    params['ood_server_name'] = outputs['ood']['value'].get('ood_server_name')
-    params['ood_ldap_host'] = outputs['ood']['value'].get('ood_ldap_host')
-    params['ood_ldap_bind_dn'] = outputs['ood']['value'].get('ood_ldap_bind_dn')
-    params['ood_ldap_bind_pwd'] = outputs['ood']['value'].get('ood_ldap_bind_pwd')
-    params['ood_ldap_user_base_dn'] = outputs['ood']['value'].get('ood_ldap_user_base_dn')
-    params['ood_ldap_group_base_dn'] = outputs['ood']['value'].get('ood_ldap_group_base_dn')
-    params['ood_entra_client_id'] = outputs['ood']['value'].get('ood_entra_client_id')
-    params['ood_entra_client_secret'] = outputs['ood']['value'].get('ood_entra_client_secret')
-    params['ood_entra_tenant_id'] = outputs['ood']['value'].get('ood_entra_tenant_id')
+    params['ood_server_name'] = outputs['ood']['value'].get('fqdn','')
+    params['ood_entra_user_map_match'] = outputs['ood']['value'].get('userDomain')
+    params['ood_entra_client_id'] = outputs['ood']['value'].get('clientId')
+    params['ood_entra_tenant_id'] = outputs['ood']['value'].get('tenantId')
     params['ood_nic'] = outputs['ood']['value'].get('nic')
 
 class ClusterInitSpec:

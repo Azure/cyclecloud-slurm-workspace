@@ -252,6 +252,7 @@ type ood_enabled_t = {
   osImage: string
   userDomain: string
   registerEntraIDApp: bool
+  fqdn: string?
 }
 
 @export()

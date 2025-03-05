@@ -1883,6 +1883,19 @@
                 "visible": "[steps('ood').OODSection.deployOOD]"
               },
               {
+                "name": "fqdn",
+                "type": "Microsoft.Common.TextBox",
+                "label": "FQDN",
+                "defaultValue": "",
+                "toolTip": "FQDN for the Open OnDemand web server",
+                "constraints": {
+                  "required": false,
+                  "regex": "^[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}$",
+                  "validationMessage": "Enter a valid FQDN or leave blank"
+                },
+                "visible": "[steps('ood').OODSection.deployOOD]"
+              },
+              {
                 "name": "registerEntraIDApp",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Register an Entra ID Application",
@@ -2012,7 +2025,8 @@
         "sku": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.vmsize,basics('nullValue'))]",
         "osImage": "[if(steps('ood').OODSection.deployOOD,if(equals(steps('ood').OODSection.ImageName,'custom'),steps('ood').OODSection.customImageName,steps('ood').OODSection.ImageName),basics('nullValue'))]",
         "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",
-        "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.registerEntraIDApp,basics('nullValue'))]"
+        "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.registerEntraIDApp,basics('nullValue'))]",
+        "fqdn": "[if(not(equals(steps('ood').OODSection.fqdn,'')),steps('ood').OODSection.fqdn,basics('nullValue'))]"
       },
       "clusterInitSpecs": [],
       "tags": "[steps('tags').tagsByResource]"
