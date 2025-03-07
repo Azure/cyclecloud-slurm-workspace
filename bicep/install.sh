@@ -255,6 +255,9 @@ echo "CC initialize successful"
 # needs to be done after initialization, as we now call fetch/upload
 (python3 create_cc_param.py slurm --dbPassword="${DATABASE_ADMIN_PASSWORD}") > slurm_params.json 
 
+# copying template parameters file to admin user's home directory
+cp slurm_params.json "${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}/deployment.json"
+
 SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Cloud.Project WHERE Name=="Slurm"' | jq -r '.[0].Version')
 
 cyclecloud create_cluster slurm_template_${SLURM_PROJ_VERSION} $SLURM_CLUSTER_NAME -p slurm_params.json
