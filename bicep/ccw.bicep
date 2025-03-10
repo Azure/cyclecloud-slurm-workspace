@@ -252,6 +252,7 @@ module ccwANF 'anf.bicep' = [
 ]
 
 var deployOOD = ood.type != 'disabled'
+var registerOODApp = ood.?registerEntraIDApp ?? false
 
 module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
   name: 'oodNIC'
@@ -264,12 +265,12 @@ module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
 }
 
 // create a user assigned managed identity to be assigned to the OOD VM
-resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (deployOOD) {
+resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (deployOOD && registerOODApp) {
   name: 'ood-${uniqueString(az.resourceGroup().id)}-mi'
   location: location
 }
 
-module oodApp 'oodEntraApp.bicep' = if (deployOOD) {
+module oodApp 'oodEntraApp.bicep' = if (deployOOD && registerOODApp) {
   name: 'oodApp'
   params: {
     umiName: 'ood-${uniqueString(az.resourceGroup().id)}-mi'
@@ -392,7 +393,7 @@ output acceptMarketplaceTerms bool = acceptMarketplaceTerms
 output ood object = union(ood, {
   version: '1.0.0'
   nic: deployOOD ? oodNIC.outputs.NICId : ''
-  managedIdentity: deployOOD ? oodApp.outputs.oodMiId : ''
-  clientId: deployOOD ? oodApp.outputs.oodClientAppId : ''
-  tenantId: deployOOD ? subscription().tenantId : ''
+  managedIdentity: deployOOD ? registerOODApp ? ood.?appManagedIdentityId : oodApp.outputs.oodMiId : ''
+  clientId: deployOOD ? registerOODApp ? ood.?appId : oodApp.outputs.oodClientAppId : ''
+  tenantId: deployOOD ? registerOODApp ? ood.?appTenantId : subscription().tenantId : ''
 })
