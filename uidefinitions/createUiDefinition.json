@@ -1904,7 +1904,68 @@
                 "constraints": {
                   "required": false
                 },
+                "visible": false
+              },
+              {
+                "name": "registerEntraIDApp1",
+                "type": "Microsoft.Common.OptionsGroup",
+                "label": "Microsoft Entra ID Application Registration",
+                "defaultValue": "Automatically register an Entra ID Application",
+                "toolTip": "Register a Microsoft Entra ID Application for Open OnDemand authentication using OpenID Connect",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Automatically register an Entra ID Application",
+                      "value": "autoregister"
+                    },
+                    {
+                      "label": "Use existing Entra ID Application registration",
+                      "value": "existing"
+                    },
+                    {
+                      "label": "None",
+                      "value": "no"
+                    }
+                  ],
+                  "required": true
+                },
                 "visible": "[steps('ood').OODSection.deployOOD]"
+              },
+              {
+                "name": "clientId",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Application (client) ID",
+                "defaultValue": "",
+                "toolTip": "Application or client ID of the Entra ID Application",
+                "constraints": {
+                  "required": true,
+                  "validationMessage": "Enter a valid application (client) ID"
+                },
+                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp1,'existing')]"
+              },
+              {
+                "name": "tenantId",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Directory (tenant) ID",
+                "defaultValue": "",
+                "toolTip": "Directory or tenant ID of the Entra ID Application",
+                "constraints": {
+                  "required": true,
+                  "validationMessage": "Enter a valid directory (tenant) ID"
+                },
+                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp1,'existing')]"
+              },
+              {
+                "name": "managedIdentityId",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Managed Identity ID",
+                "defaultValue": "",
+                "toolTip": "Azure resource ID of the managed identity created for the federated credentials",
+                "constraints": {
+                  "required": true,
+                  "validationMessage": "Enter a valid resource ID"
+                },
+                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp1,'existing')]"
               }
             ],
             "visible": true
