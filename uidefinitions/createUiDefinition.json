@@ -414,7 +414,7 @@
                 "toolTip": "Filer type for the /shared directory",
                 "multiselect": false,
                 "constraints": {
-                  "allowedValues": "[if(equals(steps('filesystem').shared.newexisting,'new'),parse(concat('[{\"label\":\"', 'Builtin NFS','\",\"value\":\"nfs\"}',if(or(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),not(equals(length(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))),0))),',',''),if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),'{\"label\":\"Azure NetApp Files\",\"value\":\"anf\"}',''),if(and(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),not(equals(length(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))),0))),',',''),if(equals(length(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))),0),'','{\"label\":\"Azure Managed Lustre\",\"value\":\"aml\"}'),']')),parse('[{\"label\":\"External NFS\",\"value\":\"nfs\"},{\"label\":\"External Lustre\",\"value\":\"aml\"}]'))]",
+                  "allowedValues": "[if(equals(steps('filesystem').shared.newexisting,'new'),parse(concat('[{\"label\":\"', 'Builtin NFS','\",\"value\":\"nfs\"}',if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),',',''),if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),'{\"label\":\"Azure NetApp Files\",\"value\":\"anf\"}',''),']')),parse('[{\"label\":\"External NFS\",\"value\":\"nfs\"}]'))]",
                   "required": true
                 },
                 "visible": true
@@ -426,15 +426,6 @@
                 "options": {
                   "icon": "Warning",
                   "text": "NetApp Resource Provider must be registered for your subscription."
-                }
-              },
-              {
-                "name": "amlInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').shared.filertype,'aml'),equals(steps('filesystem').shared.newexisting,'new'))]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "HPC Cache Resource Provider must be registered for your subscription."
                 }
               },
               {
@@ -485,56 +476,6 @@
                   "validationMessage": "Please enter an integer between 1 and 1000"
                 },
                 "visible": "[and(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.newexisting,'new'))]"
-              },
-              {
-                "name": "lustretier",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Lustre Tier",
-                "defaultValue": "AMLFS-Durable-Premium-500",
-                "multiselect": false,
-                "toolTip": "Select the Azure Manage Lustre SKU to use",
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "AMLFS-Durable-Premium-40",
-                      "description": "40 MB/s/TB, 48TB size increment",
-                      "value": "AMLFS-Durable-Premium-40"
-                    },
-                    {
-                      "label": "AMLFS-Durable-Premium-125",
-                      "description": "125 MB/s/TB, 16TB size increment",
-                      "value": "AMLFS-Durable-Premium-125"
-                    },
-                    {
-                      "label": "AMLFS-Durable-Premium-250",
-                      "description": "250 MB/s/TB, 8TB size increment",
-                      "value": "AMLFS-Durable-Premium-250"
-                    },
-                    {
-                      "label": "AMLFS-Durable-Premium-500",
-                      "description": "500 MB/s/TB, 4TB size increment",
-                      "value": "AMLFS-Durable-Premium-500"
-                    }
-                  ],
-                  "required": true
-                },
-                "visible": "[and(equals(steps('filesystem').shared.filertype,'aml'),equals(steps('filesystem').shared.newexisting,'new'))]"
-              },
-              {
-                "name": "azurelustrecapacity",
-                "type": "Microsoft.Common.Slider",
-                "min": "[int(if(endsWith(steps('filesystem').shared.lustretier,'-40'),48,if(endsWith(steps('filesystem').shared.lustretier,'-125'),16,if(endsWith(steps('filesystem').shared.lustretier,'-250'),8,4))))]",
-                "max": "[int(if(endsWith(steps('filesystem').shared.lustretier,'-40'),12768,if(endsWith(steps('filesystem').shared.lustretier,'-125'),4096,if(endsWith(steps('filesystem').shared.lustretier,'-250'),2048,1024))))]",
-                "step": "[int(if(endsWith(steps('filesystem').shared.lustretier,'-40'),48,if(endsWith(steps('filesystem').shared.lustretier,'-125'),16,if(endsWith(steps('filesystem').shared.lustretier,'-250'),8,4))))]",
-                "label": "Capacity",
-                "subLabel": "TiB",
-                "defaultValue": 4,
-                "showStepMarkers": true,
-                "toolTip": "Capacity of the Azure Managed Lustre volume",
-                "constraints": {
-                  "required": true
-                },
-                "visible": "[and(equals(steps('filesystem').shared.filertype,'aml'),equals(steps('filesystem').shared.newexisting,'new'))]"
               },
               {
                 "name": "nfscapacity",
@@ -1022,15 +963,6 @@
                 }
               },
               {
-                "name": "lustreInfoBoxExisting1",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').shared.filertype,'aml'),equals(steps('filesystem').shared.newexisting,'new'),equals(steps('networking').newexisting,'existing'))]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nPlease ensure that the subnet selected below meets this requirement."
-                }
-              },
-              {
                 "name": "filersubnet1",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Primary file-system subnet",
@@ -1039,7 +971,7 @@
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
-                "visible": "[and(or(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('filesystem').shared.filertype, 'aml')), equals(steps('networking').newexisting,'existing'))]"
+                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'))]"
               },
               {
                 "name": "anfInfoBox2",
@@ -2040,18 +1972,6 @@
                 "visible": "[and(contains(first(filter(steps('basics').locationInfoApi.value, (item) => equals(item.name, location()))), 'availabilityZoneMappings'), not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))))]"
                },
               {
-                "name": "sharedamlavailabilityzone",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Shared Azure Managed Lustre zone",
-                "multiselect": false,
-                "toolTip": "Availability Zone for the shared Azure Managed Lustre volume",
-                "constraints": {
-                  "allowedValues": "[if(equals(length(first(first(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))).locationInfo).zones),0), parse('[{\"label\":\"No Availability Zone Support\",\"value\":\"null\"}]'), map(filter(parse('[\"1\",\"2\",\"3\"]'), (item) => contains(first(first(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))).locationInfo).zones, item)), (item) => parse(concat('{\"label\":\"','Zone ',item,'\",\"value\":\"',item,'\"}'))))]",
-                  "required": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.filertype,'aml'),equals(steps('filesystem').shared.newexisting,'new'))]"
-                },
-                "visible": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.filertype,'aml'),equals(steps('filesystem').shared.newexisting,'new'))]"
-              },
-              {
                 "name": "sharedanfavailabilityzone",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Shared Azure NetApp Files zone",
@@ -2094,7 +2014,7 @@
                   "icon": "Warning",
                   "text": "Placement of HTC Nodes is not optimal versus the shared filesystem."
                 },
-                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.htczone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'), or(equals(steps('filesystem').shared.filertype,'aml'),equals(steps('filesystem').shared.filertype,'anf')), not(or(and(equals(steps('advancedSettings').availabilityzone.htczone,steps('advancedSettings').availabilityzone.sharedanfavailabilityzone),equals(steps('filesystem').shared.filertype,'anf')),and(equals(steps('advancedSettings').availabilityzone.htczone,steps('advancedSettings').availabilityzone.sharedamlavailabilityzone),equals(steps('filesystem').shared.filertype,'aml')))))]"
+                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.htczone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'anf'),not(and(equals(steps('advancedSettings').availabilityzone.htczone,steps('advancedSettings').availabilityzone.sharedanfavailabilityzone),equals(steps('filesystem').shared.filertype,'anf'))))]"
               },
               {
                 "name": "additionalhtcinfobox",
@@ -2124,7 +2044,7 @@
                   "icon": "Warning",
                   "text": "Placement of HPC Nodes is not optimal versus the shared filesystem."
                 },
-                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.hpczone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'), or(equals(steps('filesystem').shared.filertype,'aml'),equals(steps('filesystem').shared.filertype,'anf')), not(or(and(equals(steps('advancedSettings').availabilityzone.hpczone,steps('advancedSettings').availabilityzone.sharedanfavailabilityzone),equals(steps('filesystem').shared.filertype,'anf')),and(equals(steps('advancedSettings').availabilityzone.hpczone,steps('advancedSettings').availabilityzone.sharedamlavailabilityzone),equals(steps('filesystem').shared.filertype,'aml')))))]"
+                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.hpczone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'anf'),not(and(equals(steps('advancedSettings').availabilityzone.hpczone,steps('advancedSettings').availabilityzone.sharedanfavailabilityzone),equals(steps('filesystem').shared.filertype,'anf'))))]"
               },
               {
                 "name": "additionalhpcinfobox",
@@ -2154,7 +2074,7 @@
                   "icon": "Warning",
                   "text": "Placement of GPU Nodes is not optimal versus the shared filesystem."
                 },
-                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.gpuzone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'), or(equals(steps('filesystem').shared.filertype,'aml'),equals(steps('filesystem').shared.filertype,'anf')), not(or(and(equals(steps('advancedSettings').availabilityzone.gpuzone,steps('advancedSettings').availabilityzone.sharedanfavailabilityzone),equals(steps('filesystem').shared.filertype,'anf')),and(equals(steps('advancedSettings').availabilityzone.gpuzone,steps('advancedSettings').availabilityzone.sharedamlavailabilityzone),equals(steps('filesystem').shared.filertype,'aml')))))]"
+                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.gpuzone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'anf'),not(and(equals(steps('advancedSettings').availabilityzone.gpuzone,steps('advancedSettings').availabilityzone.sharedanfavailabilityzone),equals(steps('filesystem').shared.filertype,'anf'))))]"
               },
               {
                 "name": "additionalgpuinfobox",
@@ -2221,12 +2141,10 @@
         "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),int(steps('filesystem').shared.nfscapacity),basics('nullValue'))]",
         "anfServiceTier": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').shared.filertype,'anf'),int(steps('filesystem').shared.anfcapacity),basics('nullValue'))]",
-        "lustreTier": "[if(equals(steps('filesystem').shared.filertype,'aml'),steps('filesystem').shared.lustretier,basics('nullValue'))]",
-        "lustreCapacityInTib": "[if(equals(steps('filesystem').shared.filertype,'aml'),int(steps('filesystem').shared.azurelustrecapacity),basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,basics('nullValue'))]",
         "exportPath": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,basics('nullValue'))]",
         "mountOptions": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.mountOptions,basics('nullValue'))]",
-        "availabilityZone": "[if(and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new')),if(equals(steps('filesystem').shared.filertype,'aml'),parse(concat('[\"', steps('advancedSettings').availabilityzone.sharedamlavailabilityzone, '\"]')),parse(concat('[\"', steps('advancedSettings').availabilityzone.sharedanfavailabilityzone, '\"]'))),parse('[]'))]"
+        "availabilityZone": "[if(and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new')),parse(concat('[\"', steps('advancedSettings').availabilityzone.sharedanfavailabilityzone, '\"]')),parse('[]'))]"
       },
       "additionalFilesystem": {
         "type": "[if(steps('filesystem').additionalCheck.checkbox,concat(steps('filesystem').additional.filertype,'-',steps('filesystem').additional.newexisting),'disabled')]",
@@ -2247,7 +2165,7 @@
         "id": "[if(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.networkSelector.id,basics('nullValue'))]",
         "cyclecloudSubnet": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.ccsubnet)]",
         "computeSubnet": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.computesubnet)]",
-        "sharedFilerSubnet": "[if(or(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.filertype,'aml')),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.filersubnet1),basics('nullValue'))]",
+        "sharedFilerSubnet": "[if(equals(steps('filesystem').shared.filertype,'anf'),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.filersubnet1),basics('nullValue'))]",
         "additionalFilerSubnet": "[if(and(steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new')),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.filersubnet2),basics('nullValue'))]",
         "bastion": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.bastion,basics('nullValue'))]",
         "createNatGateway": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.natgateway,basics('nullValue'))]",
