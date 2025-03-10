@@ -251,8 +251,11 @@ type ood_enabled_t = {
   sku: string
   osImage: string
   userDomain: string
-  registerEntraIDApp: bool
   fqdn: string?
+  registerEntraIDApp: bool
+  appId: string?
+  appTenantId: string?
+  appManagedIdentityId: string?
 }
 
 @export()
