@@ -10,7 +10,8 @@ param additionalFilesystem types.additionalFilesystem_t
 var filerTypes = [sharedFilesystem.type, additionalFilesystem.type]
 var create_anf = contains(filerTypes, 'anf-new')
 var create_anf_subnet = create_anf ? (sharedFilesystem.type == 'anf-new' ? network.?sharedFilerSubnet : network.?additionalFilerSubnet) : null
-var create_lustre = additionalFilesystem.type == 'aml-new'
+var create_lustre = contains(filerTypes, 'aml-new')
+var create_lustre_subnet = create_lustre ? (sharedFilesystem.type == 'aml-new' ? network.?sharedFilerSubnet : network.?additionalFilerSubnet) : null
 var deploy_bastion = network.?bastion ?? false
 var create_database = false //update once MySQL capacity is available
 param natGatewayId string 
@@ -115,7 +116,7 @@ var vnet  = {
     } : {},
     create_lustre ? {
       lustre: {
-        name: network.?additionalFilerSubnet ?? 'ccw-lustre-subnet'
+        name: create_lustre_subnet ?? 'ccw-lustre-subnet'
         cidr: subnet_cidr.lustre
         nat_gateway : false
         service_endpoints: []
@@ -396,7 +397,7 @@ var subnet_database = create_database ? rsc_output(subnetDatabase) : {}
 
 var filerTypeHome = sharedFilesystem.type
 var filerTypeAddl = additionalFilesystem.type
-var output_home_subnet = filerTypeHome == 'anf-new' 
+var output_home_subnet = filerTypeHome == 'anf-new' || filerTypeHome == 'aml-new'
 var output_addl_subnet = contains(['aml-new','anf-new'],filerTypeAddl)
 var home_filer = output_home_subnet ? (filerTypeHome == 'anf-new' ? { home: subnet_netapp } : { home: subnet_lustre }) : {}
 var addl_filer = output_addl_subnet ? (filerTypeAddl == 'anf-new' ? { additional: subnet_netapp } : { additional: subnet_lustre }) : {}

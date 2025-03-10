@@ -208,21 +208,24 @@ module mySQLccw './mysql.bicep' = if (create_database) {
   }
 }
 
-module ccwAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
-  name: 'ccwAMLFS-additional'
+module ccwAMLFS 'amlfs.bicep' = [
+  for amlfs in items({ home: sharedFilesystem, additional: additionalFilesystem }): if (amlfs.value.type == 'aml-new') {
+  name: 'ccwAMLFS-${amlfs.key}'
   params: {
     location: location
     tags: getTags('Microsoft.StorageCache/amlFileSystems', tags)
     name: 'ccw-lustre'
-    subnetId: subnets.?additional.id ?? ''
-    sku: additionalFilesystem.?lustreTier
-    capacity: additionalFilesystem.?lustreCapacityInTib
+    subnetId: subnets[amlfs.key].id
+    sku: amlfs.value.?lustreTier
+    capacity:  amlfs.value.?lustreCapacityInTib
+    availabilityZone:  amlfs.value.?availabilityZone
     infrastructureOnly: infrastructureOnly
   }
   dependsOn: [
     ccwNetwork
   ]
 }
+]
 
 module ccwANFAccount 'anf-account.bicep' = if((sharedFilesystem.type == 'anf-new' || additionalFilesystem.type == 'anf-new') && !infrastructureOnly) {
   name: 'ccwANFAccount'
@@ -242,6 +245,7 @@ module ccwANF 'anf.bicep' = [
       serviceLevel: filer.value.anfServiceTier
       sizeTiB: filer.value.anfCapacityInTiB
       defaultMountOptions: anfDefaultMountOptions
+      availabilityZone:  filer.value.?availabilityZone
       infrastructureOnly: infrastructureOnly
     }
     dependsOn: [
@@ -282,24 +286,24 @@ output filerInfoFinal types.filerInfo_t = {
   home: {
     type: sharedFilesystem.type
     nfsCapacityInGb: sharedFilesystem.?nfsCapacityInGb ?? -1
-    ipAddress: sharedFilesystem.type == 'anf-new' ? ccwANF[1].outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
-    exportPath: sharedFilesystem.type == 'anf-new' ? ccwANF[1].outputs.exportPath : sharedFilesystem.?exportPath ?? ''
+    ipAddress: sharedFilesystem.type == 'anf-new' ? ccwANF[1].outputs.ipAddress : (sharedFilesystem.type == 'aml-new' ? ccwAMLFS[1].outputs.ipAddress : sharedFilesystem.?ipAddress ?? '')
+    exportPath: sharedFilesystem.type == 'anf-new' ? ccwANF[1].outputs.exportPath : (sharedFilesystem.type == 'aml-new' ? ccwAMLFS[1].outputs.exportPath : sharedFilesystem.?exportPath ?? '')
     mountOptions: sharedFilesystem.type == 'anf-new'
       ? ccwANF[1].outputs.mountOptions
-      : sharedFilesystem.?mountOptions ?? ''
+      : (sharedFilesystem.type == 'aml-new' ? ccwAMLFS[1].outputs.mountOptions : sharedFilesystem.?mountOptions ?? '')
     mountPath: '/shared'
   }
   additional: {
     type: additionalFilesystem.type
     ipAddress: additionalFilesystem.type == 'anf-new'
       ? ccwANF[0].outputs.ipAddress
-      : additionalFilesystem.type == 'aml-new' ? ccwAMLFS.outputs.ipAddress : additionalFilesystem.?ipAddress ?? ''
+      : (sharedFilesystem.type == 'aml-new' ? ccwAMLFS[0].outputs.ipAddress : additionalFilesystem.?ipAddress ?? '')
     exportPath: additionalFilesystem.type == 'anf-new'
       ? ccwANF[0].outputs.exportPath
-      :additionalFilesystem.?exportPath ?? ''
+      : (sharedFilesystem.type == 'aml-new' ? ccwAMLFS[0].outputs.exportPath : additionalFilesystem.?exportPath ?? '')
     mountOptions: additionalFilesystem.type == 'anf-new'
       ? ccwANF[0].outputs.mountOptions
-      : additionalFilesystem.?mountOptions ?? ''
+      : (sharedFilesystem.type == 'aml-new' ? ccwAMLFS[0].outputs.mountOptions : additionalFilesystem.?mountOptions ?? '')
     mountPath: additionalFilesystem.?mountPath ?? ''
   }
 }
@@ -350,6 +354,7 @@ output partitions types.partitions_t = {
     maxNodes: htc.maxNodes
     osImage: htc.osImage
     useSpot: htc.?useSpot ?? false
+    availabilityZone: htc.availabilityZone
   }
   hpc: hpc
   gpu: gpu
