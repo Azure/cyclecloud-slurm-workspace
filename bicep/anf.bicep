@@ -1,9 +1,10 @@
 targetScope = 'resourceGroup'
-import {tags_t} from './types.bicep'
+import {tags_t, availabilityZone_list_t} from './types.bicep'
 
 param name string
 param location string
 param tags tags_t
+param availabilityZone availabilityZone_list_t
 param resourcePostfix string = uniqueString(resourceGroup().id)
 param subnetId string
 param serviceLevel string
@@ -32,6 +33,7 @@ resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2024-0
   location: location
   tags: tags
   parent: anfPool
+  zones: length(availabilityZone) == 0 ? null : availabilityZone
   properties: {
     unixPermissions: '0755'
     creationToken: '${name}-path'

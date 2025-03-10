@@ -1,5 +1,5 @@
 targetScope = 'resourceGroup'
-import {tags_t} from './types.bicep'
+import {tags_t, availabilityZone_list_t} from './types.bicep'
 
 param location string
 param tags tags_t
@@ -21,6 +21,7 @@ The step sizes are dependent on the SKU.
 ''')
 param capacity int
 param infrastructureOnly bool = false
+param availabilityZone availabilityZone_list_t
 
 resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2024-03-01' = if (!infrastructureOnly){
   name: '${name}-${uniqueString(resourceGroup().id,deployment().name)}'
@@ -29,7 +30,7 @@ resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2024-03-01' = if (!in
   sku: {
     name: sku
   }
-  zones: [ '1' ]
+  zones: availabilityZone
   properties: {
     storageCapacityTiB: capacity
     filesystemSubnet: subnetId
@@ -45,4 +46,4 @@ output ipAddress string = infrastructureOnly ? '' : fileSystem.properties.client
 // TODO we are fighting the chef cookbooks here by adding tcp:/lustrefs, as it simply prepends all paths
 // with tcp:/lustrefs
 output exportPath string = '' //what should our placeholder be for new amlfs??
-output mountOptions string = ''
+output mountOptions string = 'noatime,user_xattr'

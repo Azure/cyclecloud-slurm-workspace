@@ -26,6 +26,30 @@
         }
       },
       {
+        "name": "anfAvailabilityZonesApi",
+        "type": "Microsoft.Solutions.ArmApiControl",
+        "request": {
+          "method": "GET",
+          "path": "[concat(subscription().id,'/providers/Microsoft.NetApp/locations/',location(),'/regionInfos/default?api-version=2024-09-01')]"
+        }
+      },
+      {
+        "name": "amlAvailabilityZonesApi",
+        "type": "Microsoft.Solutions.ArmApiControl",
+        "request": {
+          "method": "GET",
+          "path": "[concat(subscription().id,'/providers/Microsoft.StorageCache/skus?api-version=2024-03-01')]"
+        }
+      },
+      {
+        "name": "locationInfoApi",
+        "type": "Microsoft.Solutions.ArmApiControl",
+        "request": {
+          "method": "GET",
+          "path": "[concat(subscription().id,'/locations?api-version=2022-12-01')]"
+        }
+      },
+      {
         "name": "newexisting",
         "type": "Microsoft.Common.DropDown",
         "label": "Resource group options",
@@ -401,16 +425,7 @@
                 "toolTip": "Filer type for the /shared directory",
                 "multiselect": false,
                 "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "[if(equals(steps('filesystem').shared.newexisting,'new'),'Builtin NFS','External NFS')]",
-                      "value": "nfs"
-                    },
-                    {
-                      "label": "Azure NetApp Files",
-                      "value": "anf"
-                    }
-                  ],
+                  "allowedValues": "parse(concat('[{\"label\":\"', 'Builtin NFS','\",\"value\":\"nfs\"}',if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),',',''),if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),'{\"label\":\"Azure NetApp Files\",\"value\":\"anf\"}',''),']'))",
                   "required": true
                 },
                 "visible": "[equals(steps('filesystem').shared.newexisting,'new')]"
@@ -570,16 +585,7 @@
                 "toolTip": "Create new file-system or use existing",
                 "multiselect": false,
                 "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "Create new",
-                      "value": "new"
-                    },
-                    {
-                      "label": "Use existing",
-                      "value": "existing"
-                    }
-                  ],
+                  "allowedValues": "[parse(concat('[',if(or(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),not(equals(length(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))),0))),'{\"label\":\"Create new\",\"value\":\"new\"},',''),'{\"label\":\"Use existing\",\"value\":\"existing\"}]'))]",
                   "required": true
                 },
                 "visible": true
@@ -588,20 +594,11 @@
                 "name": "filertype",
                 "type": "Microsoft.Common.DropDown",
                 "label": "File-system Type",
-                "defaultValue": "[if(equals(steps('filesystem').additional.newexisting,'new'),'Azure NetApp Files','External NFS')]",
+                "defaultValue": "[if(equals(steps('filesystem').additional.newexisting,'new'),if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),'Azure NetApp Files', 'Azure Managed Lustre'),'External NFS')]",
                 "toolTip": "File-system type",
                 "multiselect": false,
                 "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "[if(equals(steps('filesystem').additional.newexisting,'new'),'Azure NetApp Files','External NFS')]",
-                      "value": "[if(equals(steps('filesystem').additional.newexisting,'new'),'anf','nfs')]"
-                    },
-                    {
-                      "label": "Azure Managed Lustre",
-                      "value": "aml"
-                    }
-                  ],
+                  "allowedValues": "[parse(concat('[',if(or(contains(steps('basics').anfAvailabilityZonesApi, 'properties'), equals(steps('filesystem').additional.newexisting,'existing')),concat('{\"label\":\"',if(equals(steps('filesystem').additional.newexisting,'new'),'Azure NetApp Files','External NFS'),'\",\"value\":\"',if(equals(steps('filesystem').additional.newexisting,'new'),'anf','nfs'),'\"}'),''),if(or(equals(steps('filesystem').additional.newexisting,'existing'),and(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),not(equals(length(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))),0)))),',',''),if(and(not(equals(steps('filesystem').additional.newexisting,'existing')),equals(length(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))),0)),'',concat('{\"label\":\"',if(equals(steps('filesystem').additional.newexisting,'new'),'Azure Managed Lustre','External Azure Managed Lustre'),'\",\"value\":\"aml\"}')),']'))]",
                   "required": true
                 },
                 "visible": true
@@ -622,6 +619,25 @@
                 "options": {
                   "icon": "Warning",
                   "text": "Slurm High Availability will be unavailable in Slurm Settings with this choice of file-system."
+                }
+              },
+              {
+                "name": "amlInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('filesystem').additional.filertype,'aml')]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "HPC Cache Resource Provider must be registered for your subscription."
+                }
+              },
+              {
+                "name": "amlInfoBoxLargeCluster",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),greater(steps('filesystem').additional.azurelustrecapacity,128))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "To deploy AMLFS clusters bigger than 128 TiB ensure your subscription has Large Cluster feature enabled. Open a support ticket to enable this feature.",
+                  "uri": "https://ms.portal.azure.com/#view/Microsoft_Azure_Support/HelpAndSupportBlade/%7E/overview"
                 }
               },
               {
@@ -668,7 +684,7 @@
                 "name": "lustretier",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Lustre Tier",
-                "defaultValue": "AMLFS-Durable-Premium-250",
+                "defaultValue": "AMLFS-Durable-Premium-500",
                 "multiselect": false,
                 "toolTip": "Select the Azure Manage Lustre SKU to use",
                 "constraints": {
@@ -702,11 +718,11 @@
                 "name": "azurelustrecapacity",
                 "type": "Microsoft.Common.Slider",
                 "min": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),48,if(endsWith(steps('filesystem').additional.lustretier,'-125'),16,if(endsWith(steps('filesystem').additional.lustretier,'-250'),8,4))))]",
-                "max": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),768,128))]",
+                "max": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),12768,if(endsWith(steps('filesystem').additional.lustretier,'-125'),4096,if(endsWith(steps('filesystem').additional.lustretier,'-250'),2048,1024))))]",
                 "step": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),48,if(endsWith(steps('filesystem').additional.lustretier,'-125'),16,if(endsWith(steps('filesystem').additional.lustretier,'-250'),8,4))))]",
                 "label": "Capacity",
                 "subLabel": "TiB",
-                "defaultValue": 48,
+                "defaultValue": 4,
                 "showStepMarkers": true,
                 "toolTip": "Capacity of the Azure Managed Lustre volume",
                 "constraints": {
@@ -778,7 +794,7 @@
                 "name": "mountOptionsNfs",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Mount options",
-                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev",
+                "defaultValue": "[if(equals(steps('filesystem').additional.filertype,'aml'), 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev', 'noatime,xattr')]",
                 "toolTip": "Mount options for the additional filer",
                 "constraints": {
                   "required": false,
@@ -864,10 +880,19 @@
               {
                 "name": "lustreInfoBoxNew",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'new'))]",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'new'),less(steps('filesystem').additional.azurelustrecapacity,128))]",
                 "options": {
                   "icon": "Warning",
                   "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nThe option to create a new virtual network with a CIDR of /24 is therefore omitted in the below menu."
+                }
+              },
+              {
+                "name": "lustreInfoBoxLargeClusterNew",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,128))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "The minimum CIDR for the virtual network has been adjusted to host the IP addresses required by the selected Azure Managed Lustre size."
                 }
               },
               {
@@ -885,14 +910,14 @@
                       "value": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','/24')]"
                     },
                     {
-                      "label": "/23",
-                      "description": "251 compute nodes",
-                      "value": "/23"
+                      "label": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,256)),'','/23')]",
+                      "description": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,256)),'','251 compute nodes')]",
+                      "value": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,256)),'','/23')]"
                     },
                     {
-                      "label": "/22",
-                      "description": "506 compute nodes",
-                      "value": "/22"
+                      "label": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,512)),'','/22')]",
+                      "description":  "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,512)),'','506 compute nodes')]",
+                      "value": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,512)),'','/22')]"
                     },
                     {
                       "label": "/21",
@@ -2168,12 +2193,237 @@
                 "toolTip": "Automatically start the Open OnDemand cluster following deployment completion",
                 "defaultValue": "[not(equals(steps('ood').OODSection.registerEntraIDApp,'manual'))]",
                 "constraints": {
-                  "required": false
+                  "allowedValues": [
+                    {
+                      "label": "Automatically register an Entra ID Application",
+                      "value": "autoregister"
+                    },
+                    {
+                      "label": "Use existing Entra ID Application registration",
+                      "value": "existing"
+                    },
+                    {
+                      "label": "None",
+                      "value": "no"
+                    }
+                  ],
+                  "required": true
                 },
                 "visible": "[steps('ood').OODSection.deployOOD]"
+              },
+              {
+                "name": "managedIdentity",
+                "type": "Microsoft.Solutions.ResourceSelector",
+                "label": "Managed Identity",
+                "toolTip": "Select the user-assigned managed identity created for the federated credentials",
+                "resourceType": "Microsoft.ManagedIdentity/userAssignedIdentities",
+                "constraints": {
+                  "required": true,
+                  "validationMessage": "Please select a managed identity."
+                },
+                "options": {
+                },
+                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
+              },
+              {
+                "name": "clientId",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Application (client) ID",
+                "defaultValue": "",
+                "toolTip": "Application or client ID of the Entra ID Application in the Azure AD tenant",
+                "constraints": {
+                  "required": true,
+                  "regex": "^(\\w{8}(-\\w{4}){3}-\\w{12}?)$",
+                  "validationMessage": "Enter a valid application (client) ID"
+                },
+                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
               }
             ],
             "visible": true
+          }
+        ]
+      },
+      {
+        "name": "advancedSettings",
+        "label": "Advanced",
+        "elements": [
+          {
+            "name": "availabilityzone",
+            "type": "Microsoft.Common.Section",
+            "label": "Availability Zones",
+            "elements": [
+              {
+                "name": "skuZoneInfo",
+                "type": "Microsoft.Solutions.ArmApiControl",
+                "request": {
+                  "method": "GET",
+                  "path": "[concat(subscription().id,'/providers/Microsoft.Compute/skus?api-version=2021-07-01&$filter=location%20eq%20%27', location(), '%27')]"
+                }
+              },
+              {
+                "name": "availabilityzoneinfobox",
+                "type": "Microsoft.Common.InfoBox",
+                "options": {
+                  "icon": "Info",
+                  "text": "This section allows to optionally pin compute resource and storage in the same availability zone."
+                },
+                "visible": true
+               },
+               {
+                "name": "noAvailabilityZoneSupport",
+                "type": "Microsoft.Common.InfoBox",
+                "options": {
+                  "icon": "Warning",
+                  "text": "This region doesn't support availability zones."
+                },
+                "visible": "[not(contains(first(filter(steps('basics').locationInfoApi.value, (item) => equals(item.name, location()))), 'availabilityZoneMappings'))]"
+              },
+              {
+                "name": "SKUNotSelectedWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "options": {
+                  "icon": "Error",
+                  "text": "Before defining zones, the HTC, GPU and HPC partion VM type must be defined. Please go back to Partition Settings."
+                },
+                "visible": "[and(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize)), contains(first(filter(steps('basics').locationInfoApi.value, (item) => equals(item.name, location()))), 'availabilityZoneMappings'))]"
+              },
+              {
+                "name": "defineAvailabilityZones",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Define storage and compute Availability Zones",
+                "toolTip": "Configure Availability Zone placement to enforce storage and compute resources proximity.",
+                "constraints": {
+                  "required": false
+                },
+                "visible": "[and(contains(first(filter(steps('basics').locationInfoApi.value, (item) => equals(item.name, location()))), 'availabilityZoneMappings'), not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))))]"
+               },
+              {
+                "name": "sharedanfavailabilityzone",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Shared Azure NetApp Files zone",
+                "multiselect": false,
+                "toolTip": "Availability Zone for the shared Azure NetApp Files volume",
+                "constraints": {
+                  "allowedValues": "[if(contains(steps('basics').anfAvailabilityZonesApi.properties, 'availabilityZoneMappings'), map(filter(parse('[\"1\",\"2\",\"3\"]'), (item) => contains(map(filter(steps('basics').anfAvailabilityZonesApi.properties.availabilityZoneMappings, (item) => item.isAvailable), (item) => item.availabilityZone),item)), (zone) => parse(concat('{\"label\":\"', 'Zone ',zone, '\",\"value\":\"', zone, '\"}'))), parse('[{\"label\":\"No Availability Zone Support\",\"value\":\"null\"}]'))]",
+                  "required": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.newexisting,'new'))]"
+                },
+                "visible": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.newexisting,'new'))]"
+              },
+              {
+                "name": "additionalamlavailabilityzone",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Additional Azure Managed Lustre zone",
+                "multiselect": false,
+                "toolTip": "Availability Zone for additional Azure Managed Lustre volume",
+                "constraints": {
+                  "allowedValues": "[if(equals(length(first(first(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))).locationInfo).zones),0), parse('[{\"label\":\"No Availability Zone Support\",\"value\":\"null\"}]'), map(filter(parse('[\"1\",\"2\",\"3\"]'), (item) => contains(first(first(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))).locationInfo).zones, item)), (item) => parse(concat('{\"label\":\"','Zone ',item,'\",\"value\":\"',item,'\"}'))))]",
+                  "required": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]"
+                },
+                "visible": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]"
+              },
+              {
+                "name": "additionalanfavailabilityzone",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Additional Azure NetApp Files zone",
+                "multiselect": false,
+                "toolTip": "Availability Zone for the additional Azure NetApp Files volume",
+                "constraints": {
+                  "allowedValues": "[if(contains(steps('basics').anfAvailabilityZonesApi.properties, 'availabilityZoneMappings'), map(filter(parse('[\"1\",\"2\",\"3\"]'), (item) => contains(map(filter(steps('basics').anfAvailabilityZonesApi.properties.availabilityZoneMappings, (item) => item.isAvailable), (item) => item.availabilityZone),item)), (zone) => parse(concat('{\"label\":\"', 'Zone ',zone, '\",\"value\":\"', zone, '\"}'))), parse('[{\"label\":\"No Availability Zone Support\",\"value\":\"null\"}]'))]",
+                  "required": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'))]"
+                },
+                "visible": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'))]"
+              },
+              {
+                "name": "sharedhtcinfobox",
+                "type": "Microsoft.Common.InfoBox",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Placement of HTC Nodes is not optimal versus the shared filesystem."
+                },
+                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.htczone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'anf'),not(and(equals(steps('advancedSettings').availabilityzone.htczone,steps('advancedSettings').availabilityzone.sharedanfavailabilityzone),equals(steps('filesystem').shared.filertype,'anf'))))]"
+              },
+              {
+                "name": "additionalhtcinfobox",
+                "type": "Microsoft.Common.InfoBox",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Placement of HTC Nodes is not optimal versus the additional filesystem."
+                },
+                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.htczone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').additional.newexisting,'new'), or(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.filertype,'anf')), not(or(and(equals(steps('advancedSettings').availabilityzone.htczone,steps('advancedSettings').availabilityzone.additionalanfavailabilityzone),equals(steps('filesystem').additional.filertype,'anf')),and(equals(steps('advancedSettings').availabilityzone.htczone,steps('advancedSettings').availabilityzone.additionalamlavailabilityzone),equals(steps('filesystem').additional.filertype,'aml')))))]"
+              },
+              {
+                "name": "htczone",
+                "type": "Microsoft.Common.DropDown",
+                "label": "HTC nodes zone",
+                "toolTip": "Select the Availability Zone to use for the HTC partition",
+                "placeholder": "Select an Availability Zone",
+                "constraints": {
+                  "allowedValues": "[if(lessOrEquals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones),1), parse(concat('[{\"label\":\"',if(equals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones),0),'No Availability Zone Support',concat('Zone ', first(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones))),'\",\"value\":\"',if(equals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones),0),'',first(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones)),'\"}]')), map(filter(parse('[\"1\",\"2\",\"3\",\"not\"]'), (item) => or(equals(item, 'not'),contains(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones,item))), (item) => parse(concat('{\"label\":\"',if(equals(item,'not'), 'Do not specify', concat('Zone ',item)),'\",\"value\":\"',if(equals(item,'not'), '', item),'\"}'))))]",
+                  "required": false
+                },
+                "visible": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones)]"
+              },
+              {
+                "name": "sharedhpcinfobox",
+                "type": "Microsoft.Common.InfoBox",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Placement of HPC Nodes is not optimal versus the shared filesystem."
+                },
+                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.hpczone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'anf'),not(and(equals(steps('advancedSettings').availabilityzone.hpczone,steps('advancedSettings').availabilityzone.sharedanfavailabilityzone),equals(steps('filesystem').shared.filertype,'anf'))))]"
+              },
+              {
+                "name": "additionalhpcinfobox",
+                "type": "Microsoft.Common.InfoBox",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Placement of HPC Nodes is not optimal versus the additional filesystem."
+                },
+                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.hpczone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').additional.newexisting,'new'), or(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.filertype,'anf')), not(or(and(equals(steps('advancedSettings').availabilityzone.hpczone,steps('advancedSettings').availabilityzone.additionalanfavailabilityzone),equals(steps('filesystem').additional.filertype,'anf')),and(equals(steps('advancedSettings').availabilityzone.hpczone,steps('advancedSettings').availabilityzone.additionalamlavailabilityzone),equals(steps('filesystem').additional.filertype,'aml')))))]"
+              },
+              {
+                "name": "hpczone",
+                "type": "Microsoft.Common.DropDown",
+                "label": "HPC nodes zone",
+                "toolTip": "Select the Availability Zone to use for the HPC partition",
+                "placeholder": "Select an Availability Zone",
+                "constraints": {
+                  "allowedValues": "[if(lessOrEquals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HPCSection.vmsize))).locationInfo).zones),1), parse(concat('[{\"label\":\"',if(equals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HPCSection.vmsize))).locationInfo).zones),0),'No Availability Zone Support',concat('Zone ', first(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones))),'\",\"value\":\"',if(equals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HPCSection.vmsize))).locationInfo).zones),0),'',first(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones)),'\"}]')), map(filter(parse('[\"1\",\"2\",\"3\",\"not\"]'), (item) => or(equals(item, 'not'),contains(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones,item))), (item) => parse(concat('{\"label\":\"',if(equals(item,'not'), 'Do not specify', concat('Zone ',item)),'\",\"value\":\"',if(equals(item,'not'), '', item),'\"}'))))]",
+                  "required": false
+                },
+                "visible": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones)]"
+              },
+              {
+                "name": "sharedgpuinfobox",
+                "type": "Microsoft.Common.InfoBox",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Placement of GPU Nodes is not optimal versus the shared filesystem."
+                },
+                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.gpuzone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'anf'),not(and(equals(steps('advancedSettings').availabilityzone.gpuzone,steps('advancedSettings').availabilityzone.sharedanfavailabilityzone),equals(steps('filesystem').shared.filertype,'anf'))))]"
+              },
+              {
+                "name": "additionalgpuinfobox",
+                "type": "Microsoft.Common.InfoBox",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Placement of GPU Nodes is not optimal versus the additional filesystem."
+                },
+                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.gpuzone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').additional.newexisting,'new'), or(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.filertype,'anf')), not(or(and(equals(steps('advancedSettings').availabilityzone.gpuzone,steps('advancedSettings').availabilityzone.additionalanfavailabilityzone),equals(steps('filesystem').additional.filertype,'anf')),and(equals(steps('advancedSettings').availabilityzone.gpuzone,steps('advancedSettings').availabilityzone.additionalamlavailabilityzone),equals(steps('filesystem').additional.filertype,'aml')))))]"
+              },
+              {
+                "name": "gpuzone",
+                "type": "Microsoft.Common.DropDown",
+                "label": "GPU nodes zone",
+                "placeholder": "Select an Availability Zone",
+                "toolTip": "Select the Availability Zone to use for the GPU partition",
+                "constraints": {
+                  "allowedValues": "[if(lessOrEquals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').GPUSection.vmsize))).locationInfo).zones),1), parse(concat('[{\"label\":\"',if(equals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').GPUSection.vmsize))).locationInfo).zones),0),'No Availability Zone Support',concat('Zone ', first(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones))),'\",\"value\":\"',if(equals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').GPUSection.vmsize))).locationInfo).zones),0),'',first(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones)),'\"}]')), map(filter(parse('[\"1\",\"2\",\"3\",\"not\"]'), (item) => or(equals(item, 'not'),contains(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones,item))), (item) => parse(concat('{\"label\":\"',if(equals(item,'not'), 'Do not specify', concat('Zone ',item)),'\",\"value\":\"',if(equals(item,'not'), '', item),'\"}'))))]",
+                  "required": false
+                },
+                "visible": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones)]"
+              }
+            ]
           }
         ]
       },
@@ -2219,7 +2469,8 @@
         "anfCapacityInTiB": "[if(equals(steps('filesystem').shared.filertype,'anf'),int(steps('filesystem').shared.anfcapacity),basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,basics('nullValue'))]",
         "exportPath": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,basics('nullValue'))]",
-        "mountOptions": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.mountOptions,basics('nullValue'))]"
+        "mountOptions": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.mountOptions,basics('nullValue'))]",
+        "availabilityZone": "[if(and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'nfs')),parse(concat('[\"', steps('advancedSettings').availabilityzone.sharedanfavailabilityzone, '\"]')),parse('[]'))]"
       },
       "additionalFilesystem": {
         "type": "[if(steps('filesystem').additionalCheck.checkbox,concat(steps('filesystem').additional.filertype,'-',steps('filesystem').additional.newexisting),'disabled')]",
@@ -2230,7 +2481,8 @@
         "ipAddress": "[if(equals(steps('filesystem').additional.newexisting,'existing'),if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.ipAddressAml,steps('filesystem').additional.ipAddressNfs),basics('nullValue'))]",
         "mountPath": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountPath, basics('nullValue'))]",
         "exportPath": "[if(or(and(equals(steps('filesystem').additional.filertype, 'anf'),equals(steps('filesystem').additional.newexisting,'existing')),and(equals(steps('filesystem').additional.filertype, 'nfs'),equals(steps('filesystem').additional.newexisting,'existing'))), steps('filesystem').additional.exportPath,basics('nullValue'))]",
-        "mountOptions": "[if(steps('filesystem').additionalCheck.checkbox,if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.mountOptionsAml,steps('filesystem').additional.mountOptionsNfs), basics('nullValue'))]"
+        "mountOptions": "[if(steps('filesystem').additionalCheck.checkbox,if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.mountOptionsAml,steps('filesystem').additional.mountOptionsNfs), basics('nullValue'))]",
+        "availabilityZone": "[if(and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').additional.newexisting,'new')),if(equals(steps('filesystem').additional.filertype,'aml'),parse(concat('[\"', steps('advancedSettings').availabilityzone.additionalamlavailabilityzone, '\"]')),parse(concat('[\"', steps('advancedSettings').availabilityzone.additionalanfavailabilityzone, '\"]'))),parse('[]'))]"
       },
       "network": {
         "type": "[steps('networking').newexisting]",
@@ -2280,17 +2532,20 @@
         "sku": "[steps('slurmSettings').HTCSection.vmsize]",
         "maxNodes": "[int(steps('slurmSettings').HTCSection.maxNodes)]",
         "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').HTCSection.ImageName,'custom'),steps('slurmSettings').HTCSection.customImageName,steps('slurmSettings').HTCSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]",
-        "useSpot": "[steps('slurmSettings').HTCSection.spotHTC]"
+        "useSpot": "[steps('slurmSettings').HTCSection.spotHTC]",
+        "availabilityZone": "[if(and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,not(empty(steps('advancedSettings').availabilityzone.htczone))),parse(concat('[\"',steps('advancedSettings').availabilityzone.htczone,'\"]')),parse('[]'))]"
       },
       "hpc": {
         "sku": "[steps('slurmSettings').HPCSection.vmsize]",
         "maxNodes": "[int(steps('slurmSettings').HPCSection.maxNodes)]",
-        "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').HPCSection.ImageName,'custom'),steps('slurmSettings').HPCSection.customImageName,steps('slurmSettings').HPCSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]"
+        "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').HPCSection.ImageName,'custom'),steps('slurmSettings').HPCSection.customImageName,steps('slurmSettings').HPCSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]",
+        "availabilityZone": "[if(and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,not(empty(steps('advancedSettings').availabilityzone.hpczone))),parse(concat('[\"',steps('advancedSettings').availabilityzone.hpczone,'\"]')),parse('[]'))]"
       },
       "gpu": {
         "sku": "[steps('slurmSettings').GPUSection.vmsize]",
         "maxNodes": "[int(steps('slurmSettings').GPUSection.maxNodes)]",
-        "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').GPUSection.ImageName,'custom'),steps('slurmSettings').GPUSection.customImageName,steps('slurmSettings').GPUSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]"
+        "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').GPUSection.ImageName,'custom'),steps('slurmSettings').GPUSection.customImageName,steps('slurmSettings').GPUSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]",
+        "availabilityZone": "[if(and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,not(empty(steps('advancedSettings').availabilityzone.gpuzone))),parse(concat('[\"',steps('advancedSettings').availabilityzone.gpuzone,'\"]')),parse('[]'))]"
       },
       "ood": {
         "type": "[if(steps('ood').OODSection.deployOOD,'enabled','disabled')]",
