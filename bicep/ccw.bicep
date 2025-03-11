@@ -265,12 +265,12 @@ module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
 }
 
 // create a user assigned managed identity to be assigned to the OOD VM
-resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (deployOOD && registerOODApp) {
+resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (registerOODApp) {
   name: 'ood-${uniqueString(az.resourceGroup().id)}-mi'
   location: location
 }
 
-module oodApp 'oodEntraApp.bicep' = if (deployOOD && registerOODApp) {
+module oodApp 'oodEntraApp.bicep' = if (registerOODApp) {
   name: 'oodApp'
   params: {
     umiName: 'ood-${uniqueString(az.resourceGroup().id)}-mi'
