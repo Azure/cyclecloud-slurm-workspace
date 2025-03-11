@@ -20,22 +20,9 @@ type shared_anf_new_t = {
   availabilityZone:  availabilityZone_t[]?
 }
 
-type shared_aml_new_t = {
-  type: 'aml-new'
-  lustreTier: string
-  lustreCapacityInTib: int
-  availabilityZone:  availabilityZone_t[]?
-}
-
-type shared_aml_existing_t = {
-  type: 'aml-existing'
-  ipAddress: string
-  mountOptions: string?
-}
-
 @discriminator('type')
 @export()
-type sharedFilesystem_t = shared_nfs_new_t | shared_nfs_existing_t | shared_anf_new_t | shared_aml_new_t | shared_aml_existing_t 
+type sharedFilesystem_t = shared_nfs_new_t | shared_nfs_existing_t | shared_anf_new_t 
 
 type additional_anf_new_t = {
   type: 'anf-new'
