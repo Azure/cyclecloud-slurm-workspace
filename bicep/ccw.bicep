@@ -395,5 +395,5 @@ output ood object = union(ood, {
   nic: deployOOD ? oodNIC.outputs.NICId : ''
   managedIdentity: deployOOD ? registerOODApp ? ood.?appManagedIdentityId : oodApp.outputs.oodMiId : ''
   clientId: deployOOD ? registerOODApp ? ood.?appId : oodApp.outputs.oodClientAppId : ''
-  tenantId: deployOOD ? registerOODApp ? ood.?appTenantId : subscription().tenantId : ''
+  tenantId: deployOOD ? subscription().tenantId : ''
 })
