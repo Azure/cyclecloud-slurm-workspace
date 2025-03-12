@@ -1921,19 +1921,6 @@
                 "visible": "[steps('ood').OODSection.deployOOD]"
               },
               {
-                "name": "clientId",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Application (client) ID",
-                "defaultValue": "",
-                "toolTip": "Application or client ID of the Entra ID Application in the Azure AD tenant",
-                "constraints": {
-                  "required": true,
-                  "regex": "^(\\w{8}(-\\w{4}){3}-\\w{12}?)$",
-                  "validationMessage": "Enter a valid application (client) ID"
-                },
-                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
-              },
-              {
                 "name": "managedIdentity",
                 "type": "Microsoft.Solutions.ResourceSelector",
                 "label": "Managed Identity",
@@ -1947,6 +1934,19 @@
                   "filter": {
                     "subscription": "onBasics"
                   }
+                },
+                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
+              },
+              {
+                "name": "clientId",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Application (client) ID",
+                "defaultValue": "",
+                "toolTip": "Application or client ID of the Entra ID Application in the Azure AD tenant",
+                "constraints": {
+                  "required": true,
+                  "regex": "^(\\w{8}(-\\w{4}){3}-\\w{12}?)$",
+                  "validationMessage": "Enter a valid application (client) ID"
                 },
                 "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
               }
