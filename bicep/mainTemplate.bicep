@@ -50,7 +50,10 @@ resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
 }
 
 module makeCCWresources 'ccw.bicep' = {
-  name: 'pid-d5d2708b-a4ef-42c0-a89b-b8bd6dd6d29b-partnercenter'
+  // prod
+  // name: 'pid-d5d2708b-a4ef-42c0-a89b-b8bd6dd6d29b-partnercenter'
+  // preview - remember to change this in install.sh
+  name: 'pid-b3313305-4e26-4c98-93c5-06d5412cb53d-partnercenter'
   scope: ccwResourceGroup
   params: {
     location: location
