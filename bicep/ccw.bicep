@@ -311,19 +311,18 @@ output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.pr
 
 output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
 
-// Automatically inject the ccw cluster init spec
+// Automatically inject the ccw and pyxis cluster init specs
 
 var ccwClusterInitSpec = {
   type: 'gitHubReleaseURL'
-  gitHubReleaseURL: 'https://github.com/Azure/cyclecloud-slurm-workspace/releases/tag/${projectVersion}'
+  gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-slurm-workspace/releases/tag/', projectVersion)
   spec: 'default'
   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
 }
 
-// We will need to uncomment this when we have the pyxis cluster init specs
 var pyxisClusterInitSpec = {
   type: 'gitHubReleaseURL'
-  gitHubReleaseURL: 'https://github.com/Azure/cyclecloud-pyxis/releases/tag/${pyxisProjectVersion}'
+  gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-pyxis/releases/tag/', pyxisProjectVersion)
   spec: 'default'
   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
 }
@@ -331,7 +330,7 @@ var pyxisClusterInitSpec = {
 // Projects <= 2025.02.06 have the pyxis logic embedded in the ccw cluster init spec
 var requiredClusterInitSpecs = [ccwClusterInitSpec, pyxisClusterInitSpec]
 
-output clusterInitSpecs types.cluster_init_param_t = union(requiredClusterInitSpecs, requiredClusterInitSpecs)
+output clusterInitSpecs types.cluster_init_param_t = union(requiredClusterInitSpecs, clusterInitSpecs)
 
 output slurmSettings types.slurmSettings_t = slurmSettings
 

@@ -1930,8 +1930,6 @@
                   "required": true,
                   "validationMessage": "Please select a managed identity."
                 },
-                "options": {
-                },
                 "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
               },
               {
@@ -2071,7 +2069,6 @@
         "appId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.clientId,basics('nullValue'))]",
         "appManagedIdentityId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.managedIdentity.id,basics('nullValue'))]"
       },
-      "clusterInitSpecs": [],
       "tags": "[steps('tags').tagsByResource]"
     }
   }
