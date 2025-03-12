@@ -393,7 +393,7 @@ output acceptMarketplaceTerms bool = acceptMarketplaceTerms
 output ood object = union(ood, {
   version: '1.0.0'
   nic: deployOOD ? oodNIC.outputs.NICId : ''
-  managedIdentity: deployOOD ? registerOODApp ? ood.?appManagedIdentityId : oodApp.outputs.oodMiId : ''
-  clientId: deployOOD ? registerOODApp ? ood.?appId : oodApp.outputs.oodClientAppId : ''
+  managedIdentity: deployOOD ? registerOODApp ? oodApp.outputs.oodMiId : ood.?appManagedIdentityId : ''
+  clientId: deployOOD ? registerOODApp ? oodApp.outputs.oodClientAppId : ood.?appId : ''
   tenantId: deployOOD ? subscription().tenantId : ''
 })
