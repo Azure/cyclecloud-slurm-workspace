@@ -1933,18 +1933,6 @@
                 "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
               },
               {
-                "name": "tenantId",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Directory (tenant) ID",
-                "defaultValue": "",
-                "toolTip": "Directory or tenant ID of the Entra ID Application",
-                "constraints": {
-                  "required": true,
-                  "validationMessage": "Enter a valid directory (tenant) ID"
-                },
-                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
-              },
-              {
                 "name": "managedIdentity",
                 "type": "Microsoft.Solutions.ResourceSelector",
                 "label": "Managed Identity",
@@ -2079,7 +2067,6 @@
         "fqdn": "[if(not(equals(steps('ood').OODSection.fqdn,'')),steps('ood').OODSection.fqdn,basics('nullValue'))]",
         "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,equals(steps('ood').OODSection.registerEntraIDApp,'autoregister'),basics('nullValue'))]",
         "appId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.clientId,basics('nullValue'))]",
-        "appTenantId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.tenantId,basics('nullValue'))]",
         "appManagedIdentityId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.managedIdentity.id,basics('nullValue'))]"
       },
       "clusterInitSpecs": [],
