@@ -1925,9 +1925,10 @@
                 "type": "Microsoft.Common.TextBox",
                 "label": "Application (client) ID",
                 "defaultValue": "",
-                "toolTip": "Application or client ID of the Entra ID Application",
+                "toolTip": "Application or client ID of the Entra ID Application in the Azure AD tenant",
                 "constraints": {
                   "required": true,
+                  "regex": "^(\\w{8}(-\\w{4}){3}-\\w{12}?)$",
                   "validationMessage": "Enter a valid application (client) ID"
                 },
                 "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
@@ -1938,6 +1939,10 @@
                 "label": "Managed Identity",
                 "toolTip": "Select the user-assigned managed identity created for the federated credentials",
                 "resourceType": "Microsoft.ManagedIdentity/userAssignedIdentities",
+                "constraints": {
+                  "required": true,
+                  "validationMessage": "Please select a managed identity."
+                },
                 "options": {
                   "filter": {
                     "subscription": "onBasics"
