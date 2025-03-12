@@ -1945,14 +1945,15 @@
                 "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
               },
               {
-                "name": "managedIdentityId",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Managed Identity ID",
-                "defaultValue": "",
-                "toolTip": "Azure resource ID of the managed identity created for the federated credentials",
-                "constraints": {
-                  "required": true,
-                  "validationMessage": "Enter a valid resource ID"
+                "name": "managedIdentity",
+                "type": "Microsoft.Solutions.ResourceSelector",
+                "label": "Managed Identity",
+                "toolTip": "Select the user-assigned managed identity created for the federated credentials",
+                "resourceType": "Microsoft.ManagedIdentity/userAssignedIdentities",
+                "options": {
+                  "filter": {
+                    "subscription": "onBasics"
+                  }
                 },
                 "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
               }
@@ -2079,7 +2080,7 @@
         "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,equals(steps('ood').OODSection.registerEntraIDApp,'autoregister'),basics('nullValue'))]",
         "appId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.clientId,basics('nullValue'))]",
         "appTenantId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.tenantId,basics('nullValue'))]",
-        "appManagedIdentityId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.managedIdentityId,basics('nullValue'))]"
+        "appManagedIdentityId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.managedIdentity.id,basics('nullValue'))]"
       },
       "clusterInitSpecs": [],
       "tags": "[steps('tags').tagsByResource]"
