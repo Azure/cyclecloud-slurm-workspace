@@ -1931,9 +1931,6 @@
                   "validationMessage": "Please select a managed identity."
                 },
                 "options": {
-                  "filter": {
-                    "subscription": "onBasics"
-                  }
                 },
                 "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
               },
