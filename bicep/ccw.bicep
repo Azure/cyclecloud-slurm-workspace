@@ -217,6 +217,7 @@ module ccwAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
     subnetId: subnets.?additional.id ?? ''
     sku: additionalFilesystem.?lustreTier
     capacity: additionalFilesystem.?lustreCapacityInTib
+    availabilityZone:  additionalFilesystem.?availabilityZone
     infrastructureOnly: infrastructureOnly
   }
   dependsOn: [
@@ -242,6 +243,7 @@ module ccwANF 'anf.bicep' = [
       serviceLevel: filer.value.anfServiceTier
       sizeTiB: filer.value.anfCapacityInTiB
       defaultMountOptions: anfDefaultMountOptions
+      availabilityZone:  filer.value.?availabilityZone
       infrastructureOnly: infrastructureOnly
     }
     dependsOn: [
@@ -302,7 +304,7 @@ output filerInfoFinal types.filerInfo_t = {
       :additionalFilesystem.?exportPath ?? ''
     mountOptions: additionalFilesystem.type == 'anf-new'
       ? ccwANF[0].outputs.mountOptions
-      : additionalFilesystem.?mountOptions ?? ''
+      : additionalFilesystem.type == 'aml-new' ? ccwAMLFS.outputs.mountOptions : additionalFilesystem.?mountOptions ?? ''
     mountPath: additionalFilesystem.?mountPath ?? ''
   }
 }
@@ -353,6 +355,7 @@ output partitions types.partitions_t = {
     maxNodes: htc.maxNodes
     osImage: htc.osImage
     useSpot: htc.?useSpot ?? false
+    availabilityZone: htc.availabilityZone
   }
   hpc: hpc
   gpu: gpu

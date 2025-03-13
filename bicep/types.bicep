@@ -1,3 +1,6 @@
+@export()
+type availabilityZone_t = '1' | '2' | '3'
+
 type shared_nfs_new_t = {
   type: 'nfs-new'
   nfsCapacityInGb: int
@@ -14,17 +17,19 @@ type shared_anf_new_t = {
   type: 'anf-new'
   anfServiceTier: string
   anfCapacityInTiB: int
+  availabilityZone:  availabilityZone_t[]?
 }
 
 @discriminator('type')
 @export()
-type sharedFilesystem_t = shared_nfs_new_t | shared_nfs_existing_t | shared_anf_new_t
+type sharedFilesystem_t = shared_nfs_new_t | shared_nfs_existing_t | shared_anf_new_t 
 
 type additional_anf_new_t = {
   type: 'anf-new'
   anfServiceTier: string
   anfCapacityInTiB: int
   mountPath: string
+  availabilityZone: availabilityZone_t[]?
 }
 
 type additional_nfs_existing_t = {
@@ -40,6 +45,7 @@ type additional_aml_new_t = {
   lustreTier: string
   lustreCapacityInTib: int
   mountPath: string
+  availabilityZone: availabilityZone_t[]?
 }
 
 type additional_aml_existing_t = {
@@ -176,6 +182,7 @@ type htc_t = {
   osImage: string
   maxNodes: int
   useSpot: bool?
+  availabilityZone: availabilityZone_t[]
 }
 
 @export()
@@ -184,6 +191,7 @@ type htc_output_t = {
   osImage: string
   maxNodes: int
   useSpot: bool
+  availabilityZone: availabilityZone_t[]
 }
 
 @export()
@@ -191,6 +199,7 @@ type hpc_t = {
   sku: string
   osImage: string
   maxNodes: int
+  availabilityZone: availabilityZone_t[]
 }
 
 @export()
