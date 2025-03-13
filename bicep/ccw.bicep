@@ -254,8 +254,9 @@ module ccwANF 'anf.bicep' = [
 var deployOOD = ood.type != 'disabled'
 var registerOODApp = ood.?registerEntraIDApp ?? false
 
+var oodNicName = 'ccwOpenOnDemandNIC'
 module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
-  name: 'oodNIC'
+  name: oodNicName
   params: {
     location: location
     name: 'ood-${uniqueString(az.resourceGroup().id)}'
@@ -265,16 +266,18 @@ module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
 }
 
 // create a user assigned managed identity to be assigned to the OOD VM
-resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (registerOODApp) {
-  name: 'ood-${uniqueString(az.resourceGroup().id)}-mi'
+var oodManagedIdentityName = 'ccwOpenOnDemandManagedIdentity'
+resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (deployOOD) {
+  name: oodManagedIdentityName
   location: location
 }
 
-module oodApp 'oodEntraApp.bicep' = if (registerOODApp) {
+var oodAppName = 'CycleCloudOpenOnDemandApp-${uniqueString(az.resourceGroup().id)}'
+module oodApp 'oodEntraApp.bicep' = if (deployOOD) {
   name: 'oodApp'
   params: {
-    umiName: 'ood-${uniqueString(az.resourceGroup().id)}-mi'
-    appName: 'ood-${uniqueString(az.resourceGroup().id)}-app'
+    umiName: oodManagedIdentityName
+    appName: oodAppName
     fqdn: oodNIC.outputs.privateIp
   }
 }

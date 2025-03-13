@@ -930,7 +930,7 @@
                 "label": "CycleCloud subnet",
                 "toolTip": "Select subnet for CycleCloud",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
                 "visible": "[equals(steps('networking').newexisting,'existing')]"
@@ -941,7 +941,7 @@
                 "label": "Compute node subnet",
                 "toolTip": "Select subnet for compute nodes",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
                 "visible": "[equals(steps('networking').newexisting,'existing')]"
@@ -962,7 +962,7 @@
                 "label": "Primary file-system subnet",
                 "toolTip": "Select subnet for primary file-system",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
                 "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'))]"
@@ -992,7 +992,7 @@
                 "label": "Additional file-system subnet",
                 "toolTip": "Select subnet for additional file-system",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
                 "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new'))]"
