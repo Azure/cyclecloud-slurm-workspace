@@ -335,6 +335,16 @@
         "toolTip": "Null Value",
         "defaultValue": false,
         "visible": false
+      },
+      {
+        "name": "makeCluster",
+        "type": "Microsoft.Common.CheckBox",
+        "label": "Deploy Slurm cluster",
+        "toolTip": "Optionally configure a Slurm cluster to be deployed alongside the HPC infrastructure",
+        "defaultValue": false,
+        "constraints": {
+          "required": false
+        }
       }
     ],
     "steps": [
