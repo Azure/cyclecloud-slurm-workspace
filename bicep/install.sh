@@ -317,8 +317,11 @@ rm -f slurm_params.json
 echo "Deleted Slurm input parameters file" 
 
 if [ $INCLUDE_OOD == true ]; then
-    cyclecloud start_cluster OpenOnDemand
-    echo "CC start_cluster for OpenOnDemand successful"
+    START_OOD=$(jq -r .ood.value.start ccwOutputs.json)
+    if [ "$START_OOD" == "true" ]; then
+        cyclecloud start_cluster OpenOnDemand
+        echo "CC start_cluster for OpenOnDemand successful"
+    fi
     rm -f ood_params.json
     echo "Deleted OOD input parameters file" 
 fi

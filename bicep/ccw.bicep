@@ -272,7 +272,7 @@ resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities
 }
 
 var oodAppName = 'CycleCloudOpenOnDemandApp-${uniqueString(az.resourceGroup().id)}'
-module oodApp 'oodEntraApp.bicep' = if (registerOODApp) {
+module oodApp 'ood/oodEntraApp.bicep' = if (registerOODApp) {
   name: 'oodApp'
   params: {
     umiName: oodManagedIdentityName

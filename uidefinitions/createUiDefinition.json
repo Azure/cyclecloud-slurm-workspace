@@ -1896,6 +1896,16 @@
                 "visible": "[steps('ood').OODSection.deployOOD]"
               },
               {
+                "name": "regInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": false,
+                "options": {
+                  "icon": "Warning",
+                  "text": "Automatic reigstration of Entra ID requires an interactive session via the az cli. For more information, see the linked page.",
+                  "uri": "https://github.com/Azure/cyclecloud-slurm-workspace/blob/main/README.md"
+                }
+              },
+              {
                 "name": "registerEntraIDApp",
                 "type": "Microsoft.Common.OptionsGroup",
                 "label": "Microsoft Entra ID Application Registration",
@@ -1912,8 +1922,8 @@
                       "value": "existing"
                     },
                     {
-                      "label": "None",
-                      "value": "no"
+                      "label": "Manual registration",
+                      "value": "manual"
                     }
                   ],
                   "required": true
@@ -2061,6 +2071,7 @@
       },
       "ood": {
         "type": "[if(steps('ood').OODSection.deployOOD,'enabled','disabled')]",
+        "start": "[if(steps('ood').OODSection.deployOOD,not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),basics('nullValue'))]",
         "sku": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.vmsize,basics('nullValue'))]",
         "osImage": "[if(steps('ood').OODSection.deployOOD,if(equals(steps('ood').OODSection.ImageName,'custom'),steps('ood').OODSection.customImageName,steps('ood').OODSection.ImageName),basics('nullValue'))]",
         "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",

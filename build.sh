@@ -33,16 +33,7 @@ az bicep build --file "${GIT_ROOT}/bicep-typeless/mainTemplate.bicep" --outdir "
 rm -rf bicep-typeless
 
 echo Adding branch=$BRANCH to build/mainTemplate.json
-cat > build_sh_python_tmp.py<<EOF
-import json
-with open("build/mainTemplate.json") as fr:
-    mainTemplate = json.load(fr)
-mainTemplate["parameters"]["branch"] = {"type": "string", "defaultValue": "$BRANCH"}
-with open("build/mainTemplate.json", "w") as fw:
-    json.dump(mainTemplate, fw, indent=2)
-EOF
-python3 build_sh_python_tmp.py
-rm -f build_sh_python_tmp.py
+python3 util/build.py --branch $BRANCH
 
 echo "Creating zipfile"
 pushd "$build_dir"
