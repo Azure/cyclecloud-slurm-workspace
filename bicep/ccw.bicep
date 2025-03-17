@@ -252,6 +252,7 @@ module ccwANF 'anf.bicep' = [
 ]
 
 var deployOOD = ood.type != 'disabled'
+var registerOODApp = ood.?registerEntraIDApp ?? false
 
 var oodNicName = 'ccwOpenOnDemandNIC'
 module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
@@ -266,13 +267,13 @@ module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
 
 // create a user assigned managed identity to be assigned to the OOD VM
 var oodManagedIdentityName = 'ccwOpenOnDemandManagedIdentity'
-resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (deployOOD) {
+resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (registerOODApp) {
   name: oodManagedIdentityName
   location: location
 }
 
 var oodAppName = 'CycleCloudOpenOnDemandApp-${uniqueString(az.resourceGroup().id)}'
-module oodApp 'oodEntraApp.bicep' = if (deployOOD) {
+module oodApp 'oodEntraApp.bicep' = if (registerOODApp) {
   name: 'oodApp'
   params: {
     umiName: oodManagedIdentityName
@@ -395,7 +396,7 @@ output acceptMarketplaceTerms bool = acceptMarketplaceTerms
 output ood object = union(ood, {
   version: '1.0.0'
   nic: deployOOD ? oodNIC.outputs.NICId : ''
-  managedIdentity: deployOOD ? oodApp.outputs.oodMiId : ''
-  clientId: deployOOD ? oodApp.outputs.oodClientAppId : ''
+  managedIdentity: deployOOD ? registerOODApp ? oodApp.outputs.oodMiId : ood.?appManagedIdentityId : ''
+  clientId: deployOOD ? registerOODApp ? oodApp.outputs.oodClientAppId : ood.?appId : ''
   tenantId: deployOOD ? subscription().tenantId : ''
 })
