@@ -266,7 +266,7 @@ module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
 
 // create a user assigned managed identity to be assigned to the OOD VM
 var oodManagedIdentityName = 'ccwOpenOnDemandManagedIdentity'
-resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (registerOODApp) {
+resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (deployOOD) {
   name: oodManagedIdentityName
   location: location
 }
