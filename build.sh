@@ -18,6 +18,12 @@ if [ "$BRANCH" == "HEAD" ]; then
     exit 2
 fi
 
+# az deployment create --template-uri requires a json file. This ensures that we have a json file
+# that matches what the current bicep file would generate. Note we remove the generator version, as this will
+# give false positives in the diff
+az bicep build -f bicep/ood/oodEntraApp.bicep --stdout | jq -r 'del(.metadata._generator.version)' > bicep/ood/oodEntraApp.json
+git diff --exit-code bicep/ood/oodEntraApp.json
+
 UI_DEFINITION=${GIT_ROOT}/uidefinitions/createUiDefinition.json
 
 build_dir="${GIT_ROOT}/build"

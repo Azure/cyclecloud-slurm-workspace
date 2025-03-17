@@ -1,0 +1,151 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "languageVersion": "2.1-experimental",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_EXPERIMENTAL_WARNING": "This template uses ARM features that are experimental. Experimental features should be enabled for testing purposes only, as there are no guarantees about the quality or stability of these features. Do not enable these settings for any production usage, or your production environment may be subject to breaking.",
+    "_EXPERIMENTAL_FEATURES_ENABLED": [
+      "Extensibility"
+    ],
+    "_generator": {
+      "name": "bicep",
+      "templateHash": "4335552213009299792"
+    }
+  },
+  "parameters": {
+    "appName": {
+      "type": "string"
+    },
+    "umiName": {
+      "type": "string"
+    },
+    "fqdn": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "audiences": {
+      "AzureCloud": {
+        "uri": "api://AzureADTokenExchange"
+      },
+      "AzureUSGovernment": {
+        "uri": "api://AzureADTokenExchangeUSGov"
+      },
+      "USNat": {
+        "uri": "api://AzureADTokenExchangeUSNat"
+      },
+      "USSec": {
+        "uri": "api://AzureADTokenExchangeUSSec"
+      },
+      "AzureChinaCloud": {
+        "uri": "api://AzureADTokenExchangeChina"
+      }
+    },
+    "cloudEnvironment": "[environment().name]",
+    "loginEndpoint": "[environment().authentication.loginEndpoint]",
+    "tenantId": "[tenant().tenantId]",
+    "issuer": "[format('{0}{1}/v2.0', variables('loginEndpoint'), variables('tenantId'))]",
+    "graphAppId": "00000003-0000-0000-c000-000000000000",
+    "appScopes": [
+      "profile",
+      "User.Read"
+    ]
+  },
+  "imports": {
+    "MicrosoftGraph": {
+      "provider": "MicrosoftGraph",
+      "version": "0.1.8-preview"
+    }
+  },
+  "resources": {
+    "oodApp::myMsiFic": {
+      "import": "MicrosoftGraph",
+      "type": "Microsoft.Graph/applications/federatedIdentityCredentials@v1.0",
+      "properties": {
+        "name": "[format('{0}/msiAsFic', reference('oodApp').uniqueName)]",
+        "description": "Trust the Open OnDemand's user-assigned MI as a credential for the application",
+        "audiences": [
+          "[variables('audiences')[variables('cloudEnvironment')].uri]"
+        ],
+        "issuer": "[variables('issuer')]",
+        "subject": "[reference('oodManagedIdentity').principalId]"
+      },
+      "dependsOn": [
+        "oodApp",
+        "oodManagedIdentity"
+      ]
+    },
+    "msGraphSP": {
+      "existing": true,
+      "import": "MicrosoftGraph",
+      "type": "Microsoft.Graph/servicePrincipals@v1.0",
+      "properties": {
+        "appId": "[variables('graphAppId')]"
+      }
+    },
+    "oodManagedIdentity": {
+      "existing": true,
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2023-01-31",
+      "name": "[parameters('umiName')]"
+    },
+    "oodApp": {
+      "import": "MicrosoftGraph",
+      "type": "Microsoft.Graph/applications@v1.0",
+      "properties": {
+        "displayName": "[parameters('appName')]",
+        "uniqueName": "[guid(subscription().id, resourceGroup().id, parameters('appName'))]",
+        "web": {
+          "implicitGrantSettings": {
+            "enableAccessTokenIssuance": false,
+            "enableIdTokenIssuance": true
+          },
+          "redirectUriSettings": [
+            {
+              "index": 0,
+              "uri": "[uri(format('https://{0}', parameters('fqdn')), '/oidc')]"
+            }
+          ]
+        },
+        "optionalClaims": {
+          "idToken": [
+            {
+              "additionalProperties": [],
+              "essential": false,
+              "name": "upn",
+              "source": null
+            }
+          ]
+        },
+        "requiredResourceAccess": [
+          {
+            "copy": [
+              {
+                "name": "resourceAccess",
+                "count": "[length(variables('appScopes'))]",
+                "input": {
+                  "id": "[filter(reference('msGraphSP').oauth2PermissionScopes, lambda('graphScopes', equals(lambdaVariables('graphScopes').value, variables('appScopes')[copyIndex('resourceAccess')])))[0].id]",
+                  "type": "Scope"
+                }
+              }
+            ],
+            "resourceAppId": "[variables('graphAppId')]"
+          }
+        ]
+      },
+      "dependsOn": [
+        "msGraphSP"
+      ]
+    }
+  },
+  "outputs": {
+    "oodClientAppId": {
+      "type": "string",
+      "value": "[reference('oodApp').appId]"
+    },
+    "oodMiId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('umiName'))]"
+    }
+  }
+}
