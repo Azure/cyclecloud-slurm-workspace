@@ -1896,16 +1896,6 @@
                 "visible": "[steps('ood').OODSection.deployOOD]"
               },
               {
-                "name": "regInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": false,
-                "options": {
-                  "icon": "Warning",
-                  "text": "Automatic reigstration of Entra ID requires an interactive session via the az cli. For more information, see the linked page.",
-                  "uri": "https://github.com/Azure/cyclecloud-slurm-workspace/blob/main/README.md"
-                }
-              },
-              {
                 "name": "registerEntraIDApp",
                 "type": "Microsoft.Common.OptionsGroup",
                 "label": "Microsoft Entra ID Application Registration",

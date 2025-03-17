@@ -26,10 +26,6 @@ def disable_automatic_app_registration():
     regApp = [e for e in ood["elements"][0]["elements"] if e["name"] == "registerEntraIDApp"][0]
     regApp["constraints"]["allowedValues"] = regApp["constraints"]["allowedValues"][1:]
 
-    print("Enabling the infobox about automatic app registration in the UI")
-    regInfoBox = [e for e in ood["elements"][0]["elements"] if e["name"] == "regInfoBox"][0]
-    regInfoBox["visible"] = "[steps('ood').OODSection.deployOOD]"
-
     with open("build/createUiDefinition.json", "w") as fw:
         json.dump(createUiDefinition, fw, indent=2)
 
