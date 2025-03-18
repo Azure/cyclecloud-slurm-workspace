@@ -48,6 +48,9 @@ def set_slurm_params(params, dbPassword, outputs):
     params['GPUImageName'] = outputs['partitions']['value']['gpu']['osImage']
     params['GPUAvailabilityZone'] = outputs['partitions']['value']['gpu']['availabilityZone']
 
+    # Define Availability Zone
+    params['DefineNodesAvailabilityZone'] = any(zoneList for zoneList in [params['HTCAvailabilityZone'], params['HPCAvailabilityZone'] , params['GPUAvailabilityZone']])
+
     #scheduler node
     #params['slurm'] #is this the slurm version??? no, so what is it?
     params['SchedulerMachineType'] = outputs['schedulerNode']['value']['sku']
