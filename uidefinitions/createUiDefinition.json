@@ -1453,7 +1453,7 @@
             "visible": true,
             "options": {
               "icon": "Info",
-              "text": "Slurm uses partitions to distinguish different execute node types. We provide 3 common use cases, High-Throughput Compute (HTC), CPU-based High-Performance Compute (HPC) and GPU-based HPC (GPU)."
+              "text": "Slurm uses partitions to distinguish different execute node types. This workspace provides for three common use cases: High-Throughput Compute (HTC), CPU-based High-Performance Compute (HPC), and GPU-based HPC (GPU)."
             }
           },
           {
