@@ -6,6 +6,9 @@ param tags tags_t
 param saName string
 param subnetId string
 
+var virtualNetworkResourceGroup = split(subnetId, '/')[4]
+var virtualNetworkName = split(subnetId, '/')[8]
+
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-04-01' = {
   name: saName
   location: location
@@ -57,7 +60,13 @@ resource storageBlobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-04-
 
 var blobPrivateDnsZoneName = 'privatelink.blob.${environment().suffixes.storage}'
 
-resource blobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' = {
+resource existingBlobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' existing = {
+  name: blobPrivateDnsZoneName
+  scope: resourceGroup(virtualNetworkResourceGroup)
+}
+var privateDnsZoneExists = existingBlobPrivateDnsZone.name != ''
+
+resource blobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' = if (!privateDnsZoneExists)  {
   name: blobPrivateDnsZoneName
   location: 'global'
   tags: tags
@@ -71,17 +80,15 @@ resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGr
       {
         name: blobPrivateDnsZoneName
         properties:{
-          privateDnsZoneId: blobPrivateDnsZone.id
+          privateDnsZoneId: privateDnsZoneExists ? existingBlobPrivateDnsZone.id : blobPrivateDnsZone.id
         }
       }
     ]
   }
 }
 
-var virtualNetworkResourceGroup = split(subnetId, '/')[4]
-var virtualNetworkName = split(subnetId, '/')[8]
 
-resource blobPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+resource blobPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = if (!privateDnsZoneExists)  {
   parent: blobPrivateDnsZone
   name: uniqueString(storageAccount.id)
   location: 'global'
