@@ -2,7 +2,7 @@
 set -e
 # This script builds the ARM template and UI definition for the marketplace solution
 
-VERSION="2025.02.06"
+VERSION="2025.03.12"
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -17,6 +17,12 @@ if [ "$BRANCH" == "HEAD" ]; then
     echo "e.g. git checkout ${VERSION} -b ${VERSION}"
     exit 2
 fi
+
+# az deployment create --template-uri requires a json file. This ensures that we have a json file
+# that matches what the current bicep file would generate. Note we remove the generator version, as this will
+# give false positives in the diff
+az bicep build -f bicep/ood/oodEntraApp.bicep --stdout | jq -r 'del(.metadata._generator.version)' > bicep/ood/oodEntraApp.json
+git diff --exit-code bicep/ood/oodEntraApp.json
 
 UI_DEFINITION=${GIT_ROOT}/uidefinitions/createUiDefinition.json
 
@@ -33,16 +39,7 @@ az bicep build --file "${GIT_ROOT}/bicep-typeless/mainTemplate.bicep" --outdir "
 rm -rf bicep-typeless
 
 echo Adding branch=$BRANCH to build/mainTemplate.json
-cat > build_sh_python_tmp.py<<EOF
-import json
-with open("build/mainTemplate.json") as fr:
-    mainTemplate = json.load(fr)
-mainTemplate["parameters"]["branch"] = {"type": "string", "defaultValue": "$BRANCH"}
-with open("build/mainTemplate.json", "w") as fw:
-    json.dump(mainTemplate, fw, indent=2)
-EOF
-python3 build_sh_python_tmp.py
-rm -f build_sh_python_tmp.py
+python3 util/build.py --branch $BRANCH
 
 echo "Creating zipfile"
 pushd "$build_dir"

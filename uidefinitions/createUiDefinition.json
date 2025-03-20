@@ -5,7 +5,7 @@
   "parameters": {
     "config": {
       "basics": {
-        "description": "Version **2025.02.06**: [Release Notes](https://learn.microsoft.com/azure/cyclecloud/release-notes/ccws/release-notes)",
+        "description": "Version **2025.03.12**: [Release Notes](https://learn.microsoft.com/azure/cyclecloud/release-notes/ccws/release-notes)",
         "resourceGroup": {
           "visible": false
         },
@@ -1920,8 +1920,8 @@
                       "value": "existing"
                     },
                     {
-                      "label": "None",
-                      "value": "no"
+                      "label": "Manual registration",
+                      "value": "manual"
                     }
                   ],
                   "required": true
@@ -1937,8 +1937,6 @@
                 "constraints": {
                   "required": true,
                   "validationMessage": "Please select a managed identity."
-                },
-                "options": {
                 },
                 "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
               },
@@ -2072,6 +2070,7 @@
       },
       "ood": {
         "type": "[if(steps('ood').OODSection.deployOOD,'enabled','disabled')]",
+        "start": "[if(steps('ood').OODSection.deployOOD,not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),basics('nullValue'))]",
         "sku": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.vmsize,basics('nullValue'))]",
         "osImage": "[if(steps('ood').OODSection.deployOOD,if(equals(steps('ood').OODSection.ImageName,'custom'),steps('ood').OODSection.customImageName,steps('ood').OODSection.ImageName),basics('nullValue'))]",
         "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",
@@ -2080,7 +2079,6 @@
         "appId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.clientId,basics('nullValue'))]",
         "appManagedIdentityId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.managedIdentity.id,basics('nullValue'))]"
       },
-      "clusterInitSpecs": [],
       "tags": "[steps('tags').tagsByResource]"
     }
   }

@@ -108,7 +108,10 @@ fi
 # Add retry logic as it could take some delay to apply the Managed Identity
 timeout 360s bash -c 'until az login -i; do sleep 10; done'
 
-deployment_name='pid-d5d2708b-a4ef-42c0-a89b-b8bd6dd6d29b-partnercenter'
+# prod pid
+# deployment_name='pid-d5d2708b-a4ef-42c0-a89b-b8bd6dd6d29b-partnercenter'
+# dev pid
+deployment_name='pid-b3313305-4e26-4c98-93c5-06d5412cb53d-partnercenter'
 resource_group=$(echo $mds | jq -r '.compute.resourceGroupName')
 vm_id=$(echo $mds | jq -r '.compute.vmId')
 
@@ -314,8 +317,11 @@ rm -f slurm_params.json
 echo "Deleted Slurm input parameters file" 
 
 if [ $INCLUDE_OOD == true ]; then
-    cyclecloud start_cluster OpenOnDemand
-    echo "CC start_cluster for OpenOnDemand successful"
+    START_OOD=$(jq -r .ood.value.start ccwOutputs.json)
+    if [ "$START_OOD" == "true" ]; then
+        cyclecloud start_cluster OpenOnDemand
+        echo "CC start_cluster for OpenOnDemand successful"
+    fi
     rm -f ood_params.json
     echo "Deleted OOD input parameters file" 
 fi

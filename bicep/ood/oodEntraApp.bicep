@@ -1,5 +1,7 @@
 extension microsoftGraphV1
 targetScope = 'resourceGroup'
+// WARNING!!!
+// If this file changes, you need to run `az build -f bicep/ood/oodEntraApp.bicep` and add the new json to the git commit.
 
 // Creates a secret-less client application, using a user-assigned managed identity
 // as the credential (configured as part of the application's federated identity credential).

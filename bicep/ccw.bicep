@@ -8,7 +8,6 @@ param insidersBuild bool
 param branch string
 param projectVersion string
 param pyxisProjectVersion string
-param nvmeProjectVersion string
 
 param adminUsername string
 @secure()
@@ -254,6 +253,7 @@ module ccwANF 'anf.bicep' = [
 
 var deployOOD = ood.type != 'disabled'
 var registerOODApp = ood.?registerEntraIDApp ?? false
+var createOODMI = deployOOD && ood.?appManagedIdentityId == null
 
 var oodNicName = 'ccwOpenOnDemandNIC'
 module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
@@ -268,13 +268,13 @@ module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
 
 // create a user assigned managed identity to be assigned to the OOD VM
 var oodManagedIdentityName = 'ccwOpenOnDemandManagedIdentity'
-resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (registerOODApp) {
+resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (createOODMI) {
   name: oodManagedIdentityName
   location: location
 }
 
 var oodAppName = 'CycleCloudOpenOnDemandApp-${uniqueString(az.resourceGroup().id)}'
-module oodApp 'oodEntraApp.bicep' = if (registerOODApp) {
+module oodApp 'ood/oodEntraApp.bicep' = if (registerOODApp) {
   name: 'oodApp'
   params: {
     umiName: oodManagedIdentityName
@@ -313,35 +313,26 @@ output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.pr
 
 output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
 
-// Automatically inject the ccw cluster init spec
+// Automatically inject the ccw and pyxis cluster init specs
 
 var ccwClusterInitSpec = {
   type: 'gitHubReleaseURL'
-  gitHubReleaseURL: 'https://github.com/Azure/cyclecloud-slurm-workspace/releases/tag/${projectVersion}'
+  gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-slurm-workspace/releases/tag/', projectVersion)
   spec: 'default'
   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
 }
 
-// We will need to uncomment this when we have the pyxis and nvme cluster init specs
-// var pyxisClusterInitSpec = {
-//   type: 'gitHubReleaseURL'
-//   gitHubReleaseURL: 'https://github.com/Azure/cyclecloud-pyxis/releases/tag/${pyxisProjectVersion}'
-//   spec: 'default'
-//   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
-// }
+var pyxisClusterInitSpec = {
+  type: 'gitHubReleaseURL'
+  gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-pyxis/releases/tag/', pyxisProjectVersion)
+  spec: 'default'
+  target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
+}
 
-// var nvmeClusterInitSpec = {
-//   type: 'gitHubReleaseURL'
-//   gitHubReleaseURL: 'https://github.com/Azure/cyclecloud-nvme/releases/tag/${nvmeProjectVersion}'
-//   spec: 'default'
-//   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
-// }
+// Projects <= 2025.02.06 have the pyxis logic embedded in the ccw cluster init spec
+var requiredClusterInitSpecs = [ccwClusterInitSpec, pyxisClusterInitSpec]
 
-// Projects <= 2025.02.06 have the nvme and pyxis logic embedded in the ccw cluster init spec
-// var requiredClusterInitSpecs = projectVersion >= '2025.02.06' ? [ccwClusterInitSpec, nvmeClusterInitSpec, pyxisClusterInitSpec] : [ccwClusterInitSpec]
-// For now, assume we just need ccwClusterInitSpec until we remove the scripts from the ccw repo
-var requiredClusterInitSpecs = [ccwClusterInitSpec]
-output clusterInitSpecs types.cluster_init_param_t = union(requiredClusterInitSpecs, requiredClusterInitSpecs)
+output clusterInitSpecs types.cluster_init_param_t = union(requiredClusterInitSpecs, clusterInitSpecs)
 
 output slurmSettings types.slurmSettings_t = slurmSettings
 
@@ -395,9 +386,15 @@ output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
 
 output ood object = union(ood, {
-  version: '1.0.0'
+  version: '1.0.1'
   nic: deployOOD ? oodNIC.outputs.NICId : ''
-  managedIdentity: deployOOD ? registerOODApp ? oodApp.outputs.oodMiId : ood.?appManagedIdentityId : ''
+  managedIdentity: deployOOD ? createOODMI ? oodNewManagedIdentity.id : ood.?appManagedIdentityId : ''
   clientId: deployOOD ? registerOODApp ? oodApp.outputs.oodClientAppId : ood.?appId : ''
   tenantId: deployOOD ? subscription().tenantId : ''
 })
+
+output oodManualRegistration object = {
+  appName: oodAppName
+  umiName: oodManagedIdentityName
+  fqdn: deployOOD ? oodNIC.outputs.privateIp : ''
+}
