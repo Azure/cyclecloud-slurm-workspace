@@ -34,16 +34,22 @@ def set_slurm_params(params, dbPassword, outputs):
     params['MaxHTCExecuteNodeCount'] = int(outputs['partitions']['value']['htc']['maxNodes'])
     params['HTCImageName'] = outputs['partitions']['value']['htc']['osImage']
     params['HTCUseLowPrio'] = outputs['partitions']['value']['htc']['useSpot']
-
+    params['HTCAvailabilityZone'] = outputs['partitions']['value']['htc']['availabilityZone'] 
+    
     #HPC
     params['HPCMachineType'] = outputs['partitions']['value']['hpc']['sku']
     params['MaxHPCExecuteNodeCount'] = int(outputs['partitions']['value']['hpc']['maxNodes'])
     params['HPCImageName'] = outputs['partitions']['value']['hpc']['osImage']
+    params['HPCAvailabilityZone'] = outputs['partitions']['value']['hpc']['availabilityZone']
 
     #GPU
     params['GPUMachineType'] = outputs['partitions']['value']['gpu']['sku']
     params['MaxGPUExecuteNodeCount'] = int(outputs['partitions']['value']['gpu']['maxNodes'])
     params['GPUImageName'] = outputs['partitions']['value']['gpu']['osImage']
+    params['GPUAvailabilityZone'] = outputs['partitions']['value']['gpu']['availabilityZone']
+
+    # Define Availability Zone
+    params['DefineNodesAvailabilityZone'] = any(zoneList for zoneList in [params['HTCAvailabilityZone'], params['HPCAvailabilityZone'] , params['GPUAvailabilityZone']])
 
     #scheduler node
     #params['slurm'] #is this the slurm version??? no, so what is it?
