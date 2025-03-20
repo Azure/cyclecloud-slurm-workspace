@@ -5,6 +5,10 @@ param location string
 param tags tags_t
 param saName string
 param subnetId string
+param privateDnsZoneExists bool 
+
+var virtualNetworkResourceGroup = split(subnetId, '/')[4]
+var virtualNetworkName = split(subnetId, '/')[8]
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-04-01' = {
   name: saName
@@ -57,10 +61,20 @@ resource storageBlobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-04-
 
 var blobPrivateDnsZoneName = 'privatelink.blob.${environment().suffixes.storage}'
 
-resource blobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' = {
+module newBlobPrivateDnsZone 'storage-newDnsZone.bicep' = if (!privateDnsZoneExists) {
+  name: 'ccwStorageNewDnsZone'
+  params: {
+    name: blobPrivateDnsZoneName
+    storageAccountId: storageAccount.id
+    vnetResourceGroup: virtualNetworkResourceGroup
+    vnetName: virtualNetworkName
+    tags: tags
+  }
+}
+
+resource blobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' existing = if (privateDnsZoneExists) {
   name: blobPrivateDnsZoneName
-  location: 'global'
-  tags: tags
+  scope: resourceGroup(virtualNetworkResourceGroup)
 }
 
 resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2023-04-01' = {
@@ -71,26 +85,10 @@ resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGr
       {
         name: blobPrivateDnsZoneName
         properties:{
-          privateDnsZoneId: blobPrivateDnsZone.id
+          privateDnsZoneId: privateDnsZoneExists ? blobPrivateDnsZone.id : newBlobPrivateDnsZone.outputs.blobPrivateDnsZoneId
         }
       }
     ]
-  }
-}
-
-var virtualNetworkResourceGroup = split(subnetId, '/')[4]
-var virtualNetworkName = split(subnetId, '/')[8]
-
-resource blobPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
-  parent: blobPrivateDnsZone
-  name: uniqueString(storageAccount.id)
-  location: 'global'
-  tags: tags
-  properties: {
-    registrationEnabled: false
-    virtualNetwork: {
-      id: resourceId(virtualNetworkResourceGroup,'Microsoft.Network/virtualNetworks', virtualNetworkName)
-    }
   }
 }
 
