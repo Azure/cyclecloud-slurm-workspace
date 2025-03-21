@@ -3,9 +3,11 @@ import {tags_t} from './types.bicep'
 
 param name string
 param storageAccountId string
-param vnetResourceGroup string
-param vnetName string
+param subnetId string
 param tags tags_t
+
+var virtualNetworkResourceGroup = split(subnetId, '/')[4]
+var virtualNetworkName = split(subnetId, '/')[8]
 
 resource blobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' = {
   name: name
@@ -21,7 +23,7 @@ resource blobPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNe
   properties: {
     registrationEnabled: false
     virtualNetwork: {
-      id: resourceId(vnetResourceGroup,'Microsoft.Network/virtualNetworks', vnetName)
+      id: resourceId(virtualNetworkResourceGroup,'Microsoft.Network/virtualNetworks', virtualNetworkName)
     }
   }
 }
