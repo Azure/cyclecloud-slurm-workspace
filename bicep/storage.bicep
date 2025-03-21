@@ -5,10 +5,10 @@ param location string
 param tags tags_t
 param saName string
 param subnetId string
-param privateDnsZoneExists bool 
+param privateDnsZoneId string
 
-var virtualNetworkResourceGroup = split(subnetId, '/')[4]
-var virtualNetworkName = split(subnetId, '/')[8]
+var privateDnsZoneExists = privateDnsZoneId != ''
+var privateDnsZoneResourceGroup = split(privateDnsZoneId, '/')[4]
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-04-01' = {
   name: saName
@@ -66,15 +66,14 @@ module newBlobPrivateDnsZone 'storage-newDnsZone.bicep' = if (!privateDnsZoneExi
   params: {
     name: blobPrivateDnsZoneName
     storageAccountId: storageAccount.id
-    vnetResourceGroup: virtualNetworkResourceGroup
-    vnetName: virtualNetworkName
+    subnetId: subnetId
     tags: tags
   }
 }
 
 resource blobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' existing = if (privateDnsZoneExists) {
   name: blobPrivateDnsZoneName
-  scope: resourceGroup(virtualNetworkResourceGroup)
+  scope: resourceGroup(privateDnsZoneResourceGroup)
 }
 
 resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2023-04-01' = {
