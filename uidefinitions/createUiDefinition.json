@@ -1055,6 +1055,54 @@
               }
             ],
             "visible": true
+          },
+          {
+            "name": "dnsZone",
+            "type": "Microsoft.Common.Section",
+            "label": "DNS Zone",
+            "elements": [
+              {
+                "name": "dnsZoneInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": true,
+                "options": {
+                  "icon": "Info",
+                  "text": "Nullam eros mi, mollis in sollicitudin non, tincidunt sed enim. Sed et felis metus, rhoncus ornare nibh. Ut at magna leo."
+                }
+              },
+              {
+                "name": "newExisting",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Blob Private DNS Zone",
+                "defaultValue": "Automatically create new Blob Private DNS Zone",
+                "toolTip": "Create a new or use an existing Blob Private DNS Zone",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Automatically create new Blob Private DNS Zone",
+                      "value": "new"
+                    },
+                    {
+                      "label": "Use an existing Blob Private DNS Zone",
+                      "value": "existing"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": true
+              },
+              {
+                "name": "dnsZoneSelector",
+                "type": "Microsoft.Solutions.ResourceSelector",
+                "label": "DNS Zone",
+                "resourceType": "Microsoft.Network/privateDnsZones",
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[equals(steps('networking').dnsZone.newExisting,'existing')]"
+              }              
+            ],
+            "visible": "[equals(steps('networking').newexisting,'existing')]"
           }
         ]
       },
@@ -2028,7 +2076,7 @@
         "createNatGateway": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.natgateway,basics('nullValue'))]",
         "vnetToPeer": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,basics('nullValue'))]",
         "peeringAllowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]",
-        "storagePrivateDnsZoneExists": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),not(equals(0,length(filter(steps('networking').networkSettings.dnsZoneProvidersApi.value, (item) => or(contains(item.name, 'privatelink.blob.core.windows.net'),contains(item.name, 'privatelink.blob.core.usgovcloudapi.net'),contains(item.name, 'privatelink.blob.core.chinacloudapi.cn'),contains(item.name, 'privatelink.blob.core.cloudapi.de')))))))]"
+        "storagePrivateDnsZoneId": "[if(or(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),steps('networking').dnsZone.dnsZoneSelector.id)]"
       },
       "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
       "databaseConfig": {
