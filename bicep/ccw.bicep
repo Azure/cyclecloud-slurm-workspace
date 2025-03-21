@@ -190,7 +190,7 @@ module ccwStorage './storage.bicep' = {
     tags: getTags('Microsoft.Storage/storageAccounts', tags)
     saName: 'ccwstorage${uniqueString(az.resourceGroup().id)}'
     subnetId: subnets.cyclecloud.id 
-    privateDnsZoneExists: network.?storagePrivateDnsZoneExists ?? false
+    privateDnsZoneId: network.?storagePrivateDnsZoneId ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
   }
 }
 
