@@ -335,16 +335,6 @@
         "toolTip": "Null Value",
         "defaultValue": false,
         "visible": false
-      },
-      {
-        "name": "makeCluster",
-        "type": "Microsoft.Common.CheckBox",
-        "label": "Deploy Slurm cluster",
-        "toolTip": "Optionally configure a Slurm cluster to be deployed alongside the HPC infrastructure",
-        "defaultValue": false,
-        "constraints": {
-          "required": false
-        }
       }
     ],
     "steps": [
@@ -429,7 +419,7 @@
                 "visible": false,
                 "options": {
                   "icon": "Warning",
-                  "text": "Slurm High Availability will be unavailable in Slurm Settings with this choice of file-system."
+                  "text": "Slurm High Availability will be unavailable in Slurm Cluster with this choice of file-system."
                 }
               },
               {
@@ -620,7 +610,7 @@
                 "visible": "[and(false, equals(steps('filesystem').additional.filertype,'anf'))]",
                 "options": {
                   "icon": "Warning",
-                  "text": "Slurm High Availability will be unavailable in Slurm Settings with this choice of file-system."
+                  "text": "Slurm High Availability will be unavailable in Slurm Cluster with this choice of file-system."
                 }
               },
               {
@@ -1062,8 +1052,18 @@
       },
       {
         "name": "scheduler",
-        "label": "Slurm Settings",
+        "label": "Slurm Cluster",
         "elements": [
+          {
+            "name": "makeCluster",
+            "type": "Microsoft.Common.CheckBox",
+            "label": "Deploy Slurm cluster",
+            "toolTip": "Optionally configure a Slurm cluster to be deployed alongside the HPC infrastructure",
+            "defaultValue": false,
+            "constraints": {
+              "required": false
+            }
+          },
           {
             "name": "clusterSettings",
             "type": "Microsoft.Common.Section",
@@ -1103,7 +1103,7 @@
                 "visible": false
               }
             ],
-            "visible": true
+            "visible": "[steps('scheduler').makeCluster]"
           },
           {
             "name": "schedulerSection",
@@ -1347,7 +1347,8 @@
                 "defaultValue": false,
                 "visible": false
               }
-            ]
+            ],
+            "visible": "[steps('scheduler').makeCluster]"
           },
           {
             "name": "loginNodesSection",
@@ -1449,18 +1450,13 @@
                 "visible": true
               }
             ],
-            "visible": true
-          }
-        ]
-      },
-      {
-        "name": "slurmSettings",
-        "label": "Partition Settings",
-        "elements": [
+            "visible": "[steps('scheduler').makeCluster]"
+          },
+          
           {
             "name": "infobox",
             "type": "Microsoft.Common.InfoBox",
-            "visible": true,
+            "visible": "[steps('scheduler').makeCluster]",
             "options": {
               "icon": "Info",
               "text": "Slurm uses partitions to distinguish different execute node types. We provide 3 common use cases, High-Throughput Compute (HTC), CPU-based High-Performance Compute (HPC) and GPU-based HPC (GPU)."
@@ -1562,7 +1558,8 @@
                   "required": false
                 }
               }
-            ]
+            ],
+            "visible": "[steps('scheduler').makeCluster]"
           },
           {
             "name": "HPCSection",
@@ -1663,7 +1660,8 @@
                   "required": false
                 }
               }
-            ]
+            ],
+            "visible": "[steps('scheduler').makeCluster]"
           },
           {
             "name": "GPUSection",
@@ -1766,7 +1764,8 @@
                   "required": false
                 }
               }
-            ]
+            ],
+            "visible": "[steps('scheduler').makeCluster]"
           }
         ]
       },
@@ -1789,6 +1788,15 @@
                 }
               },
               {
+                "name": "slurmClusterWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[not(steps('scheduler').makeCluster)]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Open OnDemand may only be deployed alongside a Slurm cluster managed by Azure CycleCloud. Please create a cluster under the Slurm Cluster menu to configure Open OnDemand."
+                }
+              },
+              {
                 "name": "deployOOD",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Deploy Open OnDemand",
@@ -1797,21 +1805,21 @@
                 "constraints": {
                   "required": false
                 },
-                "visible": true
+                "visible": "[steps('scheduler').makeCluster]"
               },
               {
                 "name": "oodLoginNodeInfo",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(steps('ood').OODSection.deployOOD,equals(int(steps('scheduler').loginNodesSection.initialNodes),0))]",
+                "visible": "[and(and(steps('scheduler').makeCluster,steps('ood').OODSection.deployOOD),equals(int(steps('scheduler').loginNodesSection.initialNodes),0))]",
                 "options": {
                   "icon": "Warning",
-                  "text": "Open OnDemand for Azure CycleCloud requires a minimum of one login node for use as a proxy between Azure CycleCloud and the Open OnDemand web server. Please review selections made under the Slurm Settings menu."
+                  "text": "Open OnDemand for Azure CycleCloud requires a minimum of one login node for use as a proxy between Azure CycleCloud and the Open OnDemand web server. Please review selections made under the Slurm Cluster menu."
                 }
               },
               {
                 "name": "oodFilesystemInfo",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(steps('ood').OODSection.deployOOD,not(equals(steps('filesystem').shared.filertype,'anf')))]",
+                "visible": "[and(and(steps('scheduler').makeCluster,steps('ood').OODSection.deployOOD),not(equals(steps('filesystem').shared.filertype,'anf')))]",
                 "options": {
                   "icon": "Info",
                   "text": "Open OnDemand for Azure CycleCloud is best deployed with Azure NetApp Files used as the file-system for the /shared and /home directories."
@@ -1829,7 +1837,7 @@
                   "hideDiskTypeFilter": true
                 },
                 "osPlatform": "Linux",
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": "[and(steps('scheduler').makeCluster,steps('ood').OODSection.deployOOD)]"
               },
               {
                 "name": "ImageName",
@@ -1855,7 +1863,7 @@
                   "required": true,
                   "validationMessage": "Image Name is required."
                 },
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": "[and(steps('scheduler').makeCluster,steps('ood').OODSection.deployOOD)]"
               },
               {
                 "name": "customImageInfoBox",
@@ -1890,7 +1898,7 @@
                   "regex": "^[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}$",
                   "validationMessage": "Enter a valid domain name"
                 },
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": "[and(steps('scheduler').makeCluster,steps('ood').OODSection.deployOOD)]"
               },
               {
                 "name": "fqdn",
@@ -1903,7 +1911,7 @@
                   "regex": "^[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}$",
                   "validationMessage": "Enter a valid FQDN or leave blank"
                 },
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": "[and(steps('scheduler').makeCluster,steps('ood').OODSection.deployOOD)]"
               },
               {
                 "name": "registerEntraIDApp",
@@ -1914,7 +1922,7 @@
                 "constraints": {
                   "required": false
                 },
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": "[and(steps('scheduler').makeCluster,steps('ood').OODSection.deployOOD)]"
               }
             ],
             "visible": true
@@ -1947,99 +1955,6 @@
         ]
       }
     ],
-    "outputs": {
-      "location": "[location()]",
-      "adminUsername": "[basics('adminUser')]",
-      "adminPassword": "[basics('adminPasswordBox')]",
-      "adminSshPublicKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
-      "storedKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'stored'),basics('keySelector'),basics('nullValue'))]",
-      "ccVMName": "[basics('CycleCloudVmName')]",
-      "ccVMSize": "[basics('CycleCloudVmSize')]",
-      "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
-      "sharedFilesystem": {
-        "type": "[concat(if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs'),'-',steps('filesystem').shared.newexisting)]",
-        "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),int(steps('filesystem').shared.nfscapacity),basics('nullValue'))]",
-        "anfServiceTier": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,basics('nullValue'))]",
-        "anfCapacityInTiB": "[if(equals(steps('filesystem').shared.filertype,'anf'),int(steps('filesystem').shared.anfcapacity),basics('nullValue'))]",
-        "ipAddress": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,basics('nullValue'))]",
-        "exportPath": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,basics('nullValue'))]",
-        "mountOptions": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.mountOptions,basics('nullValue'))]"
-      },
-      "additionalFilesystem": {
-        "type": "[if(steps('filesystem').additionalCheck.checkbox,concat(steps('filesystem').additional.filertype,'-',steps('filesystem').additional.newexisting),'disabled')]",
-        "anfServiceTier": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,basics('nullValue'))]",
-        "anfCapacityInTiB": "[if(equals(steps('filesystem').additional.filertype,'anf'),int(steps('filesystem').additional.anfcapacity),basics('nullValue'))]",
-        "lustreTier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,basics('nullValue'))]",
-        "lustreCapacityInTib": "[if(equals(steps('filesystem').additional.filertype,'aml'),int(steps('filesystem').additional.azurelustrecapacity),basics('nullValue'))]",
-        "ipAddress": "[if(equals(steps('filesystem').additional.newexisting,'existing'),if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.ipAddressAml,steps('filesystem').additional.ipAddressNfs),basics('nullValue'))]",
-        "mountPath": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountPath, basics('nullValue'))]",
-        "exportPath": "[if(or(and(equals(steps('filesystem').additional.filertype, 'anf'),equals(steps('filesystem').additional.newexisting,'existing')),and(equals(steps('filesystem').additional.filertype, 'nfs'),equals(steps('filesystem').additional.newexisting,'existing'))), steps('filesystem').additional.exportPath,basics('nullValue'))]",
-        "mountOptions": "[if(steps('filesystem').additionalCheck.checkbox,if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.mountOptionsAml,steps('filesystem').additional.mountOptionsNfs), basics('nullValue'))]"
-      },
-      "network": {
-        "type": "[steps('networking').newexisting]",
-        "name": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.networkSelector.name)]",
-        "addressSpace": "[if(equals(steps('networking').newexisting,'new'),concat(steps('networking').networkSettings.baseIpAddress,steps('networking').networkSettings.cidrPrefix),basics('nullValue'))]",
-        "id": "[if(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.networkSelector.id,basics('nullValue'))]",
-        "cyclecloudSubnet": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.ccsubnet)]",
-        "computeSubnet": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.computesubnet)]",
-        "sharedFilerSubnet": "[if(equals(steps('filesystem').shared.filertype,'anf'),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.filersubnet1),basics('nullValue'))]",
-        "additionalFilerSubnet": "[if(and(steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new')),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.filersubnet2),basics('nullValue'))]",
-        "bastion": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.bastion,basics('nullValue'))]",
-        "createNatGateway": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.natgateway,basics('nullValue'))]",
-        "vnetToPeer": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,basics('nullValue'))]",
-        "peeringAllowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]"
-      },
-      "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
-      "databaseConfig": {
-        "type": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.dbConnection,'disabled')]",
-        "databaseUser": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseUser,basics('nullValue'))]",
-        "fqdn": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'fqdn'),steps('scheduler').schedulerSection.databaseURL,basics('nullValue'))]",
-        "privateIp": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateIp'),steps('scheduler').schedulerSection.databasePIP,basics('nullValue'))]",
-        "dbInfo": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint'),steps('scheduler').schedulerSection.dbSelector,basics('nullValue'))]"
-      },
-      "clusterName": "[steps('scheduler').clusterSettings.clusterName]",
-      "acceptMarketplaceTerms": "[steps('scheduler').clusterSettings.acceptMarketplaceTerms]",
-      "slurmSettings": {
-        "version": "[steps('scheduler').schedulerSection.slurmVersion]",
-        "healthCheckEnabled": "[steps('scheduler').clusterSettings.healthCheck]"
-      },
-      "schedulerNode": {
-        "sku": "[steps('scheduler').schedulerSection.vmsize]",
-        "osImage": "[if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName)]"
-      },
-      "loginNodes": {
-        "sku": "[steps('scheduler').loginNodesSection.vmsize]",
-        "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('scheduler').loginNodesSection.ImageName,'custom'),steps('scheduler').loginNodesSection.customImageName,steps('scheduler').loginNodesSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]",
-        "initialNodes": "[int(steps('scheduler').loginNodesSection.initialNodes)]",
-        "maxNodes": "[int(steps('scheduler').loginNodesSection.maxNodes)]"
-      },
-      "htc": {
-        "sku": "[steps('slurmSettings').HTCSection.vmsize]",
-        "maxNodes": "[int(steps('slurmSettings').HTCSection.maxNodes)]",
-        "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').HTCSection.ImageName,'custom'),steps('slurmSettings').HTCSection.customImageName,steps('slurmSettings').HTCSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]",
-        "useSpot": "[steps('slurmSettings').HTCSection.spotHTC]"
-      },
-      "hpc": {
-        "sku": "[steps('slurmSettings').HPCSection.vmsize]",
-        "maxNodes": "[int(steps('slurmSettings').HPCSection.maxNodes)]",
-        "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').HPCSection.ImageName,'custom'),steps('slurmSettings').HPCSection.customImageName,steps('slurmSettings').HPCSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]"
-      },
-      "gpu": {
-        "sku": "[steps('slurmSettings').GPUSection.vmsize]",
-        "maxNodes": "[int(steps('slurmSettings').GPUSection.maxNodes)]",
-        "osImage": "[if(not(steps('scheduler').schedulerSection.universalImage),if(equals(steps('slurmSettings').GPUSection.ImageName,'custom'),steps('slurmSettings').GPUSection.customImageName,steps('slurmSettings').GPUSection.ImageName),if(equals(steps('scheduler').schedulerSection.ImageName,'custom'),steps('scheduler').schedulerSection.customImageName,steps('scheduler').schedulerSection.ImageName))]"
-      },
-      "ood": {
-        "type": "[if(steps('ood').OODSection.deployOOD,'enabled','disabled')]",
-        "sku": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.vmsize,basics('nullValue'))]",
-        "osImage": "[if(steps('ood').OODSection.deployOOD,if(equals(steps('ood').OODSection.ImageName,'custom'),steps('ood').OODSection.customImageName,steps('ood').OODSection.ImageName),basics('nullValue'))]",
-        "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",
-        "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.registerEntraIDApp,basics('nullValue'))]",
-        "fqdn": "[if(not(equals(steps('ood').OODSection.fqdn,'')),steps('ood').OODSection.fqdn,basics('nullValue'))]"
-      },
-      "clusterInitSpecs": [],
-      "tags": "[steps('tags').tagsByResource]"
-    }
+    "outputs": {}
   }
 }
