@@ -1131,6 +1131,31 @@
                   "required": true
                 },
                 "visible": "[equals(steps('networking').dnsZone.newExisting,'existing')]"
+              },
+              {
+                "name": "vnetLinkProvidersApi",
+                "type": "Microsoft.Solutions.ArmApiControl",
+                "request": {
+                  "method": "GET",
+                  "path": "[concat(steps('networking').dnsZone.dnsZoneSelector.id,'/virtualNetworkLinks?api-version=2018-09-01')]"
+                }
+              },
+              {
+                "name": "vnetLinkWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[if(and(equals(steps('networking').dnsZone.newExisting,'existing'),not(equals(0,length(steps('networking').dnsZone.dnsZoneSelector.id)))),not(equals(length(filter(steps('networking').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),false)]",
+                "options": {
+                  "icon": "None",
+                  "text": "Warning! There's no link between this DNS zone and the selected vnet."
+                }
+              },
+              {
+                "name": "createVnetLink",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Create virtual network link",
+                "toolTip": "Create a virtual network link between the selected DNS zone and the selected virtual network",
+                "defaultValue": false,
+                "visible": "[if(and(equals(steps('networking').dnsZone.newExisting,'existing'),not(equals(0,length(steps('networking').dnsZone.dnsZoneSelector.id)))),not(equals(length(filter(steps('networking').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),false)]"
               }
             ],
             "visible": "[equals(steps('networking').newexisting,'existing')]"
