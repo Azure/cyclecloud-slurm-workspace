@@ -1127,7 +1127,7 @@
                 "label": "DNS Zone with filter",
                 "multiLine": true,
                 "constraints": {
-                  "allowedValues": "[map(filter(steps('networking').dnsZone.dnsZoneProvidersApi.value, (item) => or(contains(item.name, 'privatelink.blob.core.windows.net'),contains(item.name, 'privatelink.blob.core.usgovcloudapi.net'),contains(item.name, 'privatelink.blob.core.chinacloudapi.cn'),contains(item.name, 'privatelink.blob.core.cloudapi.de'))), (item) => parse(concat('{\"label\":\"', item.name, '\",\"description\":\"',concat('Resource group: ',substring(item.id,add(indexOf(item.id,'/resourceGroups/'),length('/resourceGroups/')),sub(indexOf(item.id,'/providers/'),add(indexOf(item.id,'/resourceGroups/'),length('/resourceGroups/'))))), '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(filter(steps('networking').dnsZone.dnsZoneProvidersApi.value, (item) => or(contains(item.name, 'privatelink.blob.core.windows.net'),contains(item.name, 'privatelink.blob.core.usgovcloudapi.net'),contains(item.name, 'privatelink.blob.core.chinacloudapi.cn'),contains(item.name, 'privatelink.blob.core.cloudapi.de'))), (item) => parse(concat('{\"label\":\"', item.name, '\",\"description\":\"',concat('Resource group: ',substring(item.id,add(indexOf(item.id,'/resourceGroups/'),length('/resourceGroups/')),sub(indexOf(item.id,'/providers/'),add(indexOf(item.id,'/resourceGroups/'),length('/resourceGroups/'))))), '\",\"value\":\"', item.id, '\"}')))]",
                   "required": true
                 },
                 "visible": "[equals(steps('networking').dnsZone.newExisting,'existing')]"
