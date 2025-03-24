@@ -925,14 +925,6 @@
                 }
               },
               {
-                "name": "dnsZoneProvidersApi",
-                "type": "Microsoft.Solutions.ArmApiControl",
-                "request": {
-                  "method": "GET",
-                  "path": "[concat(substring(steps('networking').networkSettings.networkSelector.id,0,indexOf(steps('networking').networkSettings.networkSelector.id,'/providers')),'/providers/Microsoft.Network/privateDnsZones?api-version=2018-09-01')]"
-                }
-              },
-              {
                 "name": "ccsubnet",
                 "type": "Microsoft.Common.DropDown",
                 "label": "CycleCloud subnet",
@@ -1100,7 +1092,46 @@
                   "required": true
                 },
                 "visible": "[equals(steps('networking').dnsZone.newExisting,'existing')]"
-              }              
+              },
+              {
+                "name": "subscriptionProvidersApi",
+                "type": "Microsoft.Solutions.ArmApiControl",
+                "request": {
+                  "method": "GET",
+                  "path": "/subscriptions?api-version=2022-12-01"
+                }
+              },
+              {
+                "name": "subscriptionDropDown",
+                "type": "Microsoft.Common.DropDown",
+                "label": "DNS Zone Subscription",
+                "filter": true,
+                "filterPlaceholder": "Filter items ...",
+                "constraints": {
+                  "allowedValues": "[map(steps('networking').dnsZone.subscriptionProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\"}')))]",
+                  "required": true
+                },
+                "visible": "[equals(steps('networking').dnsZone.newExisting,'existing')]"
+              },
+              {
+                "name": "dnsZoneProvidersApi",
+                "type": "Microsoft.Solutions.ArmApiControl",
+                "request": {
+                  "method": "GET",
+                  "path": "[concat(steps('networking').dnsZone.subscriptionDropDown,'/providers/Microsoft.Network/privateDnsZones?api-version=2018-09-01')]"
+                }
+              },
+              {
+                "name": "dnsZoneDropDown",
+                "type": "Microsoft.Common.DropDown",
+                "label": "DNS Zone with filter",
+                "multiLine": true,
+                "constraints": {
+                  "allowedValues": "[map(filter(steps('networking').dnsZone.dnsZoneProvidersApi.value, (item) => or(contains(item.name, 'privatelink.blob.core.windows.net'),contains(item.name, 'privatelink.blob.core.usgovcloudapi.net'),contains(item.name, 'privatelink.blob.core.chinacloudapi.cn'),contains(item.name, 'privatelink.blob.core.cloudapi.de'))), (item) => parse(concat('{\"label\":\"', item.name, '\",\"description\":\"',concat('Resource group: ',substring(item.id,add(indexOf(item.id,'/resourceGroups/'),length('/resourceGroups/')),sub(indexOf(item.id,'/providers/'),add(indexOf(item.id,'/resourceGroups/'),length('/resourceGroups/'))))), '\",\"value\":\"', item.name, '\"}')))]",
+                  "required": true
+                },
+                "visible": "[equals(steps('networking').dnsZone.newExisting,'existing')]"
+              }
             ],
             "visible": "[equals(steps('networking').newexisting,'existing')]"
           }
