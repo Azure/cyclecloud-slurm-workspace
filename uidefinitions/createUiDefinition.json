@@ -1101,7 +1101,15 @@
                   "icon": "Warning",
                   "text": "The selected DNS zone cannot be used to create a private endpoint for Azure Storage Blobs in the chosen virtual network. The deployment will fail to work as expected."
                 }
-              },
+              }
+            ],
+            "visible": "[equals(steps('networking').newexisting,'existing')]"
+          },
+          {
+            "name": "vnetLink",
+            "type": "Microsoft.Common.Section",
+            "label": "Virtual network link",
+            "elements": [
               {
                 "name": "vnetLinkProvidersApi",
                 "type": "Microsoft.Solutions.ArmApiControl",
@@ -1113,7 +1121,7 @@
               {
                 "name": "vnetLinkWarning",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[if(and(equals(steps('networking').dnsZone.newExisting,'existing'),not(equals(0,length(steps('networking').dnsZone.dnsZoneSelector.id)))),not(equals(length(filter(steps('networking').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),false)]",
+                "visible": true,
                 "options": {
                   "icon": "None",
                   "text": "Warning! There's no link between this DNS zone and the selected vnet."
@@ -1125,10 +1133,10 @@
                 "label": "Create virtual network link",
                 "toolTip": "Create a virtual network link between the selected DNS zone and the selected virtual network",
                 "defaultValue": false,
-                "visible": "[if(and(equals(steps('networking').dnsZone.newExisting,'existing'),not(equals(0,length(steps('networking').dnsZone.dnsZoneSelector.id)))),not(equals(length(filter(steps('networking').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),false)]"
+                "visible": true
               }
             ],
-            "visible": "[equals(steps('networking').newexisting,'existing')]"
+            "visible": "[if(and(equals(steps('networking').dnsZone.newExisting,'existing'),not(equals(0,length(steps('networking').networkSettings.networkSelector.id))),not(equals(0,length(steps('networking').dnsZone.dnsZoneSelector.id))),or(equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.windows.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.usgovcloudapi.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.chinacloudapi.cn'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.cloudapi.de'))),not(equals(length(filter(steps('networking').vnetLink.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),false)]"
           }
         ]
       },
