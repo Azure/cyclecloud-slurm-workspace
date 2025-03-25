@@ -108,6 +108,7 @@ type vnet_existing_t = {
   sharedFilerSubnet: string?
   additionalFilerSubnet: string?
   storagePrivateDnsZoneId: string?
+  vnetLink: bool?
 }
 
 @discriminator('type')
