@@ -191,6 +191,7 @@ module ccwStorage './storage.bicep' = {
     saName: 'ccwstorage${uniqueString(az.resourceGroup().id)}'
     subnetId: subnets.cyclecloud.id 
     privateDnsZoneId: network.?storagePrivateDnsZoneId ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
+    vnetLink: network.?vnetLink ?? false
   }
 }
 
