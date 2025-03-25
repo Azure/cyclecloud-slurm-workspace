@@ -1094,6 +1094,15 @@
                 "visible": "[equals(steps('networking').dnsZone.newExisting,'existing')]"
               },
               {
+                "name": "badDnsZoneWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('networking').dnsZone.newExisting,'existing'),not(equals(0,length(steps('networking').dnsZone.dnsZoneSelector.id))),not(or(equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.windows.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.usgovcloudapi.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.chinacloudapi.cn'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.cloudapi.de'))))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "The selected DNS zone cannot be used to create a private endpoint for Azure Storage Blobs in the chosen virtual network. The deployment will fail to work as expected."
+                }
+              },
+              {
                 "name": "vnetLinkProvidersApi",
                 "type": "Microsoft.Solutions.ArmApiControl",
                 "request": {
