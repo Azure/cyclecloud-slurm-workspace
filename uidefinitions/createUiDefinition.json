@@ -804,7 +804,7 @@
             "visible": true,
             "options": {
               "icon": "Info",
-              "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment.\n\nPlease note that private endpoint, DNS zone, DNS zone group, and virtual network link resources will be created to establish network connectivity with the storage account that will be concurrently deployed for use by the cluster."
+              "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment.\n\nNote that DNS zone, DNS zone group, and virtual network link resources are needed to establish network connectivity with the storage account that will be concurrently deployed for use by the cluster via private endpoint."
             }
           },
           {
@@ -1059,13 +1059,13 @@
                 "visible": true,
                 "options": {
                   "icon": "Info",
-                  "text": "Nullam eros mi, mollis in sollicitudin non, tincidunt sed enim. Sed et felis metus, rhoncus ornare nibh. Ut at magna leo."
+                  "text": "Optionally automatically create Private DNS Zone and Virtual Network Link resources or use existing ones to connect the virtual network chosen above with the cluster storage account via a private endpoint."
                 }
               },
               {
                 "name": "newExisting",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Blob Private DNS Zone",
+                "label": "DNS zone options",
                 "defaultValue": "Automatically create new Blob Private DNS Zone",
                 "toolTip": "Create a new or use an existing Blob Private DNS Zone",
                 "constraints": {
@@ -1086,7 +1086,8 @@
               {
                 "name": "dnsZoneSelector",
                 "type": "Microsoft.Solutions.ResourceSelector",
-                "label": "DNS Zone",
+                "label": "Blob Private DNS Zone",
+                "toolTip": "Select existing DNS zone for Azure Blob Storage",
                 "resourceType": "Microsoft.Network/privateDnsZones",
                 "constraints": {
                   "required": true
@@ -1099,7 +1100,7 @@
                 "visible": "[and(equals(steps('networking').dnsZone.newExisting,'existing'),not(equals(0,length(steps('networking').dnsZone.dnsZoneSelector.id))),not(or(equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.windows.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.usgovcloudapi.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.chinacloudapi.cn'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.cloudapi.de'))))]",
                 "options": {
                   "icon": "Warning",
-                  "text": "The selected DNS zone cannot be used to create a private endpoint for Azure Storage Blobs in the chosen virtual network. The deployment will fail to work as expected."
+                  "text": "The selected DNS zone cannot be used to connect the virtual network to Azure Blob Storage via a private endpoint.\n\nPlease select an appropriate private DNS zone to ensure that the cluster deployment will not fail.\n\nThe names of such DNS zones are:\n • privatelink.blob.core.windows.net\n • privatelink.blob.core.usgovcloudapi.net\n • privatelink.blob.core.chinacloudapi.cn\n • privatelink.blob.core.cloudapi.de"
                 }
               }
             ],
@@ -1123,15 +1124,15 @@
                 "type": "Microsoft.Common.InfoBox",
                 "visible": true,
                 "options": {
-                  "icon": "None",
-                  "text": "Warning! There's no link between this DNS zone and the selected vnet."
+                  "icon": "Warning",
+                  "text": "The selected DNS zone is not linked to the selected virtual network.\n\nCheck the box below to create such a virtual network link resource for the cluster and ensure connectivity with the storage account that will be concurrently deployed for use by the cluster via private endpoint."
                 }
               },
               {
                 "name": "createVnetLink",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Create virtual network link",
-                "toolTip": "Create a virtual network link between the selected DNS zone and the selected virtual network",
+                "toolTip": "Automatically link the selected virtual network with the selected DNS zone",
                 "defaultValue": false,
                 "visible": true
               }
