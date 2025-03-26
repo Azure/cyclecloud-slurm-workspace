@@ -1051,7 +1051,7 @@
           {
             "name": "dnsZone",
             "type": "Microsoft.Common.Section",
-            "label": "DNS zone",
+            "label": "Private DNS zone",
             "elements": [
               {
                 "name": "dnsZoneInfoBox",
