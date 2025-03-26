@@ -2021,8 +2021,6 @@
                   "required": true,
                   "validationMessage": "Please select a managed identity."
                 },
-                "options": {
-                },
                 "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
               },
               {
