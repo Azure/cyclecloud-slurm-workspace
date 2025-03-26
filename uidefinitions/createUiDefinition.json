@@ -804,7 +804,7 @@
             "visible": true,
             "options": {
               "icon": "Info",
-              "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment.\n\nPlease note that private endpoint, DNS zone, DNS zone group, and virtual network link resources will be created to establish network connectivity with the storage account that will be concurrently deployed for use by the cluster."
+              "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment.\n\nNote that private DNS zone, private DNS zone group, and virtual network link resources are needed to establish network connectivity with the storage account deployed for use by the cluster via private endpoint."
             }
           },
           {
@@ -1047,6 +1047,97 @@
               }
             ],
             "visible": true
+          },
+          {
+            "name": "dnsZone",
+            "type": "Microsoft.Common.Section",
+            "label": "Private DNS zone",
+            "elements": [
+              {
+                "name": "dnsZoneInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": true,
+                "options": {
+                  "icon": "Info",
+                  "text": "Optionally automatically create private DNS zone and virtual network link resources or use existing ones to connect the virtual network chosen above with the cluster storage account via a private endpoint."
+                }
+              },
+              {
+                "name": "newExisting",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Private DNS zone options",
+                "defaultValue": "Automatically create a new private DNS zone",
+                "toolTip": "Create a new or use an existing private DNS zone for Azure Blob Storage",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Automatically create a new private DNS zone",
+                      "value": "new"
+                    },
+                    {
+                      "label": "Use an existing private DNS zone",
+                      "value": "existing"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": true
+              },
+              {
+                "name": "dnsZoneSelector",
+                "type": "Microsoft.Solutions.ResourceSelector",
+                "label": "Private DNS zone",
+                "toolTip": "Select existing private DNS zone for Azure Blob Storage",
+                "resourceType": "Microsoft.Network/privateDnsZones",
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[equals(steps('networking').dnsZone.newExisting,'existing')]"
+              },
+              {
+                "name": "badDnsZoneWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('networking').dnsZone.newExisting,'existing')]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Select an appropriate private DNS zone to ensure that the cluster deployment will not fail and that the chosen virtual network can connect to Azure Blob Storage via a private endpoint.\n\nThe name of the chosen private DNS zone must be one of the following:\n • privatelink.blob.core.windows.net\n • privatelink.blob.core.usgovcloudapi.net"
+                }
+              }
+            ],
+            "visible": "[equals(steps('networking').newexisting,'existing')]"
+          },
+          {
+            "name": "vnetLink",
+            "type": "Microsoft.Common.Section",
+            "label": "Virtual network link",
+            "elements": [
+              {
+                "name": "vnetLinkProvidersApi",
+                "type": "Microsoft.Solutions.ArmApiControl",
+                "request": {
+                  "method": "GET",
+                  "path": "[concat(steps('networking').dnsZone.dnsZoneSelector.id,'/virtualNetworkLinks?api-version=2018-09-01')]"
+                }
+              },
+              {
+                "name": "vnetLinkWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": true,
+                "options": {
+                  "icon": "Warning",
+                  "text": "The selected private DNS zone is not linked to the selected virtual network.\n\nCheck the box below to create such a virtual network link resource for the cluster and ensure connectivity with the storage account that will be concurrently deployed for use by the cluster via private endpoint."
+                }
+              },
+              {
+                "name": "createVnetLink",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Create virtual network link",
+                "toolTip": "Automatically link the selected virtual network with the selected private DNS zone",
+                "defaultValue": false,
+                "visible": true
+              }
+            ],
+            "visible": "[if(and(equals(steps('networking').dnsZone.newExisting,'existing'),not(equals(0,length(steps('networking').networkSettings.networkSelector.id))),not(equals(0,length(steps('networking').dnsZone.dnsZoneSelector.id))),or(equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.windows.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.usgovcloudapi.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.chinacloudapi.cn'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.cloudapi.de'))),not(equals(length(filter(steps('networking').vnetLink.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),false)]"
           }
         ]
       },
@@ -1453,7 +1544,7 @@
             "visible": true,
             "options": {
               "icon": "Info",
-              "text": "Slurm uses partitions to distinguish different execute node types. We provide 3 common use cases, High-Throughput Compute (HTC), CPU-based High-Performance Compute (HPC) and GPU-based HPC (GPU)."
+              "text": "Slurm uses partitions to distinguish different execute node types. This workspace provides for three common use cases: High-Throughput Compute (HTC), CPU-based High-Performance Compute (HPC), and GPU-based HPC (GPU)."
             }
           },
           {
@@ -1775,7 +1866,7 @@
                 "visible": true,
                 "options": {
                   "icon": "Info",
-                  "text": "Open OnDemand is an open-source, web-based portal developed by the Ohio Supercomputer Center (OSC) to provide easy access to high-performance computing (HPC) resources. This platform allows users to submit and monitor jobs, manage files, and run applications from anywhere, using just a web browser. The portal is designed to simplify the user experience, making it accessible for both novice and experienced HPC users."
+                  "text": "Open OnDemand is an open-source, web-based portal developed by the Ohio Supercomputer Center (OSC) to provide easy access to high-performance computing (HPC) resources. This platform allows users to submit and monitor jobs, manage files, and run applications from anywhere using only a web browser. The portal is designed to simplify the user experience, making it accessible for both novice and experienced HPC users."
                 }
               },
               {
@@ -1795,7 +1886,7 @@
                 "visible": "[and(steps('ood').OODSection.deployOOD,equals(int(steps('scheduler').loginNodesSection.initialNodes),0))]",
                 "options": {
                   "icon": "Warning",
-                  "text": "Open OnDemand for Azure CycleCloud requires a minimum of one login node for use as a proxy between Azure CycleCloud and the Open OnDemand web server. Please review selections made under the Slurm Settings menu."
+                  "text": "Open OnDemand requires a minimum of one login node for use as a proxy between Azure CycleCloud and the Open OnDemand web server. Please review selections made under the Slurm Settings menu."
                 }
               },
               {
@@ -1804,7 +1895,7 @@
                 "visible": "[and(steps('ood').OODSection.deployOOD,not(equals(steps('filesystem').shared.filertype,'anf')))]",
                 "options": {
                   "icon": "Info",
-                  "text": "Open OnDemand for Azure CycleCloud is best deployed with Azure NetApp Files used as the file-system for the /shared and /home directories."
+                  "text": "Open OnDemand is best-deployed with Azure NetApp Files as the file-system for the /shared and /home directories."
                 }
               },
               {
@@ -2017,7 +2108,9 @@
         "bastion": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.bastion,basics('nullValue'))]",
         "createNatGateway": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.natgateway,basics('nullValue'))]",
         "vnetToPeer": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,basics('nullValue'))]",
-        "peeringAllowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]"
+        "peeringAllowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]",
+        "storagePrivateDnsZoneId": "[if(and(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),steps('networking').dnsZone.dnsZoneSelector.id)]",
+        "vnetLink": "[if(and(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),steps('networking').vnetLink.createVnetLink)]"
       },
       "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
       "databaseConfig": {
