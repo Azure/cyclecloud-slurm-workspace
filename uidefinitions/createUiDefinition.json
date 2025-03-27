@@ -101,8 +101,11 @@
         "label": "CycleCloud VM Size",
         "toolTip": "Select a size for the CycleCloud VM",
         "recommendedSizes": [
+          "Standard_D4s_v6",
           "Standard_D4as_v5",
-          "Standard_D4as_v4"
+          "Standard_D4s_v5",
+          "Standard_D4as_v4",
+          "Standard_D4s_v4"
         ],
         "constraints": {
           "excludedSizes": [
@@ -1197,7 +1200,11 @@
                 "label": "Size",
                 "toolTip": "Select a size for the Scheduler VM",
                 "recommendedSizes": [
-                  "Standard_D4as_v4"
+                  "Standard_D4s_v6",
+                  "Standard_D4as_v5",
+                  "Standard_D4s_v5",
+                  "Standard_D4as_v4",
+                  "Standard_D4s_v4"
                 ],
                 "options": {
                   "hideDiskTypeFilter": true
