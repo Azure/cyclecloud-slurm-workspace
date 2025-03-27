@@ -242,7 +242,9 @@
             "Standard_F16",
             "Standard_F2",
             "Standard_F4",
-            "Standard_F8"
+            "Standard_F8",
+            "Standard_D4als_v6",
+            "Standard_D4as_v6"
           ]
         },
         "options": {
@@ -1209,6 +1211,12 @@
                 "options": {
                   "hideDiskTypeFilter": true
                 },
+                "constraints": {
+                  "excludedSizes": [
+                    "Standard_D4als_v6",
+                    "Standard_D4as_v6"
+                  ]
+                },
                 "osPlatform": "Linux",
                 "visible": true
               },
@@ -1915,6 +1923,12 @@
                 ],
                 "options": {
                   "hideDiskTypeFilter": true
+                },
+                "constraints": {
+                  "excludedSizes": [
+                    "Standard_D4als_v6",
+                    "Standard_D4as_v6"
+                  ]
                 },
                 "osPlatform": "Linux",
                 "visible": "[steps('ood').OODSection.deployOOD]"
