@@ -348,198 +348,23 @@
         "bladeTitle": "Filesystem Settings",
         "elements": [
           {
-            "name": "shared",
+            "name": "anfCheck",
             "type": "Microsoft.Common.Section",
-            "label": "File-system mount for /shared and /home",
+            "label": "Azure NetApp Files",
             "elements": [
               {
-                "name": "sharedInfo",
+                "name": "anfInfo",
                 "type": "Microsoft.Common.TextBlock",
                 "visible": true,
                 "options": {
-                  "text": "The directory /shared is a network attached mount and exists in all nodes of the cluster. Users' home directories reside within this mountpoint with the base homedir /shared/home."
-                }
-              },
-              {
-                "name": "newexisting",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Create new file-system",
-                "defaultValue": "Create new",
-                "toolTip": "Create new file-system type or use existing for /shared directory",
-                "multiselect": false,
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "Create new",
-                      "value": "new"
-                    },
-                    {
-                      "label": "Use existing external NFS",
-                      "value": "existing"
-                    }
-                  ],
-                  "required": true
-                },
-                "visible": true
-              },
-              {
-                "name": "filertype",
-                "type": "Microsoft.Common.DropDown",
-                "label": "File-system Type",
-                "defaultValue": "[if(equals(steps('filesystem').shared.newexisting,'new'),'Builtin NFS','External NFS')]",
-                "toolTip": "Filer type for the /shared directory",
-                "multiselect": false,
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "[if(equals(steps('filesystem').shared.newexisting,'new'),'Builtin NFS','External NFS')]",
-                      "value": "nfs"
-                    },
-                    {
-                      "label": "Azure NetApp Files",
-                      "value": "anf"
-                    }
-                  ],
-                  "required": true
-                },
-                "visible": "[equals(steps('filesystem').shared.newexisting,'new')]"
-              },
-              {
-                "name": "anfInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[equals(steps('filesystem').shared.filertype,'anf')]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "NetApp Resource Provider must be registered for your subscription."
-                }
-              },
-              {
-                "name": "anfInfoBoxSlurmHA",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": false,
-                "options": {
-                  "icon": "Warning",
-                  "text": "Slurm High Availability will be unavailable in Slurm Cluster with this choice of file-system."
-                }
-              },
-              {
-                "name": "anftier",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Service Level",
-                "defaultValue": "Premium",
-                "multiselect": false,
-                "toolTip": "Service level for the Azure NetApp Files volume",
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "Standard",
-                      "value": "Standard"
-                    },
-                    {
-                      "label": "Premium",
-                      "value": "Premium"
-                    },
-                    {
-                      "label": "Ultra",
-                      "value": "Ultra"
-                    }
-                  ],
-                  "required": true
-                },
-                "visible": "[and(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.newexisting,'new'))]"
-              },
-              {
-                "name": "anfcapacity",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Capacity",
-                "toolTip": "Capacity of the Azure NetApp Files volume",
-                "subLabel": "TiB",
-                "defaultValue": "4",
-                "constraints": {
-                  "required": true,
-                  "regex": "^(?:[1-9]\\d{0,2}|1000)$",
-                  "validationMessage": "Please enter an integer between 1 and 1000"
-                },
-                "visible": "[and(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.newexisting,'new'))]"
-              },
-              {
-                "name": "nfscapacity",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Capacity",
-                "toolTip": "Capacity of the NFS volume",
-                "subLabel": "GB",
-                "defaultValue": "1024",
-                "constraints": {
-                  "required": true,
-                  "regex": "^(100|10[0-1]\\d{3}|[1-9]\\d{2}|[1-9]\\d{3}|[1-9]\\d{4}|102400)$",
-                  "validationMessage": "Please enter an integer between 100 and 102400"
-                },
-                "visible": "[and(equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'nfs'))]"
-              },
-              {
-                "name": "ipAddress",
-                "type": "Microsoft.Common.TextBox",
-                "label": "IP Address",
-                "toolTip": "IP address of the filer mount",
-                "defaultValue": "",
-                "constraints": {
-                  "required": true,
-                  "validations": [
-                    {
-                      "regex": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$",
-                      "message": "Invalid IP address"
-                    }
-                  ]
-                },
-                "visible": "[equals(steps('filesystem').shared.newexisting,'existing')]"
-              },
-              {
-                "name": "exportPath",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Export path",
-                "defaultValue": "/shared",
-                "toolTip": "Export path for the primary filer",
-                "constraints": {
-                  "required": true,
-                  "regex": "^\/(?:[\\w-.]+\/)*[\\w-.]+$",
-                  "validationMessage": "Must be an absolute path"
-                },
-                "visible": "[equals(steps('filesystem').shared.newexisting,'existing')]"
-              },
-              {
-                "name": "mountOptions",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Mount options",
-                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev",
-                "toolTip": "Mount options for the primary filer",
-                "constraints": {
-                  "required": false,
-                  "regex": "^.+$",
-                  "validationMessage": "Please enter a mount option"
-                },
-                "visible": "[equals(steps('filesystem').shared.newexisting,'existing')]"
-              }
-            ],
-            "visible": true
-          },
-          {
-            "name": "additionalCheck",
-            "type": "Microsoft.Common.Section",
-            "label": "Additional file-system mount",
-            "elements": [
-              {
-                "name": "additionalInfo",
-                "type": "Microsoft.Common.TextBlock",
-                "visible": true,
-                "options": {
-                  "text": "Optionally mount another endpoint on the cluster nodes."
+                  "text": "PLACEHOLDER: INFORMATION ABOUT ANF"
                 }
               },
               {
                 "name": "checkbox",
                 "type": "Microsoft.Common.CheckBox",
-                "label": "Add another file-system mount",
-                "toolTip": "Add an additional filer",
+                "label": "Provision Azure NetApp Files",
+                "toolTip": "Deploy an instance of Azure NetApp Files alongside Azure CycleCloud",
                 "defaultValue": false,
                 "constraints": {
                   "required": false
@@ -548,69 +373,16 @@
             ]
           },
           {
-            "name": "additional",
+            "name": "anf",
             "type": "Microsoft.Common.Section",
             "elements": [
               {
-                "name": "newexisting",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Create new file-system",
-                "defaultValue": "Create new",
-                "toolTip": "Create new file-system or use existing",
-                "multiselect": false,
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "Create new",
-                      "value": "new"
-                    },
-                    {
-                      "label": "Use existing",
-                      "value": "existing"
-                    }
-                  ],
-                  "required": true
-                },
-                "visible": true
-              },
-              {
-                "name": "filertype",
-                "type": "Microsoft.Common.DropDown",
-                "label": "File-system Type",
-                "defaultValue": "[if(equals(steps('filesystem').additional.newexisting,'new'),'Azure NetApp Files','External NFS')]",
-                "toolTip": "File-system type",
-                "multiselect": false,
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "[if(equals(steps('filesystem').additional.newexisting,'new'),'Azure NetApp Files','External NFS')]",
-                      "value": "[if(equals(steps('filesystem').additional.newexisting,'new'),'anf','nfs')]"
-                    },
-                    {
-                      "label": "Azure Managed Lustre",
-                      "value": "aml"
-                    }
-                  ],
-                  "required": true
-                },
-                "visible": true
-              },
-              {
                 "name": "anfInfoBox",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[equals(steps('filesystem').additional.filertype,'anf')]",
+                "visible": true,
                 "options": {
                   "icon": "Warning",
                   "text": "NetApp Resource Provider must be registered for your subscription."
-                }
-              },
-              {
-                "name": "anfInfoBoxSlurmHA",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(false, equals(steps('filesystem').additional.filertype,'anf'))]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "Slurm High Availability will be unavailable in Slurm Cluster with this choice of file-system."
                 }
               },
               {
@@ -637,7 +409,7 @@
                   ],
                   "required": true
                 },
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'))]"
+                "visible": true
               },
               {
                 "name": "anfcapacity",
@@ -651,8 +423,40 @@
                   "regex": "^(?:[1-9]\\d{0,2}|1000)$",
                   "validationMessage": "Please enter an integer between 1 and 1000"
                 },
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'))]"
+                "visible": true
+              }
+            ],
+            "visible": "[steps('filesystem').anfCheck.checkbox]"
+          },
+          {
+            "name": "lustreCheck",
+            "type": "Microsoft.Common.Section",
+            "label": "Azure Managed Lustre",
+            "elements": [
+              {
+                "name": "additionalInfo",
+                "type": "Microsoft.Common.TextBlock",
+                "visible": true,
+                "options": {
+                  "text": "PLACEHOLDER: INFORMATION ABOUT LUSTRE"
+                }
               },
+              {
+                "name": "checkbox",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Provision Azure Managed Lustre",
+                "toolTip": "Deploy an instance of Azure Managed Lustre alongside Azure CycleCloud",
+                "defaultValue": false,
+                "constraints": {
+                  "required": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "lustre",
+            "type": "Microsoft.Common.Section",
+            "elements": [
               {
                 "name": "lustretier",
                 "type": "Microsoft.Common.DropDown",
@@ -685,14 +489,14 @@
                   ],
                   "required": true
                 },
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]"
+                "visible": true
               },
               {
                 "name": "azurelustrecapacity",
                 "type": "Microsoft.Common.Slider",
-                "min": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),48,if(endsWith(steps('filesystem').additional.lustretier,'-125'),16,if(endsWith(steps('filesystem').additional.lustretier,'-250'),8,4))))]",
-                "max": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),768,128))]",
-                "step": "[int(if(endsWith(steps('filesystem').additional.lustretier,'-40'),48,if(endsWith(steps('filesystem').additional.lustretier,'-125'),16,if(endsWith(steps('filesystem').additional.lustretier,'-250'),8,4))))]",
+                "min": "[int(if(endsWith(steps('filesystem').lustre.lustretier,'-40'),48,if(endsWith(steps('filesystem').lustre.lustretier,'-125'),16,if(endsWith(steps('filesystem').lustre.lustretier,'-250'),8,4))))]",
+                "max": "[int(if(endsWith(steps('filesystem').lustre.lustretier,'-40'),768,128))]",
+                "step": "[int(if(endsWith(steps('filesystem').lustre.lustretier,'-40'),48,if(endsWith(steps('filesystem').lustre.lustretier,'-125'),16,if(endsWith(steps('filesystem').lustre.lustretier,'-250'),8,4))))]",
                 "label": "Capacity",
                 "subLabel": "TiB",
                 "defaultValue": 48,
@@ -701,41 +505,7 @@
                 "constraints": {
                   "required": true
                 },
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]"
-              },
-              {
-                "name": "ipAddressNfs",
-                "type": "Microsoft.Common.TextBox",
-                "label": "IP Address",
-                "toolTip": "IP address of the filer mount",
-                "defaultValue": "",
-                "constraints": {
-                  "required": true,
-                  "validations": [
-                    {
-                      "regex": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$",
-                      "message": "Invalid IP address"
-                    }
-                  ]
-                },
-                "visible": "[and(equals(steps('filesystem').additional.newexisting,'existing'),equals(steps('filesystem').additional.filertype,'nfs'))]"
-              },
-              {
-                "name": "ipAddressAml",
-                "type": "Microsoft.Common.TextBox",
-                "label": "MGS IP Address",
-                "toolTip": "The IP address for the Azure Managed Lustre file system's Lustre Management Service",
-                "defaultValue": "",
-                "constraints": {
-                  "required": true,
-                  "validations": [
-                    {
-                      "regex": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$",
-                      "message": "Invalid IP address"
-                    }
-                  ]
-                },
-                "visible": "[and(equals(steps('filesystem').additional.newexisting,'existing'),equals(steps('filesystem').additional.filertype,'aml'))]"
+                "visible": true
               },
               {
                 "name": "mountPath",
@@ -749,48 +519,9 @@
                   "validationMessage": "Must be an absolute path"
                 },
                 "visible": true
-              },
-              {
-                "name": "exportPath",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Export path",
-                "defaultValue": "/mnt/data",
-                "toolTip": "Export path for the additional filer",
-                "constraints": {
-                  "required": true,
-                  "regex": "^\/(?:[\\w-.]+\/)*[\\w-.]+$",
-                  "validationMessage": "Must be an absolute path"
-                },
-                "visible": "[and(equals(steps('filesystem').additional.newexisting, 'existing'),not(equals(steps('filesystem').additional.filertype,'aml')))]"
-              },
-              {
-                "name": "mountOptionsNfs",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Mount options",
-                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev",
-                "toolTip": "Mount options for the additional filer",
-                "constraints": {
-                  "required": false,
-                  "regex": "^.+$",
-                  "validationMessage": "Please enter a mount option."
-                },
-                "visible": "[and(equals(steps('filesystem').additional.newexisting,'existing'),equals(steps('filesystem').additional.filertype,'nfs'))]"
-              },
-              {
-                "name": "mountOptionsAml",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Mount options",
-                "defaultValue": "",
-                "toolTip": "Mount options for the additional filer",
-                "constraints": {
-                  "required": false,
-                  "regex": "^.+$",
-                  "validationMessage": "Please enter a mount option."
-                },
-                "visible": "[and(equals(steps('filesystem').additional.newexisting,'existing'),equals(steps('filesystem').additional.filertype,'aml'))]"
               }
             ],
-            "visible": "[steps('filesystem').additionalCheck.checkbox]"
+            "visible": "[steps('filesystem').lustreCheck.checkbox]"
           }
         ]
       },
@@ -804,7 +535,7 @@
             "visible": true,
             "options": {
               "icon": "Info",
-              "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment.\n\nPlease note that private endpoint, DNS zone, DNS zone group, and virtual network link resources will be created to establish network connectivity with the storage account that will be concurrently deployed for use by the cluster."
+              "text": "Optionally automatically create virtual network resources or use existing ones for the Azure CycleCloud deployment.\n\nPlease note that private endpoint, DNS zone, DNS zone group, and virtual network link resources will be created to establish network connectivity with the storage account that will be concurrently deployed for use by CycleCloud."
             }
           },
           {
@@ -836,7 +567,7 @@
               {
                 "name": "lustreInfoBoxNew",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'new'))]",
+                "visible": "[and(steps('filesystem').lustreCheck.checkbox,equals(steps('networking').newexisting,'new'))]",
                 "options": {
                   "icon": "Warning",
                   "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nThe option to create a new virtual network with a CIDR of /24 is therefore omitted in the below menu."
@@ -846,15 +577,15 @@
                 "name": "cidrPrefix",
                 "type": "Microsoft.Common.DropDown",
                 "label": "CIDR Prefix",
-                "defaultValue": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'/23','/24')]",
+                "defaultValue": "[if(steps('filesystem').lustreCheck.checkbox,'/23','/24')]",
                 "multiLine": true,
                 "toolTip": "Select the CIDR prefix",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','/24')]",
-                      "description": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','123 compute nodes')]",
-                      "value": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','/24')]"
+                      "label": "[if(steps('filesystem').lustreCheck.checkbox,'','/24')]",
+                      "description": "[if(steps('filesystem').lustreCheck.checkbox,'','123 compute nodes')]",
+                      "value": "[if(steps('filesystem').lustreCheck.checkbox,'','/24')]"
                     },
                     {
                       "label": "/23",
@@ -947,9 +678,9 @@
                 "visible": "[equals(steps('networking').newexisting,'existing')]"
               },
               {
-                "name": "anfInfoBox1",
+                "name": "anfInfoBox",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'))]",
+                "visible": "[and(steps('filesystem').anfCheck.checkbox, equals(steps('networking').newexisting,'existing'))]",
                 "options": {
                   "icon": "Warning",
                   "text": "Please confirm that the subnet selected below has the required Microsoft.NetApp/volumes delegation configured\nas specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
@@ -957,45 +688,35 @@
                 }
               },
               {
-                "name": "filersubnet1",
+                "name": "anfSubnet",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Primary file-system subnet",
-                "toolTip": "Select subnet for primary file-system",
+                "label": "Azure NetApp Files subnet",
+                "toolTip": "Select subnet for Azure NetApp Files",
                 "constraints": {
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
-                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'))]"
-              },
-              {
-                "name": "anfInfoBox2",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.filertype,'anf'))]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "Please confirm that the subnet selected below has the required Microsoft.NetApp/volumes delegation configured\nas specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
-                  "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
-                }
+                "visible": "[and(steps('filesystem').anfCheck.checkbox, equals(steps('networking').newexisting,'existing'))]"
               },
               {
                 "name": "lustreInfoBoxExisting",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'existing'))]",
+                "visible": "[and(steps('filesystem').lustreCheck.checkbox,equals(steps('networking').newexisting,'existing'))]",
                 "options": {
                   "icon": "Warning",
                   "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nPlease ensure that the subnet selected below meets this requirement."
                 }
               },
               {
-                "name": "filersubnet2",
+                "name": "lustreSubnet",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Additional file-system subnet",
-                "toolTip": "Select subnet for additional file-system",
+                "label": "Azure Managed Lustre subnet",
+                "toolTip": "Select subnet for Azure Managed Lustre",
                 "constraints": {
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefix, '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
-                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new'))]"
+                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').lustreCheck.checkbox)]"
               },
               {
                 "name": "bastion",
@@ -1051,725 +772,6 @@
         ]
       },
       {
-        "name": "scheduler",
-        "label": "Slurm Cluster",
-        "elements": [
-          {
-            "name": "makeCluster",
-            "type": "Microsoft.Common.CheckBox",
-            "label": "Deploy Slurm cluster",
-            "toolTip": "Optionally configure a Slurm cluster to be deployed alongside the HPC infrastructure",
-            "defaultValue": false,
-            "constraints": {
-              "required": false
-            }
-          },
-          {
-            "name": "clusterSettings",
-            "type": "Microsoft.Common.Section",
-            "label": "Cluster Configuration",
-            "elements": [
-              {
-                "name": "acceptMarketplaceTerms",
-                "type": "Microsoft.Common.CheckBox",
-                "label": "Auto-accept VM image terms",
-                "toolTip": "Enable CycleCloud to automatically accept any Azure Marketplace VM image terms for the selected Azure subscription",
-                "defaultValue": false,
-                "constraints": {
-                  "required": false
-                }
-              },
-              {
-                "name": "healthCheck",
-                "type": "Microsoft.Common.CheckBox",
-                "label": "Enable health check",
-                "toolTip": "Enable health check scripts (NHC) to be run during allocation",
-                "defaultValue": false,
-                "constraints": {
-                  "required": false
-                }
-              },
-              {
-                "name": "clusterName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Cluster name",
-                "defaultValue": "ccw",
-                "toolTip": "Name of cluster in CycleCloud portal",
-                "constraints": {
-                  "required": true,
-                  "regex": "^[a-zA-Z0-9@_-]{3,}$",
-                  "validationMessage": "Cluster name must be at least 3 characters long. Characters must be alphanumeric, @, -, or _."
-                },
-                "visible": false
-              }
-            ],
-            "visible": "[steps('scheduler').makeCluster]"
-          },
-          {
-            "name": "schedulerSection",
-            "type": "Microsoft.Common.Section",
-            "label": "Scheduler",
-            "elements": [
-              {
-                "name": "vmsize",
-                "type": "Microsoft.Compute.SizeSelector",
-                "label": "Size",
-                "toolTip": "Select a size for the Scheduler VM",
-                "recommendedSizes": [
-                  "Standard_D4as_v4"
-                ],
-                "options": {
-                  "hideDiskTypeFilter": true
-                },
-                "osPlatform": "Linux",
-                "visible": true
-              },
-              {
-                "name": "ImageName",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
-                "toolTip": "Select the image to use for the Login Nodes",
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "Alma Linux 8.10",
-                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
-                    },
-                    {
-                      "label": "Ubuntu 20.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2004:latest"
-                    },
-                    {
-                      "label": "Ubuntu 22.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
-                    },
-                    {
-                      "label": "Custom image",
-                      "value": "custom"
-                    }
-                  ],
-                  "required": true,
-                  "validationMessage": "Image Name is required."
-                }
-              },
-              {
-                "name": "customImageInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[equals(steps('scheduler').schedulerSection.ImageName,'custom')]",
-                "options": {
-                  "icon": "Info",
-                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
-                }
-              },
-              {
-                "name": "customImageName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Custom Image ID",
-                "defaultValue": "",
-                "toolTip": "Enter a custom image ID or URN",
-                "constraints": {
-                  "required": true,
-                  "regex": "^.{1,}$",
-                  "validationMessage": "Please enter a custom image resource ID or URN"
-                },
-                "visible": "[equals(steps('scheduler').schedulerSection.ImageName,'custom')]"
-              },
-              {
-                "name": "universalImage",
-                "type": "Microsoft.Common.CheckBox",
-                "label": "Use image on all nodes",
-                "toolTip": "Use the indicated image on all nodes",
-                "defaultValue": false,
-                "visible": true
-              },
-              {
-                "name": "slurmVersion",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Slurm Version",
-                "defaultValue": "24.05.4",
-                "toolTip": "Select the version of Slurm to use",
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "23.11.10",
-                      "description": "Version 23.11.10",
-                      "value": "23.11.10-2"
-                    },
-                    {
-                      "label": "24.05.4",
-                      "description": "Version 24.05.4",
-                      "value": "24.05.4-2"
-                    }
-                  ],
-                  "required": true
-                },
-                "visible": true
-              },
-              {
-                "name": "slurmHA",
-                "type": "Microsoft.Common.CheckBox",
-                "label": "Slurm HA",
-                "toolTip": "Select to enable Slurm High Availability",
-                "defaultValue": false,
-                "visible": false
-              },
-              {
-                "name": "slurmAccounting",
-                "type": "Microsoft.Common.CheckBox",
-                "label": "Slurm job accounting",
-                "toolTip": "Select to enable Slurm job accounting in a managed MySQL instance",
-                "defaultValue": false,
-                "visible": true
-              },
-              {
-                "name": "databaseInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "CycleCloud Workspace for Slurm currently only supports job accounting in existing MySQL instances. \nPlease visit the linked page to create a new MySQL instance prior to launching CycleCloud Workspace for Slurm.",
-                  "uri": "https://portal.azure.com/#create/Microsoft.MySQLServer"
-                }
-              },
-              {
-                "name": "databaseUser",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Database user",
-                "defaultValue": "hpcdbadmin",
-                "toolTip": "Username of the Slurm accounting database admin",
-                "constraints": {
-                  "required": true,
-                  "regex": "^[a-zA-Z][a-zA-Z0-9_]{5,19}$",
-                  "validationMessage": "Enter a valid username"
-                },
-                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
-              },
-              {
-                "name": "databaseAdminPassword",
-                "type": "Microsoft.Common.PasswordBox",
-                "label": {
-                  "password": "Database Admin Password",
-                  "confirmPassword": "Confirm Password"
-                },
-                "toolTip": "Password for the Slurm accounting database admin user",
-                "constraints": {
-                  "required": "[not(equals(basics('autogeneratePasswordsAndKeys'),1))]",
-                  "regex": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_\\-+=[\\]{}|\\\\:'\",.?`~\";]).{8,123}$",
-                  "validationMessage": "Your password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character (@ # $ % ^ & * - _ ! + = [ ] { } | \\ : ' , . ? ` ~ \" ( ) ; )"
-                },
-                "options": {
-                  "hideConfirmation": false
-                },
-                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
-              },
-              {
-                "name": "dbConnection",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Connection options",
-                "defaultValue": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'Direct: FQDN',if(equals(steps('networking').newexisting,'new'),'Private Endpoint',''))]",
-                "toolTip": "Select method by which to connect to the existing MySQL database",
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'Direct: FQDN','')]",
-                      "value": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'fqdn','')]"
-                    },
-                    {
-                      "label": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'Direct: Private IP','')]",
-                      "value": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'privateIp','')]"
-                    },
-                    {
-                      "label": "[if(equals(steps('networking').newexisting,'new'),'Private Endpoint','')]",
-                      "value": "[if(equals(steps('networking').newexisting,'new'),'privateEndpoint','')]"
-                    }
-                  ],
-                  "required": true
-                },
-                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
-              },
-              {
-                "name": "databaseURL",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Database FQDN (URL)",
-                "defaultValue": ".mysql.database.azure.com",
-                "toolTip": "Enter a FQDN (URL) for the MySQL database",
-                "constraints": {
-                  "required": true,
-                  "validations": [
-                    {
-                      "regex": "^(?:http[s]?:\\/\\/.)?(?:www\\.)?[-a-zA-Z0-9@%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b(?:[-a-zA-Z0-9@:%_\\+.~#?&\/\/=]*)$",
-                      "message": "Please enter a valid MySQL database FQDN."
-                    }
-                  ]
-                },
-                "visible": "[equals(steps('scheduler').schedulerSection.dbConnection,'fqdn')]"
-              },
-              {
-                "name": "databasePIP",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Database Private IP",
-                "defaultValue": "",
-                "toolTip": "Enter the private IP address of the MySQL database",
-                "constraints": {
-                  "required": true,
-                  "validations": [
-                    {
-                      "regex": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$",
-                      "message": "Invalid IP address"
-                    }
-                  ]
-                },
-                "visible": "[equals(steps('scheduler').schedulerSection.dbConnection,'privateIp')]"
-              },
-              {
-                "name": "dbSelector",
-                "type": "Microsoft.Solutions.ResourceSelector",
-                "label": "Select MySQL Database",
-                "toolTip": "Select a MySQL Flexible Server in the Azure region selected on the Basics page",
-                "resourceType": "Microsoft.DBforMySQL/flexibleServers",
-                "options": {
-                  "filter": {
-                    "subscription": "onBasics"
-                  }
-                },
-                "constraints": {
-                  "required": true,
-                  "validationMessage": "Please select a MySQL Flexible Server."
-                },
-                "visible": "[equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint')]"
-              },
-              {
-                "name": "useLoginNodes",
-                "type": "Microsoft.Common.CheckBox",
-                "label": "Use login nodes",
-                "toolTip": "Select to create login nodes for your cluster",
-                "defaultValue": false,
-                "visible": false
-              }
-            ],
-            "visible": "[steps('scheduler').makeCluster]"
-          },
-          {
-            "name": "loginNodesSection",
-            "type": "Microsoft.Common.Section",
-            "label": "Login Nodes",
-            "elements": [
-              {
-                "name": "vmsize",
-                "type": "Microsoft.Compute.SizeSelector",
-                "label": "Size",
-                "toolTip": "Select a VM Size for the Login nodes",
-                "recommendedSizes": [
-                  "Standard_F4s_v2"
-                ],
-                "options": {
-                  "hideDiskTypeFilter": true
-                },
-                "osPlatform": "Linux",
-                "visible": true,
-                "required": true,
-                "validationMessage": "VMSize is required."
-              },
-              {
-                "name": "ImageName",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
-                "toolTip": "Select the image to use for the Login Nodes",
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "Alma Linux 8.10",
-                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
-                    },
-                    {
-                      "label": "Ubuntu 20.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2004:latest"
-                    },
-                    {
-                      "label": "Ubuntu 22.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
-                    },
-                    {
-                      "label": "Custom image",
-                      "value": "custom"
-                    }
-                  ],
-                  "required": true,
-                  "validationMessage": "Image Name is required."
-                },
-                "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
-              },
-              {
-                "name": "customImageInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[equals(steps('scheduler').loginNodesSection.ImageName,'custom')]",
-                "options": {
-                  "icon": "Info",
-                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
-                }
-              },
-              {
-                "name": "customImageName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Custom Image ID",
-                "defaultValue": "",
-                "toolTip": "Enter a custom image ID or URN",
-                "constraints": {
-                  "required": true,
-                  "regex": "^.{1,}$",
-                  "validationMessage": "Please enter a custom image resource ID or URN"
-                },
-                "visible": "[equals(steps('scheduler').loginNodesSection.ImageName,'custom')]"
-              },
-              {
-                "name": "initialNodes",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Initial number of login nodes",
-                "defaultValue": "1",
-                "toolTip": "Enter a number between 0 and 1000",
-                "constraints": {
-                  "required": true,
-                  "regex": "^(?:[0-9]|[1-9][0-9]|[1-9][0-9][0-9]|1000)$",
-                  "validationMessage": "Please enter an integer between 0 and 1000"
-                },
-                "visible": true
-              },
-              {
-                "name": "maxNodes",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Max number of nodes",
-                "defaultValue": "1",
-                "toolTip": "Enter a number between 1 and 1000",
-                "constraints": {
-                  "required": true,
-                  "regex": "^(?:[1-9]\\d{0,2}|1000)$",
-                  "validationMessage": "Please enter an integer between 1 and 1000"
-                },
-                "visible": true
-              }
-            ],
-            "visible": "[steps('scheduler').makeCluster]"
-          },
-          
-          {
-            "name": "infobox",
-            "type": "Microsoft.Common.InfoBox",
-            "visible": "[steps('scheduler').makeCluster]",
-            "options": {
-              "icon": "Info",
-              "text": "Slurm uses partitions to distinguish different execute node types. We provide 3 common use cases, High-Throughput Compute (HTC), CPU-based High-Performance Compute (HPC) and GPU-based HPC (GPU)."
-            }
-          },
-          {
-            "name": "HTCSection",
-            "type": "Microsoft.Common.Section",
-            "label": "HTC Partition",
-            "elements": [
-              {
-                "name": "vmsize",
-                "type": "Microsoft.Compute.SizeSelector",
-                "label": "Size",
-                "toolTip": "Select a VM Size for the HTC partition",
-                "recommendedSizes": [
-                  "Standard_F2s_v2"
-                ],
-                "options": {
-                  "hideDiskTypeFilter": true
-                },
-                "osPlatform": "Linux",
-                "visible": true,
-                "required": true,
-                "validationMessage": "VMSize is required."
-              },
-              {
-                "name": "maxNodes",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Max number of nodes",
-                "defaultValue": "100",
-                "toolTip": "Enter an integer between 1 and 1000",
-                "constraints": {
-                  "required": true,
-                  "regex": "^(?:[1-9]\\d{0,2}|1000)$",
-                  "validationMessage": "Please enter an integer between 1 and 1000"
-                },
-                "visible": true
-              },
-              {
-                "name": "ImageName",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
-                "toolTip": "Select the image to use for the HTC partition",
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "Alma Linux 8.10",
-                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
-                    },
-                    {
-                      "label": "Ubuntu 20.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2004:latest"
-                    },
-                    {
-                      "label": "Ubuntu 22.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
-                    },
-                    {
-                      "label": "Custom image",
-                      "value": "custom"
-                    }
-                  ],
-                  "required": true,
-                  "validationMessage": "Image Name is required."
-                },
-                "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
-              },
-              {
-                "name": "customImageInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[equals(steps('slurmSettings').HTCSection.ImageName,'custom')]",
-                "options": {
-                  "icon": "Info",
-                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
-                }
-              },
-              {
-                "name": "customImageName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Custom Image ID",
-                "defaultValue": "",
-                "toolTip": "Enter a custom image ID or URN",
-                "constraints": {
-                  "required": true,
-                  "regex": "^.{1,}$",
-                  "validationMessage": "Please enter a custom image resource ID or URN"
-                },
-                "visible": "[equals(steps('slurmSettings').HTCSection.ImageName,'custom')]"
-              },
-              {
-                "name": "spotHTC",
-                "type": "Microsoft.Common.CheckBox",
-                "label": "Enable Azure Spot",
-                "toolTip": "Enable Azure Spot discount",
-                "defaultValue": false,
-                "constraints": {
-                  "required": false
-                }
-              }
-            ],
-            "visible": "[steps('scheduler').makeCluster]"
-          },
-          {
-            "name": "HPCSection",
-            "type": "Microsoft.Common.Section",
-            "label": "HPC Partition",
-            "elements": [
-              {
-                "name": "vmsize",
-                "type": "Microsoft.Compute.SizeSelector",
-                "label": "Size",
-                "toolTip": "Select a VM Size for the HPC partition",
-                "recommendedSizes": [
-                  "Standard_HB120rs_v3",
-                  "Standard_HB176rs_v4",
-                  "Standard_D4as_v4"
-                ],
-                "options": {
-                  "hideDiskTypeFilter": true
-                },
-                "osPlatform": "Linux",
-                "visible": true,
-                "required": true,
-                "validationMessage": "VMSize is required."
-              },
-              {
-                "name": "maxNodes",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Max number of nodes",
-                "defaultValue": "16",
-                "toolTip": "Enter an integer between 1 and 1000",
-                "constraints": {
-                  "required": true,
-                  "regex": "^(?:[1-9]\\d{0,2}|1000)$",
-                  "validationMessage": "Please enter an integer between 1 and 1000"
-                },
-                "visible": true
-              },
-              {
-                "name": "ImageName",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
-                "toolTip": "Select the image to use for the HPC partition",
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "Alma Linux 8.10",
-                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
-                    },
-                    {
-                      "label": "Ubuntu 20.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2004:latest"
-                    },
-                    {
-                      "label": "Ubuntu 22.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
-                    },
-                    {
-                      "label": "Custom image",
-                      "value": "custom"
-                    }
-                  ],
-                  "required": true,
-                  "validationMessage": "Image Name is required."
-                },
-                "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
-              },
-              {
-                "name": "customImageInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[equals(steps('slurmSettings').HPCSection.ImageName,'custom')]",
-                "options": {
-                  "icon": "Info",
-                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
-                }
-              },
-              {
-                "name": "customImageName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Custom Image ID",
-                "defaultValue": "",
-                "toolTip": "Enter a custom image ID or URN",
-                "constraints": {
-                  "required": true,
-                  "regex": "^.{1,}$",
-                  "validationMessage": "Please enter a custom image resource ID or URN"
-                },
-                "visible": "[equals(steps('slurmSettings').HPCSection.ImageName,'custom')]"
-              },
-              {
-                "name": "spotHPC",
-                "label": "Enable Azure Spot",
-                "type": "Microsoft.Common.CheckBox",
-                "toolTip": "Enable Azure Spot discount",
-                "defaultValue": false,
-                "visible": false,
-                "constraints": {
-                  "required": false
-                }
-              }
-            ],
-            "visible": "[steps('scheduler').makeCluster]"
-          },
-          {
-            "name": "GPUSection",
-            "type": "Microsoft.Common.Section",
-            "label": "GPU Partition",
-            "elements": [
-              {
-                "name": "vmsize",
-                "type": "Microsoft.Compute.SizeSelector",
-                "label": "Size",
-                "toolTip": "Select a VM Size for the GPU partition",
-                "recommendedSizes": [
-                  "Standard_ND96asr_v4",
-                  "Standard_ND96amsr_A100_v4",
-                  "Standard_NC24ads_A100_v4",
-                  "Standard_ND96isr_H100_v5",
-                  "Standard_D4as_v4"
-                ],
-                "options": {
-                  "hideDiskTypeFilter": true
-                },
-                "osPlatform": "Linux",
-                "visible": true,
-                "required": true,
-                "validationMessage": "VMSize is required."
-              },
-              {
-                "name": "maxNodes",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Max number of nodes",
-                "defaultValue": "8",
-                "toolTip": "Enter an integer between 1 and 1000",
-                "constraints": {
-                  "required": true,
-                  "regex": "^(?:[1-9]\\d{0,2}|1000)$",
-                  "validationMessage": "Please enter an integer between 1 and 1000"
-                },
-                "visible": true
-              },
-              {
-                "name": "ImageName",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
-                "toolTip": "Select the image to use for the GPU partition",
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "Alma Linux 8.10",
-                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
-                    },
-                    {
-                      "label": "Ubuntu 20.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2004:latest"
-                    },
-                    {
-                      "label": "Ubuntu 22.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
-                    },
-                    {
-                      "label": "Custom image",
-                      "value": "custom"
-                    }
-                  ],
-                  "required": true,
-                  "validationMessage": "Image Name is required."
-                },
-                "visible": "[not(steps('scheduler').schedulerSection.universalImage)]"
-              },
-              {
-                "name": "customImageInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[equals(steps('slurmSettings').GPUSection.ImageName,'custom')]",
-                "options": {
-                  "icon": "Info",
-                  "text": "Custom images may be used by entering a URN of an Azure Marketplace image or the resource ID of other custom images in the chosen subscription. Please ensure that inputs conform to the below formats for proper deployment.\n\nResource ID for an image in Azure Compute Gallery:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/galleries/{galleryName}/images/{imageName}/versions/{versionNumber}\n\nResource ID for a legacy managed image:\n/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute\n/images/{imageName}\n\nAzure Marketplace URN:\npublisher:offer:sku:version"
-                }
-              },
-              {
-                "name": "customImageName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Custom Image URN or ID",
-                "defaultValue": "",
-                "toolTip": "Enter a custom image URN or ID",
-                "constraints": {
-                  "required": true,
-                  "regex": "^.{1,}$",
-                  "validationMessage": "Please enter a custom image resource ID or URN"
-                },
-                "visible": "[equals(steps('slurmSettings').GPUSection.ImageName,'custom')]"
-              },
-              {
-                "name": "spotGPU",
-                "type": "Microsoft.Common.CheckBox",
-                "toolTip": "Enable Azure Spot discount",
-                "label": "Enable Azure Spot",
-                "defaultValue": false,
-                "visible": false,
-                "constraints": {
-                  "required": false
-                }
-              }
-            ],
-            "visible": "[steps('scheduler').makeCluster]"
-          }
-        ]
-      },
-      {
         "name": "ood",
         "label": "Open OnDemand",
         "elements": [
@@ -1788,15 +790,6 @@
                 }
               },
               {
-                "name": "slurmClusterWarning",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[not(steps('scheduler').makeCluster)]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "Open OnDemand may only be deployed alongside a Slurm cluster managed by Azure CycleCloud. Please create a cluster under the Slurm Cluster menu to configure Open OnDemand."
-                }
-              },
-              {
                 "name": "deployOOD",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Deploy Open OnDemand",
@@ -1805,7 +798,7 @@
                 "constraints": {
                   "required": false
                 },
-                "visible": "[steps('scheduler').makeCluster]"
+                "visible": true
               },
               {
                 "name": "oodLoginNodeInfo",
@@ -1837,7 +830,7 @@
                   "hideDiskTypeFilter": true
                 },
                 "osPlatform": "Linux",
-                "visible": "[and(steps('scheduler').makeCluster,steps('ood').OODSection.deployOOD)]"
+                "visible": "[steps('ood').OODSection.deployOOD]"
               },
               {
                 "name": "ImageName",
@@ -1863,7 +856,7 @@
                   "required": true,
                   "validationMessage": "Image Name is required."
                 },
-                "visible": "[and(steps('scheduler').makeCluster,steps('ood').OODSection.deployOOD)]"
+                "visible": "[steps('ood').OODSection.deployOOD]"
               },
               {
                 "name": "customImageInfoBox",
@@ -1898,7 +891,7 @@
                   "regex": "^[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}$",
                   "validationMessage": "Enter a valid domain name"
                 },
-                "visible": "[and(steps('scheduler').makeCluster,steps('ood').OODSection.deployOOD)]"
+                "visible": "[steps('ood').OODSection.deployOOD]"
               },
               {
                 "name": "fqdn",
@@ -1911,7 +904,7 @@
                   "regex": "^[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}$",
                   "validationMessage": "Enter a valid FQDN or leave blank"
                 },
-                "visible": "[and(steps('scheduler').makeCluster,steps('ood').OODSection.deployOOD)]"
+                "visible": "[steps('ood').OODSection.deployOOD]"
               },
               {
                 "name": "registerEntraIDApp",
@@ -1922,7 +915,7 @@
                 "constraints": {
                   "required": false
                 },
-                "visible": "[and(steps('scheduler').makeCluster,steps('ood').OODSection.deployOOD)]"
+                "visible": "[steps('ood').OODSection.deployOOD]"
               }
             ],
             "visible": true
