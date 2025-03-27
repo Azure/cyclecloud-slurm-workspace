@@ -9,7 +9,7 @@
     ],
     "_generator": {
       "name": "bicep",
-      "templateHash": "4335552213009299792"
+      "templateHash": "16130138093229455911"
     }
   },
   "parameters": {
@@ -52,14 +52,14 @@
     ]
   },
   "imports": {
-    "MicrosoftGraph": {
+    "microsoftGraphV1": {
       "provider": "MicrosoftGraph",
       "version": "0.1.8-preview"
     }
   },
   "resources": {
     "oodApp::myMsiFic": {
-      "import": "MicrosoftGraph",
+      "import": "microsoftGraphV1",
       "type": "Microsoft.Graph/applications/federatedIdentityCredentials@v1.0",
       "properties": {
         "name": "[format('{0}/msiAsFic', reference('oodApp').uniqueName)]",
@@ -77,7 +77,7 @@
     },
     "msGraphSP": {
       "existing": true,
-      "import": "MicrosoftGraph",
+      "import": "microsoftGraphV1",
       "type": "Microsoft.Graph/servicePrincipals@v1.0",
       "properties": {
         "appId": "[variables('graphAppId')]"
@@ -90,7 +90,7 @@
       "name": "[parameters('umiName')]"
     },
     "oodApp": {
-      "import": "MicrosoftGraph",
+      "import": "microsoftGraphV1",
       "type": "Microsoft.Graph/applications@v1.0",
       "properties": {
         "displayName": "[parameters('appName')]",
