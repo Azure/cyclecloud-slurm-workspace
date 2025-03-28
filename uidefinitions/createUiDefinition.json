@@ -1218,7 +1218,6 @@
                 "label": "Size",
                 "toolTip": "Select a size for the Scheduler VM",
                 "recommendedSizes": [
-                  "Standard_D4s_v6",
                   "Standard_D4as_v5",
                   "Standard_D4s_v5",
                   "Standard_D4as_v4",
@@ -1942,7 +1941,6 @@
                 "label": "Open OnDemand VM Size",
                 "toolTip": "Select a SKU for the Open OnDemand VM",
                 "recommendedSizes": [
-                  "Standard_D4s_v6",
                   "Standard_D4as_v5",
                   "Standard_D4s_v5",
                   "Standard_D4as_v4",
