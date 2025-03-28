@@ -1236,7 +1236,16 @@
                     "Standard_D32als_v6",
                     "Standard_D48als_v6",
                     "Standard_D64als_v6",
-                    "Standard_D96als_v6"
+                    "Standard_D96als_v6",
+                    "Standard_D2s_v6",
+                    "Standard_D4s_v6",
+                    "Standard_D8s_v6",
+                    "Standard_D16s_v6",
+                    "Standard_D32s_v6",
+                    "Standard_D48s_v6",
+                    "Standard_D64s_v6",
+                    "Standard_D96s_v6",
+                    "Standard_D128s_v6"
                   ]
                 },
                 "osPlatform": "Linux",
@@ -1959,7 +1968,16 @@
                     "Standard_D32als_v6",
                     "Standard_D48als_v6",
                     "Standard_D64als_v6",
-                    "Standard_D96als_v6"
+                    "Standard_D96als_v6",
+                    "Standard_D2s_v6",
+                    "Standard_D4s_v6",
+                    "Standard_D8s_v6",
+                    "Standard_D16s_v6",
+                    "Standard_D32s_v6",
+                    "Standard_D48s_v6",
+                    "Standard_D64s_v6",
+                    "Standard_D96s_v6",
+                    "Standard_D128s_v6"
                   ]
                 },
                 "osPlatform": "Linux",
