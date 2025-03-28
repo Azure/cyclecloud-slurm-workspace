@@ -1066,6 +1066,15 @@
                 }
               },
               {
+                "name": "newDnsZoneWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('networking').dnsZone.newExisting,'new')]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "The cluster deployment will fail if the virtual network selected above has an existing link to a private DNS zone for\nAzure Blob Storage and the option to create a new such private DNS zone resource is chosen below."
+                }
+              },
+              {
                 "name": "newExisting",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Private DNS zone options",
