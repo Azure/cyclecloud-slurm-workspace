@@ -291,7 +291,7 @@ resource ccwCommonNsg 'Microsoft.Network/networkSecurityGroups@2023-11-01' = {
   }
 }
 
-resource ccwVirtualNetwork 'Microsoft.Network/virtualNetworks@2023-11-01' = {
+resource ccwVirtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   name: vnet.name
   location: location
   tags: tags
@@ -302,7 +302,7 @@ resource ccwVirtualNetwork 'Microsoft.Network/virtualNetworks@2023-11-01' = {
     subnets: [ for subnet in items(vnet.subnets): {
       name: subnet.value.name
       properties: {
-        addressPrefix: subnet.value.cidr
+        addressPrefixes: [ subnet.value.cidr ]
         natGateway: (natGatewayId != '' && subnet.value.nat_gateway) ? {
           id: natGatewayId
         } : null
