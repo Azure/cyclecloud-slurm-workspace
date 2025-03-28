@@ -1114,6 +1114,14 @@
                   "icon": "Warning",
                   "text": "Select an appropriate private DNS zone to ensure that the cluster deployment will not fail and that the chosen virtual network can connect to Azure Blob Storage via a private endpoint.\n\nThe name of the chosen private DNS zone must be one of the following:\n • privatelink.blob.core.windows.net\n • privatelink.blob.core.usgovcloudapi.net"
                 }
+              },
+              {
+                "name": "vnetLinkProvidersApi",
+                "type": "Microsoft.Solutions.ArmApiControl",
+                "request": {
+                  "method": "GET",
+                  "path": "[concat(steps('networking').dnsZone.dnsZoneSelector.id,'/virtualNetworkLinks?api-version=2018-09-01')]"
+                }
               }
             ],
             "visible": "[equals(steps('networking').newexisting,'existing')]"
@@ -1123,14 +1131,6 @@
             "type": "Microsoft.Common.Section",
             "label": "Virtual network link",
             "elements": [
-              {
-                "name": "vnetLinkProvidersApi",
-                "type": "Microsoft.Solutions.ArmApiControl",
-                "request": {
-                  "method": "GET",
-                  "path": "[concat(steps('networking').dnsZone.dnsZoneSelector.id,'/virtualNetworkLinks?api-version=2018-09-01')]"
-                }
-              },
               {
                 "name": "vnetLinkWarning",
                 "type": "Microsoft.Common.InfoBox",
@@ -1149,7 +1149,7 @@
                 "visible": true
               }
             ],
-            "visible": "[if(and(equals(steps('networking').dnsZone.newExisting,'existing'),not(equals(0,length(steps('networking').networkSettings.networkSelector.id))),not(equals(0,length(steps('networking').dnsZone.dnsZoneSelector.id))),or(equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.windows.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.usgovcloudapi.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.chinacloudapi.cn'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.cloudapi.de'))),not(equals(length(filter(steps('networking').vnetLink.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),false)]"
+            "visible": "[if(and(equals(steps('networking').dnsZone.newExisting,'existing'),not(equals(0,length(steps('networking').networkSettings.networkSelector.id))),not(equals(0,length(steps('networking').dnsZone.dnsZoneSelector.id))),or(equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.windows.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.usgovcloudapi.net'))),not(equals(length(filter(steps('networking').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),false)]"
           }
         ]
       },
@@ -2126,7 +2126,7 @@
         "vnetToPeer": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,basics('nullValue'))]",
         "peeringAllowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]",
         "storagePrivateDnsZoneId": "[if(and(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),steps('networking').dnsZone.dnsZoneSelector.id)]",
-        "vnetLink": "[if(and(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),steps('networking').vnetLink.createVnetLink)]"
+        "vnetLink": "[if(or(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),if(not(equals(length(filter(steps('networking').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),steps('networking').vnetLink.createVnetLink,false))]"      
       },
       "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
       "databaseConfig": {
