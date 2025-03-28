@@ -101,8 +101,11 @@
         "label": "CycleCloud VM Size",
         "toolTip": "Select a size for the CycleCloud VM",
         "recommendedSizes": [
+          "Standard_D4s_v6",
           "Standard_D4as_v5",
-          "Standard_D4as_v4"
+          "Standard_D4s_v5",
+          "Standard_D4as_v4",
+          "Standard_D4s_v4"
         ],
         "constraints": {
           "excludedSizes": [
@@ -1063,6 +1066,15 @@
                 }
               },
               {
+                "name": "newDnsZoneWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('networking').dnsZone.newExisting,'new')]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "The cluster deployment will fail if the virtual network selected above has an existing link to a private DNS zone for\nAzure Blob Storage and the option to create a new such private DNS zone resource is chosen below."
+                }
+              },
+              {
                 "name": "newExisting",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Private DNS zone options",
@@ -1102,6 +1114,14 @@
                   "icon": "Warning",
                   "text": "Select an appropriate private DNS zone to ensure that the cluster deployment will not fail and that the chosen virtual network can connect to Azure Blob Storage via a private endpoint.\n\nThe name of the chosen private DNS zone must be one of the following:\n • privatelink.blob.core.windows.net\n • privatelink.blob.core.usgovcloudapi.net"
                 }
+              },
+              {
+                "name": "vnetLinkProvidersApi",
+                "type": "Microsoft.Solutions.ArmApiControl",
+                "request": {
+                  "method": "GET",
+                  "path": "[concat(steps('networking').dnsZone.dnsZoneSelector.id,'/virtualNetworkLinks?api-version=2018-09-01')]"
+                }
               }
             ],
             "visible": "[equals(steps('networking').newexisting,'existing')]"
@@ -1111,14 +1131,6 @@
             "type": "Microsoft.Common.Section",
             "label": "Virtual network link",
             "elements": [
-              {
-                "name": "vnetLinkProvidersApi",
-                "type": "Microsoft.Solutions.ArmApiControl",
-                "request": {
-                  "method": "GET",
-                  "path": "[concat(steps('networking').dnsZone.dnsZoneSelector.id,'/virtualNetworkLinks?api-version=2018-09-01')]"
-                }
-              },
               {
                 "name": "vnetLinkWarning",
                 "type": "Microsoft.Common.InfoBox",
@@ -1137,7 +1149,7 @@
                 "visible": true
               }
             ],
-            "visible": "[if(and(equals(steps('networking').dnsZone.newExisting,'existing'),not(equals(0,length(steps('networking').networkSettings.networkSelector.id))),not(equals(0,length(steps('networking').dnsZone.dnsZoneSelector.id))),or(equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.windows.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.usgovcloudapi.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.chinacloudapi.cn'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.cloudapi.de'))),not(equals(length(filter(steps('networking').vnetLink.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),false)]"
+            "visible": "[if(and(equals(steps('networking').dnsZone.newExisting,'existing'),not(equals(0,length(steps('networking').networkSettings.networkSelector.id))),not(equals(0,length(steps('networking').dnsZone.dnsZoneSelector.id))),or(equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.windows.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.usgovcloudapi.net'))),not(equals(length(filter(steps('networking').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),false)]"
           }
         ]
       },
@@ -1197,7 +1209,11 @@
                 "label": "Size",
                 "toolTip": "Select a size for the Scheduler VM",
                 "recommendedSizes": [
-                  "Standard_D4as_v4"
+                  "Standard_D4s_v6",
+                  "Standard_D4as_v5",
+                  "Standard_D4s_v5",
+                  "Standard_D4as_v4",
+                  "Standard_D4s_v4"
                 ],
                 "options": {
                   "hideDiskTypeFilter": true
@@ -1904,7 +1920,11 @@
                 "label": "Open OnDemand VM Size",
                 "toolTip": "Select a SKU for the Open OnDemand VM",
                 "recommendedSizes": [
-                  "Standard_D4as_v4"
+                  "Standard_D4s_v6",
+                  "Standard_D4as_v5",
+                  "Standard_D4s_v5",
+                  "Standard_D4as_v4",
+                  "Standard_D4s_v4"
                 ],
                 "options": {
                   "hideDiskTypeFilter": true
@@ -2110,7 +2130,7 @@
         "vnetToPeer": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,basics('nullValue'))]",
         "peeringAllowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]",
         "storagePrivateDnsZoneId": "[if(and(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),steps('networking').dnsZone.dnsZoneSelector.id)]",
-        "vnetLink": "[if(and(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),steps('networking').vnetLink.createVnetLink)]"
+        "vnetLink": "[if(or(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),if(not(equals(length(filter(steps('networking').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),steps('networking').vnetLink.createVnetLink,false))]"      
       },
       "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
       "databaseConfig": {
