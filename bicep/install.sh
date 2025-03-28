@@ -263,6 +263,16 @@ SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Clo
 cyclecloud create_cluster slurm_template_${SLURM_PROJ_VERSION} $SLURM_CLUSTER_NAME -p slurm_params.json
 echo "CC create_cluster successful"
 
+## BEGIN temporary login node max count patch
+# TODO After azslurm 3.0.12 is released we should have a proper parameter for maxcount for login nodes
+LOGIN_NODES_MAX_COUNT=$(jq -r '.loginNodes.value.maxNodes' ccwOutputs.json)
+# ensure the value is actually an integer
+python3 -c "import sys; int(sys.argv[1])" $LOGIN_NODES_MAX_COUNT
+/opt/cycle_server/./cycle_server execute "UPDATE Cloud.Node \
+                                          SET MaxCount=${LOGIN_NODES_MAX_COUNT} \
+                                          WHERE ClusterName==\"$SLURM_CLUSTER_NAME\" && Name==\"login\""
+## END temporary login node max count patch
+
 if [ $INCLUDE_OOD == true ]; then
     # When we add OOD as an icon to CycleCloud, only parameter creation and create_cluster calls should
     # remain. The fetch / upload / import_template calls should be removed.
