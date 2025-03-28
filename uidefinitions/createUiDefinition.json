@@ -2234,8 +2234,7 @@
         "appManagedIdentityId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.managedIdentity.id,basics('nullValue'))]"
       },
       "clusterInitSpecs": [],
-      "tags": "[steps('tags').tagsByResource]",
-      "test": "[length(first(map(filter(steps('networking').networkSettings.subNetProvidersApi.value, (item) => equals(item.name, steps('networking').networkSettings.filersubnet1)), (item) => filter(item.properties.delegations, (item) => equals(item.properties.serviceName, 'Microsoft.Netapp/volumes')))))]"
+      "tags": "[steps('tags').tagsByResource]"
     }
   }
 }
