@@ -961,10 +961,10 @@
               {
                 "name": "anfInfoBox1",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'))]",
+                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'), equals(0,length(first(map(filter(steps('networking').networkSettings.subNetProvidersApi.value, (item) => equals(item.name, steps('networking').networkSettings.filersubnet1)), (item) => filter(item.properties.delegations, (item) => equals(item.properties.serviceName, 'Microsoft.Netapp/volumes')))))))]",
                 "options": {
                   "icon": "Warning",
-                  "text": "Please confirm that the subnet selected below has the required Microsoft.NetApp/volumes delegation configured\nas specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
+                  "text": "The subnet selected below is not configured with the Microsoft.NetApp/volumes delegation required for the deployment of Azure CycleCloud Workspace for Slurm with use of Azure NetApp Files.\n\nClick on this box to view the relevant official documentation in a new browser tab.",
                   "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
                 }
               },
@@ -982,10 +982,10 @@
               {
                 "name": "anfInfoBox2",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.filertype,'anf'))]",
+                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.filertype,'anf'), equals(0,length(first(map(filter(steps('networking').networkSettings.subNetProvidersApi.value, (item) => equals(item.name, steps('networking').networkSettings.filersubnet2)), (item) => filter(item.properties.delegations, (item) => equals(item.properties.serviceName, 'Microsoft.Netapp/volumes')))))))]",
                 "options": {
                   "icon": "Warning",
-                  "text": "Please confirm that the subnet selected below has the required Microsoft.NetApp/volumes delegation configured\nas specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
+                  "text": "The subnet selected below is not configured with the Microsoft.NetApp/volumes delegation required for the deployment of Azure CycleCloud Workspace for Slurm with use of Azure NetApp Files.\n\nClick on this box to view the relevant official documentation in a new browser tab.",
                   "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
                 }
               },
@@ -1218,7 +1218,6 @@
                 "label": "Size",
                 "toolTip": "Select a size for the Scheduler VM",
                 "recommendedSizes": [
-                  "Standard_D4s_v6",
                   "Standard_D4as_v5",
                   "Standard_D4s_v5",
                   "Standard_D4as_v4",
@@ -1237,7 +1236,16 @@
                     "Standard_D32als_v6",
                     "Standard_D48als_v6",
                     "Standard_D64als_v6",
-                    "Standard_D96als_v6"
+                    "Standard_D96als_v6",
+                    "Standard_D2s_v6",
+                    "Standard_D4s_v6",
+                    "Standard_D8s_v6",
+                    "Standard_D16s_v6",
+                    "Standard_D32s_v6",
+                    "Standard_D48s_v6",
+                    "Standard_D64s_v6",
+                    "Standard_D96s_v6",
+                    "Standard_D128s_v6"
                   ]
                 },
                 "osPlatform": "Linux",
@@ -1942,7 +1950,6 @@
                 "label": "Open OnDemand VM Size",
                 "toolTip": "Select a SKU for the Open OnDemand VM",
                 "recommendedSizes": [
-                  "Standard_D4s_v6",
                   "Standard_D4as_v5",
                   "Standard_D4s_v5",
                   "Standard_D4as_v4",
@@ -1961,7 +1968,16 @@
                     "Standard_D32als_v6",
                     "Standard_D48als_v6",
                     "Standard_D64als_v6",
-                    "Standard_D96als_v6"
+                    "Standard_D96als_v6",
+                    "Standard_D2s_v6",
+                    "Standard_D4s_v6",
+                    "Standard_D8s_v6",
+                    "Standard_D16s_v6",
+                    "Standard_D32s_v6",
+                    "Standard_D48s_v6",
+                    "Standard_D64s_v6",
+                    "Standard_D96s_v6",
+                    "Standard_D128s_v6"
                   ]
                 },
                 "osPlatform": "Linux",
