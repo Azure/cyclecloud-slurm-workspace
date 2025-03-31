@@ -7,8 +7,6 @@ param insidersBuild bool
 
 param branch string
 param projectVersion string
-param pyxisProjectVersion string
-param nvmeProjectVersion string
 
 param adminUsername string
 @secure()
@@ -319,31 +317,16 @@ output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.o
 
 var ccwClusterInitSpec = {
   type: 'gitHubReleaseURL'
-  gitHubReleaseURL: 'https://github.com/Azure/cyclecloud-slurm-workspace/releases/tag/${projectVersion}'
+  gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-slurm-workspace/releases/tag/', projectVersion)
   spec: 'default'
   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
 }
-
-// We will need to uncomment this when we have the pyxis and nvme cluster init specs
-// var pyxisClusterInitSpec = {
-//   type: 'gitHubReleaseURL'
-//   gitHubReleaseURL: 'https://github.com/Azure/cyclecloud-pyxis/releases/tag/${pyxisProjectVersion}'
-//   spec: 'default'
-//   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
-// }
-
-// var nvmeClusterInitSpec = {
-//   type: 'gitHubReleaseURL'
-//   gitHubReleaseURL: 'https://github.com/Azure/cyclecloud-nvme/releases/tag/${nvmeProjectVersion}'
-//   spec: 'default'
-//   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
-// }
 
 // Projects <= 2025.02.06 have the nvme and pyxis logic embedded in the ccw cluster init spec
 // var requiredClusterInitSpecs = projectVersion >= '2025.02.06' ? [ccwClusterInitSpec, nvmeClusterInitSpec, pyxisClusterInitSpec] : [ccwClusterInitSpec]
 // For now, assume we just need ccwClusterInitSpec until we remove the scripts from the ccw repo
 var requiredClusterInitSpecs = [ccwClusterInitSpec]
-output clusterInitSpecs types.cluster_init_param_t = union(requiredClusterInitSpecs, requiredClusterInitSpecs)
+output clusterInitSpecs types.cluster_init_param_t = union(requiredClusterInitSpecs, clusterInitSpecs)
 
 output slurmSettings types.slurmSettings_t = slurmSettings
 

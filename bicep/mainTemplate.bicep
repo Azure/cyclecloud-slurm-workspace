@@ -15,7 +15,7 @@ param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t = { type: 'disabled' }
 param network types.vnet_t
-param clusterInitSpecs types.cluster_init_param_t
+param clusterInitSpecs types.cluster_init_param_t = []
 param slurmSettings types.slurmSettings_t = { version: '23.11.7-1', healthCheckEnabled: false }
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
@@ -39,8 +39,6 @@ param insidersBuild bool = false
 param branch string = 'main'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
 param projectVersion string = '2025.02.06'
-param pyxisProjectVersion string = '1.0.0'
-param nvmeProjectVersion string = '1.0.0'
 //Internal developer use only: set true use custom CycleCloud release build 
 param manualInstall bool = false
 
@@ -80,8 +78,6 @@ module makeCCWresources 'ccw.bicep' = {
     clusterName: clusterName
     branch: branch
     projectVersion: projectVersion
-    pyxisProjectVersion: pyxisProjectVersion
-    nvmeProjectVersion: nvmeProjectVersion
     manualInstall: manualInstall
     acceptMarketplaceTerms: acceptMarketplaceTerms
     ood : ood
