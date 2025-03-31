@@ -2233,7 +2233,6 @@
         "appId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.clientId,basics('nullValue'))]",
         "appManagedIdentityId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.managedIdentity.id,basics('nullValue'))]"
       },
-      "clusterInitSpecs": [],
       "tags": "[steps('tags').tagsByResource]"
     }
   }
