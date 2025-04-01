@@ -35,6 +35,7 @@ param clusterName string
 param manualInstall bool
 param acceptMarketplaceTerms bool
 param ood types.oodConfig_t
+param startClusters bool 
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8'
 
@@ -377,6 +378,7 @@ output projectVersion string = projectVersion
 output insidersBuild bool = insidersBuild
 output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
+output startClusters bool = startClusters
 
 output ood object = union(ood, {
   version: '1.0.0'

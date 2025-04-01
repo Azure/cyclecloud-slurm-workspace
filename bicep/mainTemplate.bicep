@@ -35,6 +35,7 @@ param ood types.oodConfig_t = { type: 'disabled' }
 
 param infrastructureOnly bool = false
 param insidersBuild bool = false
+param startClusters bool = true
 
 // build.sh will override this, but for development please set this yourself as a parameter
 param branch string = 'main'
@@ -83,5 +84,6 @@ module makeCCWresources 'ccw.bicep' = {
     manualInstall: manualInstall
     acceptMarketplaceTerms: acceptMarketplaceTerms
     ood : ood
+    startClusters: startClusters
   }
 }
