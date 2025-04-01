@@ -17,9 +17,10 @@ param natGatewayId string
 param databaseConfig types.databaseConfig_t
 var create_private_endpoint = databaseConfig.type == 'privateEndpoint'
 
-//purpose: calculate 2^n for n between 0 and 3 or return 0 if n is -1, otherwise -1
+//purpose: calculate 2^n for n between 0 and 6 or return 0 if n is -1, otherwise -1
+@export()
 func pow2_or_0 (exp int) int => 
-  (exp == -1) ? 0 : (exp == 0) ? 1 : (exp == 1) ? 2 : (exp == 2) ? 4 : (exp == 3) ? 8 : -1000
+  [0, 1, 2, 4, 8, 16, 32, 64, 128][max(exp+1, 0)]
 
 func decompose_ip(ip string) object => {
   o1: int(split(split(ip,'/')[0],'.')[0])
@@ -30,6 +31,7 @@ func decompose_ip(ip string) object => {
 
 func get_cidr(ip string) int => int(split(ip,'/')[1])
 
+@export()
 func subnet_octets(cidr int) object => {
   cyclecloud: { //cyclecloud
     o3: 0
