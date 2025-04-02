@@ -1,16 +1,16 @@
 targetScope = 'resourceGroup'
-import {tags_t} from './types.bicep'
+import {storagePrivateDnsZone_t,tags_t} from './types.bicep'
 
 param location string
 param tags tags_t
 param saName string
 param subnetId string
-param privateDnsZoneId string
-param vnetLink bool
-param vnetLinkScope string
+param storagePrivateDnsZone storagePrivateDnsZone_t
 
-var privateDnsZoneExists = privateDnsZoneId != 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
+var privateDnsZoneId = storagePrivateDnsZone.?id ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
 var privateDnsZoneResourceGroup = split(privateDnsZoneId, '/')[4]
+var createVnetLink = storagePrivateDnsZone.type == 'existing' ? storagePrivateDnsZone.vnetLink : storagePrivateDnsZone.type == 'new'
+var vnetLinkScope = contains(storagePrivateDnsZone,'id') ? split(privateDnsZoneId, '/')[4] : az.resourceGroup().name
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
   name: saName
@@ -34,7 +34,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
 
 var storageBlobPrivateEndpointName = 'ccwstorage-blob-pe'
 
-resource storageBlobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' =  {
+resource storageBlobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' =  if (storagePrivateDnsZone.type != 'none') {
   name: storageBlobPrivateEndpointName
   location: location
   tags: tags
@@ -64,7 +64,7 @@ resource storageBlobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-
 
 var blobPrivateDnsZoneName = 'privatelink.blob.${environment().suffixes.storage}'
 
-module newBlobPrivateDnsZone 'storage-newDnsZone.bicep' = if (!privateDnsZoneExists) {
+module newBlobPrivateDnsZone 'storage-newDnsZone.bicep' = if (storagePrivateDnsZone.type == 'new') {
   name: 'ccwStorageNewDnsZone'
   params: {
     name: blobPrivateDnsZoneName
@@ -72,23 +72,23 @@ module newBlobPrivateDnsZone 'storage-newDnsZone.bicep' = if (!privateDnsZoneExi
   }
 }
 
-resource blobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' existing = if (privateDnsZoneExists) {
+resource blobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' existing = if (storagePrivateDnsZone.type == 'existing') {
   name: blobPrivateDnsZoneName
   scope: resourceGroup(privateDnsZoneResourceGroup)
 }
 
-module blobPrivateDnsZoneVnetLink 'storage-vnetLink.bicep' = if (vnetLink) {
+module blobPrivateDnsZoneVnetLink 'storage-vnetLink.bicep' = if (createVnetLink) {
   name: 'ccwStorageBlobPrivateDnsZoneVnetLink'
   scope: resourceGroup(vnetLinkScope)
   params: {
     storageAccountId: storageAccount.id
     subnetId: subnetId
-    blobPrivateDnsZoneName: privateDnsZoneExists ? blobPrivateDnsZone.name : newBlobPrivateDnsZone.outputs.blobPrivateDnsZoneName //force dependency
+    blobPrivateDnsZoneName: storagePrivateDnsZone.type == 'existing' ? blobPrivateDnsZone.name : newBlobPrivateDnsZone.outputs.blobPrivateDnsZoneName //force dependency
     tags: tags
   }
 }
 
-resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = {
+resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = if (storagePrivateDnsZone.type != 'none') {
   parent: storageBlobPrivateEndpoint
   name: 'default'
   properties:{
@@ -96,7 +96,7 @@ resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGr
       {
         name: blobPrivateDnsZoneName
         properties:{
-          privateDnsZoneId: privateDnsZoneExists ? blobPrivateDnsZone.id : newBlobPrivateDnsZone.outputs.blobPrivateDnsZoneId
+          privateDnsZoneId: storagePrivateDnsZone.type == 'existing' ? blobPrivateDnsZone.id : newBlobPrivateDnsZone.outputs.blobPrivateDnsZoneId
         }
       }
     ]
