@@ -250,7 +250,14 @@ cycle_server start --wait
 curl -k https://localhost
 
 cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=$SLURM_CLUSTER_NAME
-echo "CC initialize successful"
+echo "CC CLI initialize successful"
+
+# Ensure CC properly initializes
+while lockerStatus=$(/opt/cycle_server/./cycle_server execute 'select * from Cloud.Locker Where State=="Created" && Name=="azure-storage"'); [ -z "$lockerStatus" ]; do 
+    /opt/cycle_server/./cycle_server run_action Retry:Cloud.Locker -f 'Name=="azure-storage"'
+    echo "Waiting for CycleCloud locker record to be created..."
+    sleep 60
+done
 
 # needs to be done after initialization, as we now call fetch/upload
 (python3 create_cc_param.py slurm --dbPassword="${DATABASE_ADMIN_PASSWORD}") > slurm_params.json 
