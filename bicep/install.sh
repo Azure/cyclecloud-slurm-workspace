@@ -256,7 +256,7 @@ echo "CC CLI initialize successful"
 while lockerStatus=$(/opt/cycle_server/./cycle_server execute 'select * from Cloud.Locker Where State=="Created" && Name=="azure-storage"'); [ -z "$lockerStatus" ]; do 
     /opt/cycle_server/./cycle_server run_action Retry:Cloud.Locker -f 'Name=="azure-storage"'
     echo "Waiting for CycleCloud locker record to be created..."
-    sleep 60
+    sleep 120
 done
 
 # needs to be done after initialization, as we now call fetch/upload
