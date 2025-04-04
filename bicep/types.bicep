@@ -115,6 +115,24 @@ type vnet_existing_t = {
 @export()
 type vnet_t = vnet_autocreate_t | vnet_existing_t
 
+type storagePrivateDnsZone_new_t = {
+  type: 'new' 
+}
+
+type storagePrivateDnsZone_existing_t = {
+  type: 'existing'
+  id: string
+  vnetLink: bool?
+}
+
+type storagePrivateDnsZone_none_t = {
+  type: 'none'
+}
+
+@discriminator('type')
+@export()
+type storagePrivateDnsZone_t = storagePrivateDnsZone_new_t | storagePrivateDnsZone_existing_t | storagePrivateDnsZone_none_t
+
 @export()
 type rsc_t = {
   id: string 
