@@ -1086,17 +1086,17 @@
                 "name": "newExisting",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Private DNS zone options",
-                "defaultValue": "Automatically create a new private DNS zone",
+                "defaultValue": "Use an existing private DNS zone",
                 "toolTip": "Create a new or use an existing private DNS zone for Azure Blob Storage",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Automatically create a new private DNS zone",
-                      "value": "new"
-                    },
-                    {
                       "label": "Use an existing private DNS zone",
                       "value": "existing"
+                    },
+                    {
+                      "label": "Automatically create a new private DNS zone",
+                      "value": "new"
                     }
                   ],
                   "required": true
