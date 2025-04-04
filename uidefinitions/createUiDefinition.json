@@ -2038,7 +2038,7 @@
                 "toolTip": "Domain of user email addresses",
                 "constraints": {
                   "required": true,
-                  "regex": "^[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}$",
+                  "regex": "^(?!-)[A-Za-z0-9-]+(?<!-)(\\.[A-Za-z0-9-]+(?<!-))*\\.[A-Za-z]{2,}$",
                   "validationMessage": "Enter a valid domain name"
                 },
                 "visible": "[steps('ood').OODSection.deployOOD]"
@@ -2051,7 +2051,7 @@
                 "toolTip": "FQDN for the Open OnDemand web server",
                 "constraints": {
                   "required": false,
-                  "regex": "^[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}$",
+                  "regex": "^(?!-)[A-Za-z0-9-]+(?<!-)(\\.[A-Za-z0-9-]+(?<!-))*\\.[A-Za-z]{2,}$",
                   "validationMessage": "Enter a valid FQDN or leave blank"
                 },
                 "visible": "[steps('ood').OODSection.deployOOD]"
