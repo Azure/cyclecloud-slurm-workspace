@@ -253,10 +253,20 @@ cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_US
 echo "CC CLI initialize successful"
 
 # Ensure CC properly initializes
-while lockerStatus=$(/opt/cycle_server/./cycle_server execute 'select * from Cloud.Locker Where State=="Created" && Name=="azure-storage"'); [ -z "$lockerStatus" ]; do 
-    /opt/cycle_server/./cycle_server run_action Retry:Cloud.Locker -f 'Name=="azure-storage"'
-    echo "Waiting for CycleCloud locker record to be created..."
-    sleep 120
+lockerStatus=
+while  [ -z "$lockerStatus" ]; do 
+    for i in $(seq 1 24); do
+        lockerStatus=$(/opt/cycle_server/./cycle_server execute 'select * from Cloud.Locker Where State=="Created" && Name=="azure-storage"')
+        if [ -n "$lockerStatus" ]; then
+            break
+        fi
+        sleep 5
+    done
+    # We strictly need to retry creating the locker record after waiting for two minutes, not after each successive check at the 5 second interval mark
+    # Resetting too frequently will cause the locker record to never be created as needed
+    if [ -z "$lockerStatus" ]; then
+        /opt/cycle_server/./cycle_server run_action Retry:Cloud.Locker -f 'Name=="azure-storage"'
+    fi
 done
 
 # needs to be done after initialization, as we now call fetch/upload
