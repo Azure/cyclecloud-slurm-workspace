@@ -12,7 +12,7 @@ param vnetLinkScope string
 var privateDnsZoneExists = privateDnsZoneId != 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
 var privateDnsZoneResourceGroup = split(privateDnsZoneId, '/')[4]
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-04-01' = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
   name: saName
   location: location
   tags: tags
@@ -25,6 +25,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-04-01' = {
     minimumTlsVersion: 'TLS1_2'
     allowSharedKeyAccess: false
     publicNetworkAccess: 'Disabled'
+    allowBlobPublicAccess: false
     networkAcls: {
       defaultAction: 'Deny'
       }      
@@ -33,7 +34,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-04-01' = {
 
 var storageBlobPrivateEndpointName = 'ccwstorage-blob-pe'
 
-resource storageBlobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-04-01' =  {
+resource storageBlobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' =  {
   name: storageBlobPrivateEndpointName
   location: location
   tags: tags
@@ -87,7 +88,7 @@ module blobPrivateDnsZoneVnetLink 'storage-vnetLink.bicep' = if (vnetLink) {
   }
 }
 
-resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2023-04-01' = {
+resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = {
   parent: storageBlobPrivateEndpoint
   name: 'default'
   properties:{

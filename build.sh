@@ -24,6 +24,11 @@ fi
 az bicep build -f bicep/ood/oodEntraApp.bicep --stdout | jq -r 'del(.metadata._generator.version)' > bicep/ood/oodEntraApp.json
 git diff --exit-code bicep/ood/oodEntraApp.json
 
+# run tests 
+pushd bicep-test
+bicep test test.bicep
+popd 
+
 UI_DEFINITION=${GIT_ROOT}/uidefinitions/createUiDefinition.json
 
 build_dir="${GIT_ROOT}/build"

@@ -101,7 +101,6 @@
         "label": "CycleCloud VM Size",
         "toolTip": "Select a size for the CycleCloud VM",
         "recommendedSizes": [
-          "Standard_D4s_v6",
           "Standard_D4as_v5",
           "Standard_D4s_v5",
           "Standard_D4as_v4",
@@ -964,7 +963,7 @@
                 "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'), equals(0,length(first(map(filter(steps('networking').networkSettings.subNetProvidersApi.value, (item) => equals(item.name, steps('networking').networkSettings.filersubnet1)), (item) => filter(item.properties.delegations, (item) => equals(item.properties.serviceName, 'Microsoft.Netapp/volumes')))))))]",
                 "options": {
                   "icon": "Warning",
-                  "text": "The subnet selected below is not configured with the Microsoft.NetApp/volumes delegation required for the deployment of Azure CycleCloud Workspace for Slurm with use of Azure NetApp Files.\n\nClick on this box to view the relevant official documentation in a new browser tab.",
+                  "text": "The subnet selected below is missing the Microsoft.NetApp/volumes delegation required to use Azure NetApp Files.\nIt must have this delegation for the deployment to succeed.\n\nClick on this box to view the relevant official documentation in a new browser tab.",
                   "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
                 }
               },
@@ -985,7 +984,7 @@
                 "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.filertype,'anf'), equals(0,length(first(map(filter(steps('networking').networkSettings.subNetProvidersApi.value, (item) => equals(item.name, steps('networking').networkSettings.filersubnet2)), (item) => filter(item.properties.delegations, (item) => equals(item.properties.serviceName, 'Microsoft.Netapp/volumes')))))))]",
                 "options": {
                   "icon": "Warning",
-                  "text": "The subnet selected below is not configured with the Microsoft.NetApp/volumes delegation required for the deployment of Azure CycleCloud Workspace for Slurm with use of Azure NetApp Files.\n\nClick on this box to view the relevant official documentation in a new browser tab.",
+                  "text": "The subnet selected below is missing the Microsoft.NetApp/volumes delegation required to use Azure NetApp Files.\nIt must have this delegation for the deployment to succeed.\n\nClick on this box to view the relevant official documentation in a new browser tab.",
                   "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
                 }
               },
@@ -1087,17 +1086,17 @@
                 "name": "newExisting",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Private DNS zone options",
-                "defaultValue": "Automatically create a new private DNS zone",
+                "defaultValue": "Use an existing private DNS zone",
                 "toolTip": "Create a new or use an existing private DNS zone for Azure Blob Storage",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Automatically create a new private DNS zone",
-                      "value": "new"
-                    },
-                    {
                       "label": "Use an existing private DNS zone",
                       "value": "existing"
+                    },
+                    {
+                      "label": "Automatically create a new private DNS zone",
+                      "value": "new"
                     }
                   ],
                   "required": true
