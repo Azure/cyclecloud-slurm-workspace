@@ -34,7 +34,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
 
 var storageBlobPrivateEndpointName = 'ccwstorage-blob-pe'
 
-resource storageBlobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' =  if (storagePrivateDnsZone.type != 'none') {
+resource storageBlobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' = {
   name: storageBlobPrivateEndpointName
   location: location
   tags: tags
