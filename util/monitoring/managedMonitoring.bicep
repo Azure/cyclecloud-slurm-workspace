@@ -4,6 +4,7 @@ param grafanaName string
 param monitorName string
 param umiName string
 param location string
+param principalUserId string
 
 var roleDefinitionIds = {
   GrafanaAdmin: '22926164-76b3-42b3-bc55-97df8dab3e41'
@@ -38,7 +39,7 @@ resource grafana 'Microsoft.Dashboard/grafana@2024-10-01' = {
         }
       ]
     }
-    grafanaMajorVersion: '10'
+    grafanaMajorVersion: '11'
     publicNetworkAccess: 'Enabled'
     zoneRedundancy: 'Disabled'
   }
@@ -57,14 +58,17 @@ resource role_grafanaWorkspaceReader 'Microsoft.Authorization/roleAssignments@20
   scope: azureMonitorWorkspace
 }
 
-// TODO: Add Grafana Admin role assignment to a user => pincipalUserId
-// resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-//   name: guid(resourceGroup().id, pincipalUserId)
-//   properties: {
-//     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleDefinitionIds.GrafanaAdmin)
-//     principalId: pincipalUserId
-//   }
-// }
+// Add Grafana Admin role assignment to the principalUserId
+// This is needed to allow the user to manage the Grafana instance
+// The principalUserId should be the object ID of the user or service principal
+// who will be managing the Grafana instance
+resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(resourceGroup().id, principalUserId)
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleDefinitionIds.GrafanaAdmin)
+    principalId: principalUserId
+  }
+}
 
 // Create a User-Managed Identity for monitoring
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
@@ -74,13 +78,13 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
 
 // TODO: How to assign the Monitoring Metrics Publisher role to the User-Managed Identity, scoped to the Data Collection Rule of the monitor workspace ?
 // the DCR is created in a different RG automatically created by the monitor workspace
-module monitoringRoleAssignments './roleAssignments.bicep' = {
-  name: 'monitoringRoleAssignments'
-  params: {
-    principalId: managedIdentity.properties.principalId
-    dcrResourceId: azureMonitorWorkspace.properties.defaultIngestionSettings.dataCollectionRuleResourceId
-  }
-}
+// module monitoringRoleAssignments './roleAssignments.bicep' = {
+//   name: 'monitoringRoleAssignments'
+//   params: {
+//     principalId: managedIdentity.properties.principalId
+//     dcrResourceId: azureMonitorWorkspace.properties.defaultIngestionSettings.dataCollectionRuleResourceId
+//   }
+// }
 
 // Retrieve the ingestion endpoint for metrics
 module ingestionEndpoint './ingestionEndpoint.bicep' = {
@@ -92,4 +96,6 @@ module ingestionEndpoint './ingestionEndpoint.bicep' = {
 }
 
 output metricsIngestionEndpoint string = ingestionEndpoint.outputs.metricsIngestionEndpoint
-output maganagedIdentityclientId string = managedIdentity.properties.clientId
+output managedIdentityclientId string = managedIdentity.properties.clientId
+output managedIdentityPrincipalId string = managedIdentity.properties.principalId
+output dcrResourceId string = azureMonitorWorkspace.properties.defaultIngestionSettings.dataCollectionRuleResourceId
