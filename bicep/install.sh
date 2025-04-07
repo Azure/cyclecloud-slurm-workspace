@@ -253,7 +253,24 @@ cycle_server start --wait
 curl -k https://localhost
 
 cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=$SLURM_CLUSTER_NAME
-echo "CC initialize successful"
+echo "CC CLI initialize successful"
+
+# Ensure CC properly initializes
+lockerStatus=
+while  [ -z "$lockerStatus" ]; do 
+    for i in $(seq 1 24); do
+        lockerStatus=$(/opt/cycle_server/./cycle_server execute 'select * from Cloud.Locker Where State=="Created" && Name=="azure-storage"')
+        if [ -n "$lockerStatus" ]; then
+            break
+        fi
+        sleep 5
+    done
+    # We strictly need to retry creating the locker record after waiting for two minutes, not after each successive check at the 5 second interval mark
+    # Resetting too frequently will cause the locker record to never be created as needed
+    if [ -z "$lockerStatus" ]; then
+        /opt/cycle_server/./cycle_server run_action Retry:Cloud.Locker -f 'Name=="azure-storage"'
+    fi
+done
 
 # needs to be done after initialization, as we now call fetch/upload
 (python3 create_cc_param.py slurm --dbPassword="${DATABASE_ADMIN_PASSWORD}") > slurm_params.json 

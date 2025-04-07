@@ -1097,6 +1097,10 @@
                     {
                       "label": "Automatically create a new private DNS zone",
                       "value": "new"
+                    },
+                    {
+                      "label": "Do not use a private DNS zone",
+                      "value": "none"
                     }
                   ],
                   "required": true
@@ -2038,7 +2042,7 @@
                 "toolTip": "Domain of user email addresses",
                 "constraints": {
                   "required": true,
-                  "regex": "^[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}$",
+                  "regex": "^(?!-)[A-Za-z0-9-]+(?<!-)(\\.[A-Za-z0-9-]+(?<!-))*\\.[A-Za-z]{2,}$",
                   "validationMessage": "Enter a valid domain name"
                 },
                 "visible": "[steps('ood').OODSection.deployOOD]"
@@ -2051,7 +2055,7 @@
                 "toolTip": "FQDN for the Open OnDemand web server",
                 "constraints": {
                   "required": false,
-                  "regex": "^[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}$",
+                  "regex": "^(?!-)[A-Za-z0-9-]+(?<!-)(\\.[A-Za-z0-9-]+(?<!-))*\\.[A-Za-z]{2,}$",
                   "validationMessage": "Enter a valid FQDN or leave blank"
                 },
                 "visible": "[steps('ood').OODSection.deployOOD]"
@@ -2178,9 +2182,12 @@
         "bastion": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.bastion,basics('nullValue'))]",
         "createNatGateway": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.natgateway,basics('nullValue'))]",
         "vnetToPeer": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,basics('nullValue'))]",
-        "peeringAllowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]",
-        "storagePrivateDnsZoneId": "[if(and(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),steps('networking').dnsZone.dnsZoneSelector.id)]",
-        "vnetLink": "[if(or(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),if(not(equals(length(filter(steps('networking').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),steps('networking').vnetLink.createVnetLink,false))]"      
+        "peeringAllowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]"
+      },
+      "storagePrivateDnsZone": {
+        "type": "[if(equals(steps('networking').newexisting,'new'),'new',steps('networking').dnsZone.newExisting)]",
+        "id": "[if(and(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),steps('networking').dnsZone.dnsZoneSelector.id)]",
+        "vnetLink": "[if(or(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),if(not(equals(length(filter(steps('networking').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),steps('networking').vnetLink.createVnetLink,false))]"
       },
       "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
       "databaseConfig": {

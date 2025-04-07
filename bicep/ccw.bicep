@@ -20,6 +20,7 @@ param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t 
 param network types.vnet_t 
+param storagePrivateDnsZone types.storagePrivateDnsZone_t
 param clusterInitSpecs types.cluster_init_param_t
 param slurmSettings types.slurmSettings_t 
 param schedulerNode types.scheduler_t
@@ -189,9 +190,7 @@ module ccwStorage './storage.bicep' = {
     tags: getTags('Microsoft.Storage/storageAccounts', tags)
     saName: 'ccwstorage${uniqueString(az.resourceGroup().id)}'
     subnetId: subnets.cyclecloud.id 
-    privateDnsZoneId: network.?storagePrivateDnsZoneId ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
-    vnetLink: network.?vnetLink ?? true
-    vnetLinkScope: contains(network,'storagePrivateDnsZoneId') ? split(network.?storagePrivateDnsZoneId, '/')[4] : az.resourceGroup().name
+    storagePrivateDnsZone: storagePrivateDnsZone
   }
 }
 
