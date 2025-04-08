@@ -9,7 +9,7 @@
     ],
     "_generator": {
       "name": "bicep",
-      "templateHash": "12211130911235427793"
+      "templateHash": "16130138093229455911"
     }
   },
   "parameters": {
@@ -95,7 +95,6 @@
       "properties": {
         "displayName": "[parameters('appName')]",
         "uniqueName": "[guid(subscription().id, resourceGroup().id, parameters('appName'))]",
-        "serviceManagementReference": "0a914b56-486a-4979-b994-7b85132f8f0f",
         "web": {
           "implicitGrantSettings": {
             "enableAccessTokenIssuance": false,
