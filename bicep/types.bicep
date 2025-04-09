@@ -172,6 +172,7 @@ type resource_tags_t = {
 
 @export()
 type slurmSettings_t = {
+  startCluster: bool
   version: string
   healthCheckEnabled: bool
 }
@@ -268,6 +269,7 @@ type ood_none_t = {
 
 type ood_enabled_t = {
   type: 'enabled'
+  startCluster: bool
   sku: string
   osImage: string
   userDomain: string
