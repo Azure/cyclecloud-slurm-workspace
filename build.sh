@@ -18,6 +18,11 @@ if [ "$BRANCH" == "HEAD" ]; then
     exit 2
 fi
 
+# run tests 
+pushd bicep-test
+bicep test test.bicep
+popd 
+
 UI_DEFINITION=${GIT_ROOT}/uidefinitions/createUiDefinition.json
 
 build_dir="${GIT_ROOT}/build"
