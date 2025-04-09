@@ -398,7 +398,7 @@
                       "value": "new"
                     },
                     {
-                      "label": "Use existing",
+                      "label": "Use existing external NFS",
                       "value": "existing"
                     }
                   ],
@@ -417,7 +417,7 @@
                   "allowedValues": "[if(equals(steps('filesystem').shared.newexisting,'new'),parse(concat('[{\"label\":\"', 'Builtin NFS','\",\"value\":\"nfs\"}',if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),',',''),if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),'{\"label\":\"Azure NetApp Files\",\"value\":\"anf\"}',''),']')),parse('[{\"label\":\"External NFS\",\"value\":\"nfs\"}]'))]",
                   "required": true
                 },
-                "visible": true
+                "visible": "[equals(steps('filesystem').shared.newexisting,'new')]"
               },
               {
                 "name": "anfInfoBox",
@@ -587,7 +587,7 @@
                 "toolTip": "File-system type",
                 "multiselect": false,
                 "constraints": {
-                  "allowedValues": "[parse(concat('[',if(or(contains(steps('basics').anfAvailabilityZonesApi, 'properties'), equals(steps('filesystem').additional.newexisting,'existing')),concat('{\"label\":\"',if(equals(steps('filesystem').additional.newexisting,'new'),'Azure NetApp Files','External NFS'),'\",\"value\":\"anf\"}'),''),if(or(equals(steps('filesystem').additional.newexisting,'existing'),and(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),not(equals(length(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))),0)))),',',''),if(and(not(equals(steps('filesystem').additional.newexisting,'existing')),equals(length(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))),0)),'',concat('{\"label\":\"',if(equals(steps('filesystem').additional.newexisting,'new'),'Azure Managed Lustre','External Lustre'),'\",\"value\":\"aml\"}')),']'))]",
+                  "allowedValues": "[parse(concat('[',if(or(contains(steps('basics').anfAvailabilityZonesApi, 'properties'), equals(steps('filesystem').additional.newexisting,'existing')),concat('{\"label\":\"',if(equals(steps('filesystem').additional.newexisting,'new'),'Azure NetApp Files','External NFS'),'\",\"value\":\"',if(equals(steps('filesystem').additional.newexisting,'new'),'anf','nfs'),'\"}'),''),if(or(equals(steps('filesystem').additional.newexisting,'existing'),and(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),not(equals(length(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))),0)))),',',''),if(and(not(equals(steps('filesystem').additional.newexisting,'existing')),equals(length(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))),0)),'',concat('{\"label\":\"',if(equals(steps('filesystem').additional.newexisting,'new'),'Azure Managed Lustre','External Azure Managed Lustre'),'\",\"value\":\"aml\"}')),']'))]",
                   "required": true
                 },
                 "visible": true
@@ -617,6 +617,16 @@
                 "options": {
                   "icon": "Warning",
                   "text": "HPC Cache Resource Provider must be registered for your subscription."
+                }
+              },
+              {
+                "name": "amlInfoBoxLargeCluster",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),greater(steps('filesystem').additional.azurelustrecapacity,128))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "To deploy AMLFS clusters bigger than 128 TiB ensure your subscription has Large Cluster feature enabled. Open a support ticket to enable this feature.",
+                  "uri": "https://ms.portal.azure.com/#view/Microsoft_Azure_Support/HelpAndSupportBlade/%7E/overview"
                 }
               },
               {
@@ -842,10 +852,19 @@
               {
                 "name": "lustreInfoBoxNew",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'new'))]",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'new'),less(steps('filesystem').additional.azurelustrecapacity,128))]",
                 "options": {
                   "icon": "Warning",
                   "text": "The minimum CIDR required to deploy a new instance of Azure Managed Lustre is /23.\n\nThe option to create a new virtual network with a CIDR of /24 is therefore omitted in the below menu."
+                }
+              },
+              {
+                "name": "lustreInfoBoxLargeClusterNew",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,128))]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "The minimum CIDR for the virtual network has been adjusted to host the IP addresses required by the selected Azure Managed Lustre size."
                 }
               },
               {
@@ -863,14 +882,14 @@
                       "value": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new')),'','/24')]"
                     },
                     {
-                      "label": "/23",
-                      "description": "251 compute nodes",
-                      "value": "/23"
+                      "label": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,256)),'','/23')]",
+                      "description": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,256)),'','251 compute nodes')]",
+                      "value": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,256)),'','/23')]"
                     },
                     {
-                      "label": "/22",
-                      "description": "506 compute nodes",
-                      "value": "/22"
+                      "label": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,512)),'','/22')]",
+                      "description":  "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,512)),'','506 compute nodes')]",
+                      "value": "[if(and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),greater(steps('filesystem').additional.azurelustrecapacity,512)),'','/22')]"
                     },
                     {
                       "label": "/21",
@@ -984,7 +1003,7 @@
                 }
               },
               {
-                "name": "lustreInfoBoxExisting2",
+                "name": "lustreInfoBoxExisting",
                 "type": "Microsoft.Common.InfoBox",
                 "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('networking').newexisting,'existing'))]",
                 "options": {

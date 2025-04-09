@@ -21,7 +21,7 @@ The step sizes are dependent on the SKU.
 ''')
 param capacity int
 param infrastructureOnly bool = false
-param availabilityZone availabilityZone_t[] = []
+param availabilityZone availabilityZone_t[]
 
 resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2024-03-01' = if (!infrastructureOnly){
   name: '${name}-${uniqueString(resourceGroup().id,deployment().name)}'

@@ -22,7 +22,7 @@ type shared_anf_new_t = {
 
 @discriminator('type')
 @export()
-type sharedFilesystem_t = shared_nfs_new_t | shared_nfs_existing_t | shared_anf_new_t 
+type sharedFilesystem_t = shared_nfs_new_t | shared_nfs_existing_t | shared_anf_new_t
 
 type additional_anf_new_t = {
   type: 'anf-new'
