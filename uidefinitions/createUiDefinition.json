@@ -1175,6 +1175,15 @@
             "label": "Cluster Configuration",
             "elements": [
               {
+                "name": "startClusterInfo",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[steps('scheduler').clusterSettings.startCluster]",
+                "options": {
+                  "text": "Postponing the start of the cluster allows for additional configuration through the CycleCloud portal or with a custom cluster template. Click on this box to view the official Azure CycleCloud documentation in a new browser tab.",
+                  "uri": "https://learn.microsoft.com/azure/cyclecloud/?view=cyclecloud-8"
+                }
+              },
+              {
                 "name": "startCluster",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Start cluster",
@@ -2120,6 +2129,15 @@
                 "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
               },
               {
+                "name": "startClusterInfo",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[steps('ood').OODSection.startCluster]",
+                "options": {
+                  "text": "Postponing the start of the cluster allows for additional configuration through the CycleCloud portal or with a custom cluster template. Click on this box to view the official Azure CycleCloud documentation in a new browser tab.",
+                  "uri": "https://learn.microsoft.com/azure/cyclecloud/?view=cyclecloud-8"
+                }
+              },
+              {
                 "name": "startCluster",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Start cluster",
@@ -2127,7 +2145,8 @@
                 "defaultValue": "[not(equals(steps('ood').OODSection.registerEntraIDApp,'manual'))]",
                 "constraints": {
                   "required": false
-                }
+                },
+                "visible": "[steps('ood').OODSection.deployOOD]"
               }
             ],
             "visible": true
