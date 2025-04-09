@@ -1188,7 +1188,7 @@
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Start cluster",
                 "toolTip": "Automatically start the Slurm cluster after deployment completion",
-                "defaultValue": false,
+                "defaultValue": true,
                 "constraints": {
                   "required": false
                 }
