@@ -335,14 +335,20 @@ sleep 2
 echo Waiting for accelerated network records to be imported
 timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt); do sleep 10; done'
 
-cyclecloud start_cluster "$SLURM_CLUSTER_NAME"
-echo "CC start_cluster successful"
+START_SLURM_CLUSTER=$(jq -r .slurmSettings.value.startCluster ccwOutputs.json)
+if [ "$START_SLURM_CLUSTER" == "true" ]; then
+    cyclecloud start_cluster "$SLURM_CLUSTER_NAME"
+    echo "CC start_cluster for $SLURM_CLUSTER_NAME successful"
+fi
 rm -f slurm_params.json
 echo "Deleted Slurm input parameters file" 
 
 if [ $INCLUDE_OOD == true ]; then
-    cyclecloud start_cluster OpenOnDemand
-    echo "CC start_cluster for OpenOnDemand successful"
+    START_OOD_CLUSTER=$(jq -r .ood.value.startCluster ccwOutputs.json)
+    if [ "$START_OOD_CLUSTER" == "true" ]; then
+        cyclecloud start_cluster OpenOnDemand
+        echo "CC start_cluster for OpenOnDemand successful"
+    fi
     rm -f ood_params.json
     echo "Deleted OOD input parameters file" 
 fi

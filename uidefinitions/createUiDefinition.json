@@ -1175,6 +1175,25 @@
             "label": "Cluster Configuration",
             "elements": [
               {
+                "name": "startClusterInfo",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[steps('scheduler').clusterSettings.startCluster]",
+                "options": {
+                  "text": "Postponing the start of the cluster allows for additional configuration through the CycleCloud portal or with a custom cluster template. Click on this box to view the official Azure CycleCloud documentation in a new browser tab.",
+                  "uri": "https://learn.microsoft.com/azure/cyclecloud/?view=cyclecloud-8"
+                }
+              },
+              {
+                "name": "startCluster",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Start cluster",
+                "toolTip": "Automatically start the Slurm cluster following deployment completion",
+                "defaultValue": true,
+                "constraints": {
+                  "required": false
+                }
+              },
+              {
                 "name": "acceptMarketplaceTerms",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Auto-accept VM image terms",
@@ -1911,10 +1930,9 @@
             "elements": [
               {
                 "name": "oodInfo",
-                "type": "Microsoft.Common.InfoBox",
+                "type": "Microsoft.Common.TextBlock",
                 "visible": true,
                 "options": {
-                  "icon": "Info",
                   "text": "Open OnDemand is an open-source, web-based portal developed by the Ohio Supercomputer Center (OSC) to provide easy access to high-performance computing (HPC) resources. This platform allows users to submit and monitor jobs, manage files, and run applications from anywhere using only a web browser. The portal is designed to simplify the user experience, making it accessible for both novice and experienced HPC users."
                 }
               },
@@ -2109,6 +2127,26 @@
                   "validationMessage": "Enter a valid application (client) ID"
                 },
                 "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
+              },
+              {
+                "name": "startClusterInfo",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[steps('ood').OODSection.startCluster]",
+                "options": {
+                  "text": "Postponing the start of the cluster allows for additional configuration through the CycleCloud portal or with a custom cluster template. Click on this box to view the official Azure CycleCloud documentation in a new browser tab.",
+                  "uri": "https://learn.microsoft.com/azure/cyclecloud/?view=cyclecloud-8"
+                }
+              },
+              {
+                "name": "startCluster",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Start cluster",
+                "toolTip": "Automatically start the Open OnDemand cluster following deployment completion",
+                "defaultValue": "[not(equals(steps('ood').OODSection.registerEntraIDApp,'manual'))]",
+                "constraints": {
+                  "required": false
+                },
+                "visible": "[steps('ood').OODSection.deployOOD]"
               }
             ],
             "visible": true
@@ -2200,6 +2238,7 @@
       "clusterName": "[steps('scheduler').clusterSettings.clusterName]",
       "acceptMarketplaceTerms": "[steps('scheduler').clusterSettings.acceptMarketplaceTerms]",
       "slurmSettings": {
+        "startCluster": "[steps('scheduler').clusterSettings.startCluster]",
         "version": "[steps('scheduler').schedulerSection.slurmVersion]",
         "healthCheckEnabled": "[steps('scheduler').clusterSettings.healthCheck]"
       },
@@ -2231,6 +2270,7 @@
       },
       "ood": {
         "type": "[if(steps('ood').OODSection.deployOOD,'enabled','disabled')]",
+        "startCluster": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.startCluster,basics('nullValue'))]",
         "sku": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.vmsize,basics('nullValue'))]",
         "osImage": "[if(steps('ood').OODSection.deployOOD,if(equals(steps('ood').OODSection.ImageName,'custom'),steps('ood').OODSection.customImageName,steps('ood').OODSection.ImageName),basics('nullValue'))]",
         "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",
