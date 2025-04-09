@@ -1178,7 +1178,7 @@
                 "name": "startCluster",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Start cluster",
-                "toolTip": "Automatically start the Slurm cluster after deployment completes",
+                "toolTip": "Automatically start the Slurm cluster after deployment completion",
                 "defaultValue": false,
                 "constraints": {
                   "required": false
@@ -1921,10 +1921,9 @@
             "elements": [
               {
                 "name": "oodInfo",
-                "type": "Microsoft.Common.InfoBox",
+                "type": "Microsoft.Common.TextBlock",
                 "visible": true,
                 "options": {
-                  "icon": "Info",
                   "text": "Open OnDemand is an open-source, web-based portal developed by the Ohio Supercomputer Center (OSC) to provide easy access to high-performance computing (HPC) resources. This platform allows users to submit and monitor jobs, manage files, and run applications from anywhere using only a web browser. The portal is designed to simplify the user experience, making it accessible for both novice and experienced HPC users."
                 }
               },
@@ -1955,16 +1954,6 @@
                 "options": {
                   "icon": "Info",
                   "text": "Open OnDemand is best-deployed with Azure NetApp Files as the file-system for the /shared and /home directories."
-                }
-              },
-              {
-                "name": "startCluster",
-                "type": "Microsoft.Common.CheckBox",
-                "label": "Start cluster",
-                "toolTip": "Automatically start the Open OnDemand cluster after deployment completes",
-                "defaultValue": false,
-                "constraints": {
-                  "required": false
                 }
               },
               {
@@ -2129,6 +2118,16 @@
                   "validationMessage": "Enter a valid application (client) ID"
                 },
                 "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
+              },
+              {
+                "name": "startCluster",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Start cluster",
+                "toolTip": "Automatically start the Open OnDemand cluster after deployment completion",
+                "defaultValue": "[not(equals(steps('ood').OODSection.registerEntraIDApp,'manual'))]",
+                "constraints": {
+                  "required": false
+                }
               }
             ],
             "visible": true
