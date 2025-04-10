@@ -29,27 +29,27 @@ def set_slurm_params(params, dbPassword, outputs):
     else:
         params['SubnetId'] = '/'.join([outputs['vnet']['value']['rg'], outputs['vnet']['value']['name'], outputs['vnet']['value']['computeSubnetName']])
         
+    # Define Availability Zone
+    params['DefineNodesAvailabilityZone'] = any('availabilityZone' in zoneList for zoneList in [outputs['partitions']['value']['htc'], outputs['partitions']['value']['hpc'], outputs['partitions']['value']['gpu']])
+    
     #HTC
     params['HTCMachineType'] = outputs['partitions']['value']['htc']['sku']
     params['MaxHTCExecuteNodeCount'] = int(outputs['partitions']['value']['htc']['maxNodes'])
     params['HTCImageName'] = outputs['partitions']['value']['htc']['osImage']
     params['HTCUseLowPrio'] = outputs['partitions']['value']['htc']['useSpot']
-    params['HTCAvailabilityZone'] = outputs['partitions']['value']['htc']['availabilityZone'] 
+    params['HTCAvailabilityZone'] = outputs['partitions']['value']['htc']['availabilityZone'] if params['DefineNodesAvailabilityZone'] and 'availabilityZone' in outputs['partitions']['value']['htc'] else None
     
     #HPC
     params['HPCMachineType'] = outputs['partitions']['value']['hpc']['sku']
     params['MaxHPCExecuteNodeCount'] = int(outputs['partitions']['value']['hpc']['maxNodes'])
     params['HPCImageName'] = outputs['partitions']['value']['hpc']['osImage']
-    params['HPCAvailabilityZone'] = outputs['partitions']['value']['hpc']['availabilityZone']
+    params['HPCAvailabilityZone'] = outputs['partitions']['value']['hpc']['availabilityZone'] if params['DefineNodesAvailabilityZone'] and 'availabilityZone' in outputs['partitions']['value']['hpc'] else None
 
     #GPU
     params['GPUMachineType'] = outputs['partitions']['value']['gpu']['sku']
     params['MaxGPUExecuteNodeCount'] = int(outputs['partitions']['value']['gpu']['maxNodes'])
     params['GPUImageName'] = outputs['partitions']['value']['gpu']['osImage']
-    params['GPUAvailabilityZone'] = outputs['partitions']['value']['gpu']['availabilityZone']
-
-    # Define Availability Zone
-    params['DefineNodesAvailabilityZone'] = any(zoneList for zoneList in [params['HTCAvailabilityZone'], params['HPCAvailabilityZone'] , params['GPUAvailabilityZone']])
+    params['GPUAvailabilityZone'] = outputs['partitions']['value']['gpu']['availabilityZone'] if params['DefineNodesAvailabilityZone'] and 'availabilityZone' in outputs['partitions']['value']['gpu'] else None
 
     #scheduler node
     #params['slurm'] #is this the slurm version??? no, so what is it?

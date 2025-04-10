@@ -1,10 +1,10 @@
 targetScope = 'resourceGroup'
-import {tags_t, availabilityZone_list_t} from './types.bicep'
+import {tags_t, availabilityZone_t} from './types.bicep'
 
 param name string
 param location string
 param tags tags_t
-param availabilityZone availabilityZone_list_t
+param availabilityZone availabilityZone_t[]
 param resourcePostfix string = uniqueString(resourceGroup().id)
 param subnetId string
 param serviceLevel string

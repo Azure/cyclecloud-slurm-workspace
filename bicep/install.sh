@@ -285,6 +285,16 @@ done
 # needs to be done after initialization, as we now call fetch/upload
 (python3 create_cc_param.py slurm --dbPassword="${DATABASE_ADMIN_PASSWORD}") > slurm_params.json 
 
+if [[ -n $(/opt/cycle_server/./cycle_server execute 'select * from Cloud.Cluster where ClusterName=="slurm_template_3.0.11"') ]]; then 
+    cp availability_zones.json /opt/cycle_server/config/data/
+    sleep 1
+    while [ -e /opt/cycle_server/config/data/availability_zones.json ]; do
+        echo "Waiting for availability_zones.json to be imported..."
+        sleep 5
+    done
+    echo "availability_zones.json imported successfully"
+fi
+
 # copying template parameters file to admin user's home directory
 cp slurm_params.json "${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}/slurm_params.json"
 
