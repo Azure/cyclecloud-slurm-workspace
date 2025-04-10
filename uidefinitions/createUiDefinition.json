@@ -425,7 +425,7 @@
                 "toolTip": "Filer type for the /shared directory",
                 "multiselect": false,
                 "constraints": {
-                  "allowedValues": "parse(concat('[{\"label\":\"', 'Builtin NFS','\",\"value\":\"nfs\"}',if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),',',''),if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),'{\"label\":\"Azure NetApp Files\",\"value\":\"anf\"}',''),']'))",
+                  "allowedValues": "[parse(concat('[{\"label\":\"', 'Builtin NFS','\",\"value\":\"nfs\"}',if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),',',''),if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),'{\"label\":\"Azure NetApp Files\",\"value\":\"anf\"}',''),']'))]",
                   "required": true
                 },
                 "visible": "[equals(steps('filesystem').shared.newexisting,'new')]"
