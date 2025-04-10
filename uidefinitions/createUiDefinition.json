@@ -2158,8 +2158,8 @@
                 }
               },
               {
-                "name": "availabilityzoneinfobox",
-                "type": "Microsoft.Common.InfoBox",
+                "name": "availabilityzoneheader",
+                "type": "Microsoft.Common.TextBlock",
                 "options": {
                   "icon": "Info",
                   "text": "This section allows to optionally pin compute resource and storage in the same availability zone."
