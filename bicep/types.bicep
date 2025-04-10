@@ -202,7 +202,7 @@ type htc_t = {
   osImage: string
   maxNodes: int
   useSpot: bool?
-  availabilityZone: availabilityZone_t[]
+  availabilityZone: availabilityZone_t[]?
 }
 
 @export()
@@ -211,7 +211,7 @@ type htc_output_t = {
   osImage: string
   maxNodes: int
   useSpot: bool
-  availabilityZone: availabilityZone_t[]
+  availabilityZone: availabilityZone_t[]?
 }
 
 @export()
@@ -219,7 +219,7 @@ type hpc_t = {
   sku: string
   osImage: string
   maxNodes: int
-  availabilityZone: availabilityZone_t[]
+  availabilityZone: availabilityZone_t[]?
 }
 
 @export()
