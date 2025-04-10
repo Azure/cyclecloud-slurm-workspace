@@ -1,5 +1,5 @@
 targetScope = 'resourceGroup'
-import {tags_t, availabilityZone_list_t} from './types.bicep'
+import {tags_t, availabilityZone_t} from './types.bicep'
 
 param location string
 param tags tags_t
@@ -21,7 +21,7 @@ The step sizes are dependent on the SKU.
 ''')
 param capacity int
 param infrastructureOnly bool = false
-param availabilityZone availabilityZone_list_t
+param availabilityZone availabilityZone_t[]
 
 resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2024-03-01' = if (!infrastructureOnly){
   name: '${name}-${uniqueString(resourceGroup().id,deployment().name)}'
