@@ -2367,7 +2367,7 @@
         "ipAddress": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,basics('nullValue'))]",
         "exportPath": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,basics('nullValue'))]",
         "mountOptions": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.mountOptions,basics('nullValue'))]",
-        "availabilityZone": "[if(and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'nfs')),parse(concat('[\"', steps('advancedSettings').availabilityzone.sharedNetAppAvailabilityZone, '\"]')),basics('nullValue'))]"
+        "availabilityZone": "[if(and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'anf')),parse(concat('[\"', steps('advancedSettings').availabilityzone.sharedNetAppAvailabilityZone, '\"]')),basics('nullValue'))]"
       },
       "additionalFilesystem": {
         "type": "[if(steps('filesystem').additionalCheck.checkbox,concat(steps('filesystem').additional.filertype,'-',steps('filesystem').additional.newexisting),'disabled')]",
