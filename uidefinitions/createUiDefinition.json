@@ -636,7 +636,7 @@
                 "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),greater(steps('filesystem').additional.azurelustrecapacity,128))]",
                 "options": {
                   "icon": "Warning",
-                  "text": "To deploy AMLFS clusters bigger than 128 TiB ensure your subscription has Large Cluster feature enabled. Open a support ticket to enable this feature.",
+                  "text": "The Large Cluster feature must be enabled for the subscription chosen in the Basics menu to deploy an Azure Managed Lustre cluster with volume capacity exceeding 128 TiB.\n\nClick on this infobox to open a support ticket to enable this feature in a new tab.",
                   "uri": "https://ms.portal.azure.com/#view/Microsoft_Azure_Support/HelpAndSupportBlade/%7E/overview"
                 }
               },
