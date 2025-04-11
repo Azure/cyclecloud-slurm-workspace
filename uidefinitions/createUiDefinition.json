@@ -2230,22 +2230,13 @@
                 "visible": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'))]"
               },
               {
-                "name": "sharedHTCInfoBox",
+                "name": "computeNodeAZWarning",
                 "type": "Microsoft.Common.InfoBox",
                 "options": {
                   "icon": "Warning",
-                  "text": "[concat('Placement of HTC Nodes is not optimal versus the shared filesystem.','banana')]"
+                  "text": "Ensure that the availability zones chosen for the compute nodes are the same as those set for new or existing file-system resources. Mismatch of availability zones may cause performance degredation due to increased latency."
                 },
-                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.htcZone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'anf'),not(and(equals(steps('advancedSettings').availabilityzone.htcZone,steps('advancedSettings').availabilityzone.sharedNetAppAvailabilityZone),equals(steps('filesystem').shared.filertype,'anf'))))]"
-              },
-              {
-                "name": "additionalHTCInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "options": {
-                  "icon": "Warning",
-                  "text": "Placement of HTC Nodes is not optimal versus the additional filesystem."
-                },
-                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.htcZone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').additional.newexisting,'new'), or(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.filertype,'anf')), not(or(and(equals(steps('advancedSettings').availabilityzone.htcZone,steps('advancedSettings').availabilityzone.additionalNetAppAvailabilityZone),equals(steps('filesystem').additional.filertype,'anf')),and(equals(steps('advancedSettings').availabilityzone.htcZone,steps('advancedSettings').availabilityzone.additionalLustreAvailabilityZone),equals(steps('filesystem').additional.filertype,'aml')))))]"
+                "visible": "[and(not(and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize)), contains(first(filter(steps('basics').locationInfoApi.value, (item) => equals(item.name, location()))), 'availabilityZoneMappings'))),steps('advancedSettings').availabilityzone.defineAvailabilityZones)]"
               },
               {
                 "name": "htcZone",
@@ -2260,24 +2251,6 @@
                 "visible": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones)]"
               },
               {
-                "name": "sharedHPCInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "options": {
-                  "icon": "Warning",
-                  "text": "Placement of HPC Nodes is not optimal versus the shared filesystem."
-                },
-                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.hpcZone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'anf'),not(and(equals(steps('advancedSettings').availabilityzone.hpcZone,steps('advancedSettings').availabilityzone.sharedNetAppAvailabilityZone),equals(steps('filesystem').shared.filertype,'anf'))))]"
-              },
-              {
-                "name": "additionalHPCInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "options": {
-                  "icon": "Warning",
-                  "text": "Placement of HPC Nodes is not optimal versus the additional filesystem."
-                },
-                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.hpcZone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').additional.newexisting,'new'), or(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.filertype,'anf')), not(or(and(equals(steps('advancedSettings').availabilityzone.hpcZone,steps('advancedSettings').availabilityzone.additionalNetAppAvailabilityZone),equals(steps('filesystem').additional.filertype,'anf')),and(equals(steps('advancedSettings').availabilityzone.hpcZone,steps('advancedSettings').availabilityzone.additionalLustreAvailabilityZone),equals(steps('filesystem').additional.filertype,'aml')))))]"
-              },
-              {
                 "name": "hpcZone",
                 "type": "Microsoft.Common.DropDown",
                 "label": "HPC partition nodes",
@@ -2288,24 +2261,6 @@
                   "required": true
                 },
                 "visible": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones)]"
-              },
-              {
-                "name": "sharedGPUInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "options": {
-                  "icon": "Warning",
-                  "text": "Placement of GPU Nodes is not optimal versus the shared filesystem."
-                },
-                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.gpuZone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'anf'),not(and(equals(steps('advancedSettings').availabilityzone.gpuZone,steps('advancedSettings').availabilityzone.sharedNetAppAvailabilityZone),equals(steps('filesystem').shared.filertype,'anf'))))]"
-              },
-              {
-                "name": "additionalGPUInfoBox",
-                "type": "Microsoft.Common.InfoBox",
-                "options": {
-                  "icon": "Warning",
-                  "text": "Placement of GPU Nodes is not optimal versus the additional filesystem."
-                },
-                "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.gpuZone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').additional.newexisting,'new'), or(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.filertype,'anf')), not(or(and(equals(steps('advancedSettings').availabilityzone.gpuZone,steps('advancedSettings').availabilityzone.additionalNetAppAvailabilityZone),equals(steps('filesystem').additional.filertype,'anf')),and(equals(steps('advancedSettings').availabilityzone.gpuZone,steps('advancedSettings').availabilityzone.additionalLustreAvailabilityZone),equals(steps('filesystem').additional.filertype,'aml')))))]"
               },
               {
                 "name": "gpuZone",
