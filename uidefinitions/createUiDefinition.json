@@ -385,7 +385,7 @@
           {
             "name": "shared",
             "type": "Microsoft.Common.Section",
-            "label": "File-system mount for /shared and /home",
+            "label": "Primary file-system mount (for /shared and /home)",
             "elements": [
               {
                 "name": "sharedInfo",
@@ -1481,7 +1481,7 @@
                 "name": "dbSelector",
                 "type": "Microsoft.Solutions.ResourceSelector",
                 "label": "Select MySQL Database",
-                "toolTip": "Select a MySQL Flexible Server in the Azure region selected on the Basics page",
+                "toolTip": "Select a MySQL Flexible Server in the Azure region selected in the Basics menu",
                 "resourceType": "Microsoft.DBforMySQL/flexibleServers",
                 "options": {
                   "filter": {
@@ -2161,8 +2161,7 @@
                 "name": "availabilityZoneHeader",
                 "type": "Microsoft.Common.TextBlock",
                 "options": {
-                  "icon": "Info",
-                  "text": "This section allows to optionally pin compute resource and storage in the same availability zone."
+                  "text": "Optionally enable availability zones for cluster compute nodes and any new file-system resources."
                 },
                 "visible": true
                },
@@ -2171,15 +2170,15 @@
                 "type": "Microsoft.Common.InfoBox",
                 "options": {
                   "icon": "Warning",
-                  "text": "This region doesn't support availability zones."
+                  "text": "Availability zones are not available in the region chosen on the Basics menu."
                 },
                 "visible": "[not(contains(first(filter(steps('basics').locationInfoApi.value, (item) => equals(item.name, location()))), 'availabilityZoneMappings'))]"
               },
               {
                 "name": "defineAvailabilityZones",
                 "type": "Microsoft.Common.CheckBox",
-                "label": "Define storage and compute Availability Zones",
-                "toolTip": "Configure Availability Zone placement to enforce storage and compute resources proximity.",
+                "label": "Enable availability zones",
+                "toolTip": "Configure availability zones to enforce file-system and compute resource proximity",
                 "constraints": {
                   "required": false
                 },
@@ -2190,16 +2189,16 @@
                 "type": "Microsoft.Common.InfoBox",
                 "options": {
                   "icon": "Error",
-                  "text": "Before defining zones, the HTC, GPU and HPC partion VM type must be defined. Please go back to Partition Settings."
+                  "text": "All virtual machine sizes must be set in the Partition Settings menu before configuring availability zones."
                 },
                 "visible": "[and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize)), contains(first(filter(steps('basics').locationInfoApi.value, (item) => equals(item.name, location()))), 'availabilityZoneMappings'))]"
               },
               {
                 "name": "sharedNetAppAvailabilityZone",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Shared Azure NetApp Files zone",
+                "label": "Primary Azure NetApp Files",
                 "multiselect": false,
-                "toolTip": "Availability Zone for the shared Azure NetApp Files volume",
+                "toolTip": "Availability zone for the primary Azure NetApp Files volume",
                 "constraints": {
                   "allowedValues": "[if(contains(steps('basics').anfAvailabilityZonesApi.properties, 'availabilityZoneMappings'), map(filter(parse('[\"1\",\"2\",\"3\"]'), (item) => contains(map(filter(steps('basics').anfAvailabilityZonesApi.properties.availabilityZoneMappings, (item) => item.isAvailable), (item) => item.availabilityZone),item)), (zone) => parse(concat('{\"label\":\"', 'Zone ',zone, '\",\"value\":\"', zone, '\"}'))), parse('[{\"label\":\"No Availability Zone Support\",\"value\":\"null\"}]'))]",
                   "required": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.newexisting,'new'))]"
@@ -2209,9 +2208,9 @@
               {
                 "name": "additionalLustreAvailabilityZone",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Additional Azure Managed Lustre zone",
+                "label": "Additional Azure Managed Lustre",
                 "multiselect": false,
-                "toolTip": "Availability Zone for additional Azure Managed Lustre volume",
+                "toolTip": "Availability zone for the additional Azure Managed Lustre volume",
                 "constraints": {
                   "allowedValues": "[if(equals(length(first(first(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))).locationInfo).zones),0), parse('[{\"label\":\"No Availability Zone Support\",\"value\":\"null\"}]'), map(filter(parse('[\"1\",\"2\",\"3\"]'), (item) => contains(first(first(filter(steps('basics').amlAvailabilityZonesApi.value, (item) => equals(first(item.locations), location()))).locationInfo).zones, item)), (item) => parse(concat('{\"label\":\"','Zone ',item,'\",\"value\":\"',item,'\"}'))))]",
                   "required": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]"
@@ -2221,9 +2220,9 @@
               {
                 "name": "additionalNetAppAvailabilityZone",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Additional Azure NetApp Files zone",
+                "label": "Additional Azure NetApp Files",
                 "multiselect": false,
-                "toolTip": "Availability Zone for the additional Azure NetApp Files volume",
+                "toolTip": "Availability zone for the additional Azure NetApp Files volume",
                 "constraints": {
                   "allowedValues": "[if(contains(steps('basics').anfAvailabilityZonesApi.properties, 'availabilityZoneMappings'), map(filter(parse('[\"1\",\"2\",\"3\"]'), (item) => contains(map(filter(steps('basics').anfAvailabilityZonesApi.properties.availabilityZoneMappings, (item) => item.isAvailable), (item) => item.availabilityZone),item)), (zone) => parse(concat('{\"label\":\"', 'Zone ',zone, '\",\"value\":\"', zone, '\"}'))), parse('[{\"label\":\"No Availability Zone Support\",\"value\":\"null\"}]'))]",
                   "required": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'))]"
@@ -2235,7 +2234,7 @@
                 "type": "Microsoft.Common.InfoBox",
                 "options": {
                   "icon": "Warning",
-                  "text": "Placement of HTC Nodes is not optimal versus the shared filesystem."
+                  "text": "[concat('Placement of HTC Nodes is not optimal versus the shared filesystem.','banana')]"
                 },
                 "visible": "[and(not(empty(steps('advancedSettings').availabilityzone.htcZone)),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.filertype,'anf'),not(and(equals(steps('advancedSettings').availabilityzone.htcZone,steps('advancedSettings').availabilityzone.sharedNetAppAvailabilityZone),equals(steps('filesystem').shared.filertype,'anf'))))]"
               },
@@ -2251,8 +2250,8 @@
               {
                 "name": "htcZone",
                 "type": "Microsoft.Common.DropDown",
-                "label": "HTC nodes zone",
-                "toolTip": "Select the Availability Zone to use for the HTC partition",
+                "label": "HTC partition nodes",
+                "toolTip": "Availability zone for the HTC partition nodes",
                 "placeholder": "Select an Availability Zone",
                 "constraints": {
                   "allowedValues": "[if(lessOrEquals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones),1), parse(concat('[{\"label\":\"',if(equals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones),0),'No Availability Zone Support',concat('Zone ', first(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones))),'\",\"value\":\"',if(equals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones),0),'',first(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones)),'\"}]')), map(filter(parse('[\"not\",\"1\",\"2\",\"3\"]'), (item) => or(equals(item, 'not'),contains(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones,item))), (item) => parse(concat('{\"label\":\"',if(equals(item,'not'), 'No preference', concat('Zone ',item)),'\",\"value\":\"',if(equals(item,'not'), 'NA', item),'\"}'))))]",
@@ -2281,8 +2280,8 @@
               {
                 "name": "hpcZone",
                 "type": "Microsoft.Common.DropDown",
-                "label": "HPC nodes zone",
-                "toolTip": "Select the Availability Zone to use for the HPC partition",
+                "label": "HPC partition nodes",
+                "toolTip": "Availability zone for the HPC partition nodes",
                 "placeholder": "Select an Availability Zone",
                 "constraints": {
                   "allowedValues": "[if(lessOrEquals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HPCSection.vmsize))).locationInfo).zones),1), parse(concat('[{\"label\":\"',if(equals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HPCSection.vmsize))).locationInfo).zones),0),'No Availability Zone Support',concat('Zone ', first(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones))),'\",\"value\":\"',if(equals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HPCSection.vmsize))).locationInfo).zones),0),'',first(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones)),'\"}]')), map(filter(parse('[\"not\",\"1\",\"2\",\"3\"]'), (item) => or(equals(item, 'not'),contains(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones,item))), (item) => parse(concat('{\"label\":\"',if(equals(item,'not'), 'No preference', concat('Zone ',item)),'\",\"value\":\"',if(equals(item,'not'), 'NA', item),'\"}'))))]",
@@ -2311,9 +2310,9 @@
               {
                 "name": "gpuZone",
                 "type": "Microsoft.Common.DropDown",
-                "label": "GPU nodes zone",
+                "label": "GPU partition nodes",
                 "placeholder": "Select an Availability Zone",
-                "toolTip": "Select the Availability Zone to use for the GPU partition",
+                "toolTip": "Availability zone for the GPU partition nodes",
                 "constraints": {
                   "allowedValues": "[if(lessOrEquals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').GPUSection.vmsize))).locationInfo).zones),1), parse(concat('[{\"label\":\"',if(equals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').GPUSection.vmsize))).locationInfo).zones),0),'No Availability Zone Support',concat('Zone ', first(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones))),'\",\"value\":\"',if(equals(length(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').GPUSection.vmsize))).locationInfo).zones),0),'',first(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones)),'\"}]')), map(filter(parse('[\"not\",\"1\",\"2\",\"3\"]'), (item) => or(equals(item, 'not'),contains(first(first(filter(steps('advancedSettings').availabilityzone.skuZoneInfo.value, (item) => equals(item.name, steps('slurmSettings').HTCSection.vmsize))).locationInfo).zones,item))), (item) => parse(concat('{\"label\":\"',if(equals(item,'not'), 'No preference', concat('Zone ',item)),'\",\"value\":\"',if(equals(item,'not'), 'NA', item),'\"}'))))]",
                   "required": true
