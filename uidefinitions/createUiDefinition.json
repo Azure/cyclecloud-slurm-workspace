@@ -2176,15 +2176,6 @@
                 "visible": "[not(contains(first(filter(steps('basics').locationInfoApi.value, (item) => equals(item.name, location()))), 'availabilityZoneMappings'))]"
               },
               {
-                "name": "SKUNotSelectedWarning",
-                "type": "Microsoft.Common.InfoBox",
-                "options": {
-                  "icon": "Error",
-                  "text": "Before defining zones, the HTC, GPU and HPC partion VM type must be defined. Please go back to Partition Settings."
-                },
-                "visible": "[and(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize)), contains(first(filter(steps('basics').locationInfoApi.value, (item) => equals(item.name, location()))), 'availabilityZoneMappings'))]"
-              },
-              {
                 "name": "defineAvailabilityZones",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Define storage and compute Availability Zones",
@@ -2192,8 +2183,17 @@
                 "constraints": {
                   "required": false
                 },
-                "visible": "[and(contains(first(filter(steps('basics').locationInfoApi.value, (item) => equals(item.name, location()))), 'availabilityZoneMappings'), not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))))]"
+                "visible": "[contains(first(filter(steps('basics').locationInfoApi.value, (item) => equals(item.name, location()))), 'availabilityZoneMappings')]"
                },
+              {
+                "name": "SKUNotSelectedWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "options": {
+                  "icon": "Error",
+                  "text": "Before defining zones, the HTC, GPU and HPC partion VM type must be defined. Please go back to Partition Settings."
+                },
+                "visible": "[and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize)), contains(first(filter(steps('basics').locationInfoApi.value, (item) => equals(item.name, location()))), 'availabilityZoneMappings'))]"
+              },
               {
                 "name": "sharedNetAppAvailabilityZone",
                 "type": "Microsoft.Common.DropDown",
