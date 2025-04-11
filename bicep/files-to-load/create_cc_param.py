@@ -34,19 +34,19 @@ def set_slurm_params(params, dbPassword, outputs):
     params['MaxHTCExecuteNodeCount'] = int(outputs['partitions']['value']['htc']['maxNodes'])
     params['HTCImageName'] = outputs['partitions']['value']['htc']['osImage']
     params['HTCUseLowPrio'] = outputs['partitions']['value']['htc']['useSpot']
-    params['HTCAvailabilityZone'] = outputs['partitions']['value']['htc']['availabilityZone'] 
+    params['HTCAvailabilityZone'] = outputs['partitions']['value']['htc']['availabilityZone'] if 'availabilityZone' in outputs['partitions']['value']['htc'] else []
     
     #HPC
     params['HPCMachineType'] = outputs['partitions']['value']['hpc']['sku']
     params['MaxHPCExecuteNodeCount'] = int(outputs['partitions']['value']['hpc']['maxNodes'])
     params['HPCImageName'] = outputs['partitions']['value']['hpc']['osImage']
-    params['HPCAvailabilityZone'] = outputs['partitions']['value']['hpc']['availabilityZone']
+    params['HPCAvailabilityZone'] = outputs['partitions']['value']['hpc']['availabilityZone'] if 'availabilityZone' in outputs['partitions']['value']['hpc'] else []
 
     #GPU
     params['GPUMachineType'] = outputs['partitions']['value']['gpu']['sku']
     params['MaxGPUExecuteNodeCount'] = int(outputs['partitions']['value']['gpu']['maxNodes'])
     params['GPUImageName'] = outputs['partitions']['value']['gpu']['osImage']
-    params['GPUAvailabilityZone'] = outputs['partitions']['value']['gpu']['availabilityZone']
+    params['GPUAvailabilityZone'] = outputs['partitions']['value']['gpu']['availabilityZone'] if 'availabilityZone' in outputs['partitions']['value']['gpu'] else []
 
     # Define Availability Zone
     params['DefineNodesAvailabilityZone'] = any(zoneList for zoneList in [params['HTCAvailabilityZone'], params['HPCAvailabilityZone'] , params['GPUAvailabilityZone']])
