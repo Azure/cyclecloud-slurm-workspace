@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 # This script builds the ARM template and UI definition for the marketplace solution
-
+cd $(dirname $0)/
 VERSION="2025.04.07"
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -32,19 +32,8 @@ popd
 UI_DEFINITION=${GIT_ROOT}/uidefinitions/createUiDefinition.json
 
 build_dir="${GIT_ROOT}/build"
-rm -rf "$build_dir"
-mkdir -p "$build_dir"
 
-echo "Copying UI definition"
-cp "$UI_DEFINITION" "$build_dir"
-python3 bicep-typeless.py
-
-echo "Converting Bicep to ARM template"
-az bicep build --file "${GIT_ROOT}/bicep-typeless/mainTemplate.bicep" --outdir "$build_dir"
-rm -rf bicep-typeless
-
-echo Adding branch=$BRANCH to build/mainTemplate.json
-python3 util/build.py --branch $BRANCH
+PYTHONPATH=util/ python3 util/build.py build --branch $BRANCH --build-dir "$build_dir" --ui-definition "$UI_DEFINITION" 
 
 echo "Creating zipfile"
 pushd "$build_dir"

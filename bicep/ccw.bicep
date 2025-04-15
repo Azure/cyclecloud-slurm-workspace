@@ -401,7 +401,7 @@ output oodManualRegistration object = {
 }
 
 output files object = {
-  create_cc_param_py: base64(loadTextContent('./files-to-load/create_cc_param.py'))
-  cyclecloud_install_py: base64(loadTextContent('./files-to-load/cyclecloud_install.py'))
-  initial_params_json: base64(loadTextContent('./files-to-load/initial_params.json'))
+  create_cc_param_py: loadTextContent('./files-to-load/create_cc_param.py.base64')
+  cyclecloud_install_py: loadTextContent('./files-to-load/cyclecloud_install.py.base64')
+  initial_params_json: loadTextContent('./files-to-load/initial_params.json.base64')
 }
