@@ -153,10 +153,21 @@ mkdir -p $ccw_root/bin
 PROJECT_VERSION=$(jq -r .projectVersion.value ccwOutputs.json)
 SECRETS_FILE_PATH="/root/ccw.secrets.json"
 
-# we don't want create_cc_param.py.1 etc if someone reruns this script, so use -O to overwrite existing files
-wget -O create_cc_param.py $URI/files-to-load/create_cc_param.py
-wget -O initial_params.json $URI/files-to-load/initial_params.json
-wget -O cyclecloud_install.py $URI/files-to-load/cyclecloud_install.py
+FILES=$(jq -r .files.value ccwOutputs.json)
+#get all the keys in FILES
+keys=$(echo $FILES | jq -r 'keys[]')
+for key in $keys; do
+    # Split the string on '_'
+    IFS='_' read -r -a split_key <<< "$key"
+    # Take the last bit
+    extension="${split_key[-1]}"
+    filename="${key%_$extension}"
+    filecontent=$(echo $FILES | jq -r .$key)
+    # Print the file name
+    echo "Processing $filename.$extension"
+    # Create the file with the value decoded from base 64
+    echo $filecontent | base64 --decode > "$filename.$extension"
+done
 while [ ! -f "$SECRETS_FILE_PATH" ]; do
     echo "Waiting for VM to create secrets file..."
     sleep 1
