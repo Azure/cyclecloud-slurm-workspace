@@ -125,7 +125,6 @@ pushd $ccw_root
 echo "* Extracting deployment output"
 az deployment group show -g $resource_group -n $deployment_name --query properties.outputs > ccwOutputs.json
 BRANCH=$(jq -r .branch.value $ccw_root/ccwOutputs.json)
-URI="https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/$BRANCH/bicep"
 MANUAL=$(jq -r .manualInstall.value $ccw_root/ccwOutputs.json)
 
 if [ "$MANUAL" == "true" ]; then
