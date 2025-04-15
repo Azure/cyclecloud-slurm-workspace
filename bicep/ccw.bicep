@@ -399,3 +399,9 @@ output oodManualRegistration object = {
   umiName: oodManagedIdentityName
   fqdn: deployOOD ? oodNIC.outputs.privateIp : ''
 }
+
+output files object = {
+  create_cc_param_py: base64(loadTextContent('./files-to-load/create_cc_param.py'))
+  cyclecloud_install_py: base64(loadTextContent('./files-to-load/cyclecloud_install.py'))
+  initial_params_json: base64(loadTextContent('./files-to-load/initial_params.json'))
+}
