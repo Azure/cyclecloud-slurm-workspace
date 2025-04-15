@@ -133,8 +133,8 @@ if [ "$MANUAL" == "true" ]; then
     if [ -z "$LOCAL_PACKAGE" ]; then
         echo "No local package path provided."
         echo "Copying install.sh to /opt/ccw and exiting."
-        wget -O install.sh $URI/install.sh
         popd
+        cp /var/lib/cloud/instance/user-data.txt $ccw_root/install.sh
         exit 0
     else 
         echo "Local package path provided."
