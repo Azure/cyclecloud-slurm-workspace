@@ -22,11 +22,11 @@ def set_default_branch(branch):
 
 
 def base64_encode_files_to_load():
-    for fil in os.listdir("bicep/files-to-load"):
-        path = os.path.join("bicep/files-to-load", fil)
-        if path.endswith(".base64"):
+    for file in os.listdir("bicep/files-to-load"):
+        path = os.path.join("bicep/files-to-load", file)
+        if path.endswith(".base64") or not os.path.isfile(path):
             continue
-        base64_path = path + ".base64"
+        base64_path = f"bicep/files-to-load/encoded/{file}.base64"
         with open(path, "rb") as fr:
             data = fr.read()
         with open(base64_path, "wb") as fw:
