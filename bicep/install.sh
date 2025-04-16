@@ -249,7 +249,7 @@ cycle_server start --wait
 # this will block until CC responds
 curl -k https://localhost
 
-cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password=${CYCLECLOUD_PASSWORD} --verify-ssl=false --name=$SLURM_CLUSTER_NAME
+cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" --verify-ssl=false --name=$SLURM_CLUSTER_NAME
 echo "CC CLI initialize successful"
 
 # Ensure CC properly initializes
