@@ -56,7 +56,8 @@ def create_build_dir(ui_defintion: str, build_dir: str) -> None:
 
 
 def run_bicep_build(build_dir):
-    subprocess.check_output(["az", "bicep", "build", "--file", "bicep/mainTemplate.bicep", "--outdir", build_dir])
+    # AGB: Using absolute path to avoid issues with relative paths in az bicep commands
+    subprocess.check_output(["az", "bicep", "build", "--file", f"{os.getcwd()}/bicep/mainTemplate.bicep", "--outdir", build_dir])
 
 
 def main():
