@@ -810,13 +810,30 @@
         "label": "Networking",
         "elements": [
           {
-            "name": "infobox",
-            "type": "Microsoft.Common.InfoBox",
-            "visible": true,
-            "options": {
-              "icon": "Info",
-              "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment.\n\nNote that private DNS zone, private DNS zone group, and virtual network link resources are needed to establish network connectivity with the storage account deployed for use by the cluster via private endpoint."
-            }
+            "name": "networking",
+            "type": "Microsoft.Common.Section",
+            "label": "Networking",
+            "elements": [
+              {
+                "name": "header",
+                "type": "Microsoft.Common.TextBlock",
+                "visible": true,
+                "options": {
+                  "icon": "Info",
+                  "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment."
+                }
+              },
+              {
+                "name": "infobox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": true,
+                "options": {
+                  "icon": "Info",
+                  "text": "Private DNS zone, private DNS zone group, and virtual network link resources are needed to establish network connectivity with the storage account deployed for use by the cluster via private endpoint."
+                }
+              }
+            ],
+            "visible": true
           },
           {
             "name": "newexisting",
@@ -1607,13 +1624,20 @@
         "label": "Partition Settings",
         "elements": [
           {
-            "name": "infobox",
-            "type": "Microsoft.Common.InfoBox",
-            "visible": true,
-            "options": {
-              "icon": "Info",
-              "text": "Slurm uses partitions to distinguish different execute node types. This workspace provides for three common use cases: High-Throughput Compute (HTC), CPU-based High-Performance Compute (HPC), and GPU-based HPC (GPU)."
-            }
+            "name": "partitionSettings",
+            "type": "Microsoft.Common.Section",
+            "label": "Partition Settings",
+            "elements": [
+              {
+                "name": "header",
+                "type": "Microsoft.Common.TextBlock",
+                "visible": true,
+                "options": {
+                  "text": "Slurm uses partitions to distinguish different execute node types. This workspace provides for three common use cases: High-Throughput Compute (HTC), CPU-based High-Performance Compute (HPC), and GPU-based HPC (GPU)."
+                }
+              }
+            ],
+            "visible": true
           },
           {
             "name": "HTCSection",
@@ -1933,7 +1957,7 @@
                 "type": "Microsoft.Common.TextBlock",
                 "visible": true,
                 "options": {
-                  "text": "Open OnDemand is an open-source, web-based portal developed by the Ohio Supercomputer Center (OSC) to provide easy access to high-performance computing (HPC) resources. This platform allows users to submit and monitor jobs, manage files, and run applications from anywhere using only a web browser. The portal is designed to simplify the user experience, making it accessible for both novice and experienced HPC users."
+                  "text": "Open OnDemand is an open-source, web-based portal developed by the Ohio Supercomputer Center (OSC) to provide easy access to high-performance computing (HPC) resources. The platform allows users to submit and monitor jobs, manage files, and run applications from anywhere using only a web browser. The portal is designed to simplify the user experience, making it accessible for both novice and experienced HPC users."
                 }
               },
               {
