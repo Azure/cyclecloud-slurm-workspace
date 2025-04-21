@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 # This script builds the ARM template and UI definition for the marketplace solution
-
+cd $(dirname $0)/
 VERSION="2025.04.07"
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -21,7 +21,8 @@ fi
 # az deployment create --template-uri requires a json file. This ensures that we have a json file
 # that matches what the current bicep file would generate. Note we remove the generator version, as this will
 # give false positives in the diff
-az bicep build -f bicep/ood/oodEntraApp.bicep --stdout | jq -r 'del(.metadata._generator.version)' > bicep/ood/oodEntraApp.json
+# AGB: Using absolute path to avoid issues with relative paths in az bicep commands
+az bicep build -f $(pwd)/bicep/ood/oodEntraApp.bicep --stdout | jq -r 'del(.metadata._generator.version)' > bicep/ood/oodEntraApp.json
 git diff --exit-code bicep/ood/oodEntraApp.json
 
 # run tests 
@@ -32,19 +33,8 @@ popd
 UI_DEFINITION=${GIT_ROOT}/uidefinitions/createUiDefinition.json
 
 build_dir="${GIT_ROOT}/build"
-rm -rf "$build_dir"
-mkdir -p "$build_dir"
 
-echo "Copying UI definition"
-cp "$UI_DEFINITION" "$build_dir"
-python3 bicep-typeless.py
-
-echo "Converting Bicep to ARM template"
-az bicep build --file "${GIT_ROOT}/bicep-typeless/mainTemplate.bicep" --outdir "$build_dir"
-rm -rf bicep-typeless
-
-echo Adding branch=$BRANCH to build/mainTemplate.json
-python3 util/build.py --branch $BRANCH
+PYTHONPATH=util/ python3 util/build.py build --branch $BRANCH --build-dir "$build_dir" --ui-definition "$UI_DEFINITION" 
 
 echo "Creating zipfile"
 pushd "$build_dir"
