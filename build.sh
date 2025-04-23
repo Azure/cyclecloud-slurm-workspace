@@ -36,6 +36,12 @@ build_dir="${GIT_ROOT}/build"
 
 PYTHONPATH=util/ python3 util/build.py build --branch $BRANCH --build-dir "$build_dir" --ui-definition "$UI_DEFINITION" 
 
+# Check if base 64-encoded utility files used by install.sh are the same as the prior commit
+git diff --exit-code bicep/files-to-load/encoded/availability_zones.json.base64
+git diff --exit-code bicep/files-to-load/encoded/create_cc_param.py.base64
+git diff --exit-code bicep/files-to-load/encoded/cyclecloud_install.py.base64
+git diff --exit-code bicep/files-to-load/encoded/initial_params.json.base64
+
 echo "Creating zipfile"
 pushd "$build_dir"
 zip -j "${GIT_ROOT}/build.zip" ./*
