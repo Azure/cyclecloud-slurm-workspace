@@ -2184,50 +2184,9 @@
                 "toolTip": "Automatically start the Open OnDemand cluster following deployment completion",
                 "defaultValue": "[not(equals(steps('ood').OODSection.registerEntraIDApp,'manual'))]",
                 "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "Automatically register an Entra ID Application",
-                      "value": "autoregister"
-                    },
-                    {
-                      "label": "Use existing Entra ID Application registration",
-                      "value": "existing"
-                    },
-                    {
-                      "label": "None",
-                      "value": "no"
-                    }
-                  ],
-                  "required": true
+                  "required": false
                 },
                 "visible": "[steps('ood').OODSection.deployOOD]"
-              },
-              {
-                "name": "managedIdentity",
-                "type": "Microsoft.Solutions.ResourceSelector",
-                "label": "Managed Identity",
-                "toolTip": "Select the user-assigned managed identity created for the federated credentials",
-                "resourceType": "Microsoft.ManagedIdentity/userAssignedIdentities",
-                "constraints": {
-                  "required": true,
-                  "validationMessage": "Please select a managed identity."
-                },
-                "options": {
-                },
-                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
-              },
-              {
-                "name": "clientId",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Application (client) ID",
-                "defaultValue": "",
-                "toolTip": "Application or client ID of the Entra ID Application in the Azure AD tenant",
-                "constraints": {
-                  "required": true,
-                  "regex": "^(\\w{8}(-\\w{4}){3}-\\w{12}?)$",
-                  "validationMessage": "Enter a valid application (client) ID"
-                },
-                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
               }
             ],
             "visible": true
