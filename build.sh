@@ -36,6 +36,9 @@ build_dir="${GIT_ROOT}/build"
 
 PYTHONPATH=util/ python3 util/build.py build --branch $BRANCH --build-dir "$build_dir" --ui-definition "$UI_DEFINITION" 
 
+# Check if base 64-encoded utility files used by install.sh are the same as the prior commit
+git diff --exit-code bicep/files-to-load/encoded
+
 echo "Creating zipfile"
 pushd "$build_dir"
 zip -j "${GIT_ROOT}/build.zip" ./*
