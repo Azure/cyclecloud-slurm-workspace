@@ -7,7 +7,7 @@ if we want to type check our parameters, then we need to propagate this type che
 mainTemplate all the way down. This script simply strips all type checking.
 """
 
-OUTPUT_ARRAY_TYPES = ["types.cluster_init_param_t"]
+OUTPUT_ARRAY_TYPES = ["types.cluster_init_param_t","availabilityZone_t[]"]
 
 def run() -> None:
     biceps = os.listdir("bicep")
