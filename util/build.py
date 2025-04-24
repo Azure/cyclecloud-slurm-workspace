@@ -59,7 +59,11 @@ def create_build_dir(ui_defintion: str, build_dir: str) -> None:
 
 def run_bicep_build(build_dir):
     # AGB: Using absolute path to avoid issues with relative paths in az bicep commands
-    subprocess.check_output(["az", "bicep", "build", "--file", f"{os.getcwd()}/bicep/mainTemplate.bicep", "--outdir", build_dir])
+    subprocess.check_output(["az", "bicep", "build", "--file", f"{os.getcwd()}/bicep-typeless/mainTemplate.bicep", "--outdir", build_dir])
+    expected_output = os.path.join(build_dir, "mainTemplate.json")
+    with open(expected_output) as fr:
+        mainTemplate = json.load(fr)
+        assert isinstance(mainTemplate["resources"], list), "ARM V2 output detected" 
 
 
 def main():
