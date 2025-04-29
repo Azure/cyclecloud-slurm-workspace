@@ -12,7 +12,7 @@ var virtualNetworkName = split(subnetId, '/')[8]
 resource blobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' existing = {
   name: blobPrivateDnsZoneName
 
-  resource blobPrivateDnsZoneVnetLink 'virtualNetworkLinks@2020-06-01' = {
+  resource blobPrivateDnsZoneVnetLink 'virtualNetworkLinks@2024-06-01' = {
     name: 'vnetLink-${uniqueString(storageAccountId)}'
     location: 'global'
     tags: tags
