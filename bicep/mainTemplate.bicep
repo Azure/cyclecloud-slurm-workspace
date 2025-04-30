@@ -15,7 +15,9 @@ param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t = { type: 'disabled' }
 param network types.vnet_t
-param slurmSettings types.slurmSettings_t = { version: '23.11.7-1', healthCheckEnabled: false }
+param storagePrivateDnsZone types.storagePrivateDnsZone_t
+param clusterInitSpecs types.cluster_init_param_t = []
+param slurmSettings types.slurmSettings_t = { startCluster: true, version: '23.11.7-1', healthCheckEnabled: false }
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
 param htc types.htc_t
@@ -30,13 +32,14 @@ param databaseConfig types.databaseConfig_t = { type: 'disabled' }
 param clusterName string = 'ccw'
 param acceptMarketplaceTerms bool = false
 param ood types.oodConfig_t = { type: 'disabled' }
+
 param infrastructureOnly bool = false
 param insidersBuild bool = false
 
 // build.sh will override this, but for development please set this yourself as a parameter
 param branch string = 'main'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
-param projectVersion string = '2024.12.18'
+param projectVersion string = '2025.02.06'
 //Internal developer use only: set true use custom CycleCloud release build 
 param manualInstall bool = false
 
@@ -59,6 +62,8 @@ module makeCCWresources 'ccw.bicep' = {
     sharedFilesystem: sharedFilesystem
     additionalFilesystem: additionalFilesystem
     network: network
+    storagePrivateDnsZone: storagePrivateDnsZone
+    clusterInitSpecs: clusterInitSpecs
     slurmSettings: slurmSettings
     schedulerNode: schedulerNode
     loginNodes: loginNodes
@@ -77,6 +82,6 @@ module makeCCWresources 'ccw.bicep' = {
     projectVersion: projectVersion
     manualInstall: manualInstall
     acceptMarketplaceTerms: acceptMarketplaceTerms
-    ood : ood
+    ood: ood
   }
 }

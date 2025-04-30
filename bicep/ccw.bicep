@@ -19,6 +19,8 @@ param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t 
 param network types.vnet_t 
+param storagePrivateDnsZone types.storagePrivateDnsZone_t
+param clusterInitSpecs types.cluster_init_param_t
 param slurmSettings types.slurmSettings_t 
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
@@ -101,7 +103,7 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
   }
 }
 
-param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.7.020241219'
+param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.7.120250213'
 
 module ccwVM './vm.bicep' = if (!infrastructureOnly) {
   name: 'ccwVM-cyclecloud'
@@ -180,6 +182,7 @@ module ccwStorage './storage.bicep' = {
     tags: getTags('Microsoft.Storage/storageAccounts', tags)
     saName: 'ccwstorage${uniqueString(az.resourceGroup().id)}'
     subnetId: subnets.cyclecloud
+    storagePrivateDnsZone: storagePrivateDnsZone
   }
 }
 
@@ -242,9 +245,11 @@ module ccwANF 'anf.bicep' = [
 ]
 
 var deployOOD = ood.type != 'disabled'
+var registerOODApp = ood.?registerEntraIDApp ?? false
 
+var oodNicName = 'ccwOpenOnDemandNIC'
 module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
-  name: 'oodNIC'
+  name: oodNicName
   params: {
     location: location
     name: 'ood-${uniqueString(az.resourceGroup().id)}'
@@ -254,16 +259,18 @@ module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
 }
 
 // create a user assigned managed identity to be assigned to the OOD VM
-resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (deployOOD) {
-  name: 'ood-${uniqueString(az.resourceGroup().id)}-mi'
+var oodManagedIdentityName = 'ccwOpenOnDemandManagedIdentity'
+resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (registerOODApp) {
+  name: oodManagedIdentityName
   location: location
 }
 
-module oodApp 'oodEntraApp.bicep' = if (deployOOD) {
+var oodAppName = 'CycleCloudOpenOnDemandApp-${uniqueString(az.resourceGroup().id)}'
+module oodApp 'oodEntraApp.bicep' = if (registerOODApp) {
   name: 'oodApp'
   params: {
-    umiName: 'ood-${uniqueString(az.resourceGroup().id)}-mi'
-    appName: 'ood-${uniqueString(az.resourceGroup().id)}-app'
+    umiName: oodManagedIdentityName
+    appName: oodAppName
     fqdn: oodNIC.outputs.privateIp
   }
 }
@@ -297,6 +304,21 @@ output filerInfoFinal types.filerInfo_t = {
 output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.principalId
 
 output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
+
+// Automatically inject the ccw cluster init spec
+
+var ccwClusterInitSpec = {
+  type: 'gitHubReleaseURL'
+  gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-slurm-workspace/releases/tag/', projectVersion)
+  spec: 'default'
+  target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
+}
+
+// Projects <= 2025.02.06 have the nvme and pyxis logic embedded in the ccw cluster init spec
+// var requiredClusterInitSpecs = projectVersion >= '2025.02.06' ? [ccwClusterInitSpec, nvmeClusterInitSpec, pyxisClusterInitSpec] : [ccwClusterInitSpec]
+// For now, assume we just need ccwClusterInitSpec until we remove the scripts from the ccw repo
+var requiredClusterInitSpecs = [ccwClusterInitSpec]
+output clusterInitSpecs types.cluster_init_param_t = union(requiredClusterInitSpecs, clusterInitSpecs)
 
 output slurmSettings types.slurmSettings_t = slurmSettings
 
@@ -349,3 +371,11 @@ output projectVersion string = projectVersion
 output insidersBuild bool = insidersBuild
 output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
+
+output ood object = union(ood, {
+  version: '1.0.0'
+  nic: deployOOD ? oodNIC.outputs.NICId : ''
+  managedIdentity: deployOOD ? registerOODApp ? oodApp.outputs.oodMiId : ood.?appManagedIdentityId : ''
+  clientId: deployOOD ? registerOODApp ? oodApp.outputs.oodClientAppId : ood.?appId : ''
+  tenantId: deployOOD ? subscription().tenantId : ''
+})

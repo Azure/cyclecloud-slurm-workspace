@@ -104,11 +104,31 @@ type vnet_existing_t = {
   computeSubnet: string
   sharedFilerSubnet: string?
   additionalFilerSubnet: string?
+  storagePrivateDnsZoneId: string?
+  vnetLink: bool?
 }
 
 @discriminator('type')
 @export()
 type vnet_t = vnet_autocreate_t | vnet_existing_t
+
+type storagePrivateDnsZone_new_t = {
+  type: 'new' 
+}
+
+type storagePrivateDnsZone_existing_t = {
+  type: 'existing'
+  id: string
+  vnetLink: bool?
+}
+
+type storagePrivateDnsZone_none_t = {
+  type: 'none'
+}
+
+@discriminator('type')
+@export()
+type storagePrivateDnsZone_t = storagePrivateDnsZone_new_t | storagePrivateDnsZone_existing_t | storagePrivateDnsZone_none_t
 
 @export()
 type networkOutput_t = {
@@ -139,6 +159,7 @@ type resource_tags_t = {
 
 @export()
 type slurmSettings_t = {
+  startCluster: bool
   version: string
   healthCheckEnabled: bool
 }
@@ -225,12 +246,39 @@ type ood_none_t = {
 
 type ood_enabled_t = {
   type: 'enabled'
+  startCluster: bool
   sku: string
   osImage: string
   userDomain: string
+  fqdn: string?
   registerEntraIDApp: bool
+  appId: string?
+  appTenantId: string?
+  appManagedIdentityId: string?
 }
 
 @export()
 @discriminator('type')
 type oodConfig_t = ood_none_t | ood_enabled_t
+type cluster_init_target_t = 'login' | 'scheduler' | 'htc' | 'hpc' | 'gpu' | 'dynamic' | 'ood'
+
+
+type github_cluster_init_t = {
+  type: 'gitHubReleaseURL'
+  gitHubReleaseURL: string
+  spec: string?
+  target: cluster_init_target_t[]
+}
+
+type prestaged_cluster_init_t = {
+  type: 'PreStaged'
+  spec: string?
+  version: string
+  target: cluster_init_target_t[]
+}
+
+@discriminator('type')
+type cluster_init_t = github_cluster_init_t | prestaged_cluster_init_t
+
+@export()
+type cluster_init_param_t = cluster_init_t[]

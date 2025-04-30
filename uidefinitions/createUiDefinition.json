@@ -5,7 +5,7 @@
   "parameters": {
     "config": {
       "basics": {
-        "description": "Version **2024.12.18**: [Release Notes](https://learn.microsoft.com/azure/cyclecloud/release-notes/ccws/release-notes)",
+        "description": "Version **2025.02.06**: [Release Notes](https://learn.microsoft.com/azure/cyclecloud/release-notes/ccws/release-notes)",
         "resourceGroup": {
           "visible": false
         },
@@ -102,7 +102,9 @@
         "toolTip": "Select a size for the CycleCloud VM",
         "recommendedSizes": [
           "Standard_D4as_v5",
-          "Standard_D4as_v4"
+          "Standard_D4s_v5",
+          "Standard_D4as_v4",
+          "Standard_D4s_v4"
         ],
         "constraints": {
           "excludedSizes": [
@@ -239,7 +241,16 @@
             "Standard_F16",
             "Standard_F2",
             "Standard_F4",
-            "Standard_F8"
+            "Standard_F8",
+            "Standard_D4as_v6",
+            "Standard_D2als_v6",
+            "Standard_D4als_v6",
+            "Standard_D8als_v6",
+            "Standard_D16als_v6",
+            "Standard_D32als_v6",
+            "Standard_D48als_v6",
+            "Standard_D64als_v6",
+            "Standard_D96als_v6"
           ]
         },
         "options": {
@@ -704,7 +715,7 @@
                 "visible": "[and(equals(steps('filesystem').additional.filertype,'aml'),equals(steps('filesystem').additional.newexisting,'new'))]"
               },
               {
-                "name": "ipAddress",
+                "name": "ipAddressNfs",
                 "type": "Microsoft.Common.TextBox",
                 "label": "IP Address",
                 "toolTip": "IP address of the filer mount",
@@ -718,7 +729,24 @@
                     }
                   ]
                 },
-                "visible": "[equals(steps('filesystem').additional.newexisting,'existing')]"
+                "visible": "[and(equals(steps('filesystem').additional.newexisting,'existing'),equals(steps('filesystem').additional.filertype,'nfs'))]"
+              },
+              {
+                "name": "ipAddressAml",
+                "type": "Microsoft.Common.TextBox",
+                "label": "MGS IP Address",
+                "toolTip": "The IP address for the Azure Managed Lustre file system's Lustre Management Service",
+                "defaultValue": "",
+                "constraints": {
+                  "required": true,
+                  "validations": [
+                    {
+                      "regex": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$",
+                      "message": "Invalid IP address"
+                    }
+                  ]
+                },
+                "visible": "[and(equals(steps('filesystem').additional.newexisting,'existing'),equals(steps('filesystem').additional.filertype,'aml'))]"
               },
               {
                 "name": "mountPath",
@@ -747,7 +775,7 @@
                 "visible": "[and(equals(steps('filesystem').additional.newexisting, 'existing'),not(equals(steps('filesystem').additional.filertype,'aml')))]"
               },
               {
-                "name": "mountOptions",
+                "name": "mountOptionsNfs",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Mount options",
                 "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev",
@@ -757,7 +785,20 @@
                   "regex": "^.+$",
                   "validationMessage": "Please enter a mount option."
                 },
-                "visible": "[equals(steps('filesystem').additional.newexisting,'existing')]"
+                "visible": "[and(equals(steps('filesystem').additional.newexisting,'existing'),equals(steps('filesystem').additional.filertype,'nfs'))]"
+              },
+              {
+                "name": "mountOptionsAml",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Mount options",
+                "defaultValue": "",
+                "toolTip": "Mount options for the additional filer",
+                "constraints": {
+                  "required": false,
+                  "regex": "^.+$",
+                  "validationMessage": "Please enter a mount option."
+                },
+                "visible": "[and(equals(steps('filesystem').additional.newexisting,'existing'),equals(steps('filesystem').additional.filertype,'aml'))]"
               }
             ],
             "visible": "[steps('filesystem').additionalCheck.checkbox]"
@@ -769,13 +810,30 @@
         "label": "Networking",
         "elements": [
           {
-            "name": "infobox",
-            "type": "Microsoft.Common.InfoBox",
-            "visible": true,
-            "options": {
-              "icon": "Info",
-              "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment.\n\nPlease note that private endpoint, DNS zone, DNS zone group, and virtual network link resources will be created to establish network connectivity with the storage account that will be concurrently deployed for use by the cluster."
-            }
+            "name": "networking",
+            "type": "Microsoft.Common.Section",
+            "label": "Networking",
+            "elements": [
+              {
+                "name": "header",
+                "type": "Microsoft.Common.TextBlock",
+                "visible": true,
+                "options": {
+                  "icon": "Info",
+                  "text": "Optionally automatically create virtual network resources or use existing ones for the cluster deployment."
+                }
+              },
+              {
+                "name": "infobox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": true,
+                "options": {
+                  "icon": "Info",
+                  "text": "Private DNS zone, private DNS zone group, and virtual network link resources are needed to establish network connectivity with the storage account deployed for use by the cluster via private endpoint."
+                }
+              }
+            ],
+            "visible": true
           },
           {
             "name": "newexisting",
@@ -900,7 +958,7 @@
                 "label": "CycleCloud subnet",
                 "toolTip": "Select subnet for CycleCloud",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' (',if(contains(item.properties,'addressPrefix'),item.properties.addressPrefix,first(item.properties.addressPrefixes)), ')', '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
                 "visible": "[equals(steps('networking').newexisting,'existing')]"
@@ -911,7 +969,7 @@
                 "label": "Compute node subnet",
                 "toolTip": "Select subnet for compute nodes",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' (',if(contains(item.properties,'addressPrefix'),item.properties.addressPrefix,first(item.properties.addressPrefixes)), ')', '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
                 "visible": "[equals(steps('networking').newexisting,'existing')]"
@@ -919,10 +977,10 @@
               {
                 "name": "anfInfoBox1",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'))]",
+                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'), equals(0,length(first(map(filter(steps('networking').networkSettings.subNetProvidersApi.value, (item) => equals(item.name, steps('networking').networkSettings.filersubnet1)), (item) => filter(item.properties.delegations, (item) => equals(item.properties.serviceName, 'Microsoft.Netapp/volumes')))))))]",
                 "options": {
                   "icon": "Warning",
-                  "text": "Please confirm that the subnet selected below has the required Microsoft.NetApp/volumes delegation configured\nas specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
+                  "text": "The subnet selected below is missing the Microsoft.NetApp/volumes delegation required to use Azure NetApp Files.\nIt must have this delegation for the deployment to succeed.\n\nClick on this box to view the relevant official documentation in a new browser tab.",
                   "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
                 }
               },
@@ -932,7 +990,7 @@
                 "label": "Primary file-system subnet",
                 "toolTip": "Select subnet for primary file-system",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' (',if(contains(item.properties,'addressPrefix'),item.properties.addressPrefix,first(item.properties.addressPrefixes)), ')', '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
                 "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'))]"
@@ -940,10 +998,10 @@
               {
                 "name": "anfInfoBox2",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.filertype,'anf'))]",
+                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.filertype,'anf'), equals(0,length(first(map(filter(steps('networking').networkSettings.subNetProvidersApi.value, (item) => equals(item.name, steps('networking').networkSettings.filersubnet2)), (item) => filter(item.properties.delegations, (item) => equals(item.properties.serviceName, 'Microsoft.Netapp/volumes')))))))]",
                 "options": {
                   "icon": "Warning",
-                  "text": "Please confirm that the subnet selected below has the required Microsoft.NetApp/volumes delegation configured\nas specified in the Azure CycleCloud Workspace for Slurm documentation to ensure expected behavior.\n\nThe relevant official documentation may be viewed in a new browser tab by clicking on this box.",
+                  "text": "The subnet selected below is missing the Microsoft.NetApp/volumes delegation required to use Azure NetApp Files.\nIt must have this delegation for the deployment to succeed.\n\nClick on this box to view the relevant official documentation in a new browser tab.",
                   "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
                 }
               },
@@ -962,7 +1020,7 @@
                 "label": "Additional file-system subnet",
                 "toolTip": "Select subnet for additional file-system",
                 "constraints": {
-                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' - ',item.properties.addressPrefixes, '\",\"value\":\"', item.name, '\"}')))]",
+                  "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' (',if(contains(item.properties,'addressPrefix'),item.properties.addressPrefix,first(item.properties.addressPrefixes)), ')', '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
                 "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new'))]"
@@ -980,7 +1038,7 @@
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Create a NAT Gateway",
                 "toolTip": "Create a NAT Gateway for outbound traffic",
-                "defaultValue": false,
+                "defaultValue": true,
                 "visible": "[equals(steps('networking').newexisting,'new')]"
               },
               {
@@ -1017,6 +1075,110 @@
               }
             ],
             "visible": true
+          },
+          {
+            "name": "dnsZone",
+            "type": "Microsoft.Common.Section",
+            "label": "Private DNS zone",
+            "elements": [
+              {
+                "name": "dnsZoneInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": true,
+                "options": {
+                  "icon": "Info",
+                  "text": "Optionally automatically create private DNS zone and virtual network link resources or use existing ones to connect the virtual network chosen above with the cluster storage account via a private endpoint."
+                }
+              },
+              {
+                "name": "newDnsZoneWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('networking').dnsZone.newExisting,'new')]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "The cluster deployment will fail if the virtual network selected above has an existing link to a private DNS zone for\nAzure Blob Storage and the option to create a new such private DNS zone resource is chosen below."
+                }
+              },
+              {
+                "name": "newExisting",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Private DNS zone options",
+                "defaultValue": "Use an existing private DNS zone",
+                "toolTip": "Create a new or use an existing private DNS zone for Azure Blob Storage",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Use an existing private DNS zone",
+                      "value": "existing"
+                    },
+                    {
+                      "label": "Automatically create a new private DNS zone",
+                      "value": "new"
+                    },
+                    {
+                      "label": "Do not use a private DNS zone",
+                      "value": "none"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": true
+              },
+              {
+                "name": "dnsZoneSelector",
+                "type": "Microsoft.Solutions.ResourceSelector",
+                "label": "Private DNS zone",
+                "toolTip": "Select existing private DNS zone for Azure Blob Storage",
+                "resourceType": "Microsoft.Network/privateDnsZones",
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[equals(steps('networking').dnsZone.newExisting,'existing')]"
+              },
+              {
+                "name": "badDnsZoneWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('networking').dnsZone.newExisting,'existing')]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Select an appropriate private DNS zone to ensure that the cluster deployment will not fail and that the chosen virtual network can connect to Azure Blob Storage via a private endpoint.\n\nThe name of the chosen private DNS zone must be one of the following:\n • privatelink.blob.core.windows.net\n • privatelink.blob.core.usgovcloudapi.net"
+                }
+              },
+              {
+                "name": "vnetLinkProvidersApi",
+                "type": "Microsoft.Solutions.ArmApiControl",
+                "request": {
+                  "method": "GET",
+                  "path": "[concat(steps('networking').dnsZone.dnsZoneSelector.id,'/virtualNetworkLinks?api-version=2018-09-01')]"
+                }
+              }
+            ],
+            "visible": "[equals(steps('networking').newexisting,'existing')]"
+          },
+          {
+            "name": "vnetLink",
+            "type": "Microsoft.Common.Section",
+            "label": "Virtual network link",
+            "elements": [
+              {
+                "name": "vnetLinkWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": true,
+                "options": {
+                  "icon": "Warning",
+                  "text": "The selected private DNS zone is not linked to the selected virtual network.\n\nCheck the box below to create such a virtual network link resource for the cluster and ensure connectivity with the storage account that will be concurrently deployed for use by the cluster via private endpoint."
+                }
+              },
+              {
+                "name": "createVnetLink",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Create virtual network link",
+                "toolTip": "Automatically link the selected virtual network with the selected private DNS zone",
+                "defaultValue": false,
+                "visible": true
+              }
+            ],
+            "visible": "[if(and(equals(steps('networking').dnsZone.newExisting,'existing'),not(equals(0,length(steps('networking').networkSettings.networkSelector.id))),not(equals(0,length(steps('networking').dnsZone.dnsZoneSelector.id))),or(equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.windows.net'),equals(steps('networking').dnsZone.dnsZoneSelector.name,'privatelink.blob.core.usgovcloudapi.net'))),not(equals(length(filter(steps('networking').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),false)]"
           }
         ]
       },
@@ -1029,6 +1191,25 @@
             "type": "Microsoft.Common.Section",
             "label": "Cluster Configuration",
             "elements": [
+              {
+                "name": "startClusterInfo",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[steps('scheduler').clusterSettings.startCluster]",
+                "options": {
+                  "text": "Postponing the start of the cluster allows for additional configuration through the CycleCloud portal or with a custom cluster template. Click on this box to view the official Azure CycleCloud documentation in a new browser tab.",
+                  "uri": "https://learn.microsoft.com/azure/cyclecloud/?view=cyclecloud-8"
+                }
+              },
+              {
+                "name": "startCluster",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Start cluster",
+                "toolTip": "Automatically start the Slurm cluster following deployment completion",
+                "defaultValue": true,
+                "constraints": {
+                  "required": false
+                }
+              },
               {
                 "name": "acceptMarketplaceTerms",
                 "type": "Microsoft.Common.CheckBox",
@@ -1076,10 +1257,35 @@
                 "label": "Size",
                 "toolTip": "Select a size for the Scheduler VM",
                 "recommendedSizes": [
-                  "Standard_D4as_v4"
+                  "Standard_D4as_v5",
+                  "Standard_D4s_v5",
+                  "Standard_D4as_v4",
+                  "Standard_D4s_v4"
                 ],
                 "options": {
                   "hideDiskTypeFilter": true
+                },
+                "constraints": {
+                  "excludedSizes": [
+                    "Standard_D4as_v6",
+                    "Standard_D2als_v6",
+                    "Standard_D4als_v6",
+                    "Standard_D8als_v6",
+                    "Standard_D16als_v6",
+                    "Standard_D32als_v6",
+                    "Standard_D48als_v6",
+                    "Standard_D64als_v6",
+                    "Standard_D96als_v6",
+                    "Standard_D2s_v6",
+                    "Standard_D4s_v6",
+                    "Standard_D8s_v6",
+                    "Standard_D16s_v6",
+                    "Standard_D32s_v6",
+                    "Standard_D48s_v6",
+                    "Standard_D64s_v6",
+                    "Standard_D96s_v6",
+                    "Standard_D128s_v6"
+                  ]
                 },
                 "osPlatform": "Linux",
                 "visible": true
@@ -1418,13 +1624,20 @@
         "label": "Partition Settings",
         "elements": [
           {
-            "name": "infobox",
-            "type": "Microsoft.Common.InfoBox",
-            "visible": true,
-            "options": {
-              "icon": "Info",
-              "text": "Slurm uses partitions to distinguish different execute node types. We provide 3 common use cases, High-Throughput Compute (HTC), CPU-based High-Performance Compute (HPC) and GPU-based HPC (GPU)."
-            }
+            "name": "partitionSettings",
+            "type": "Microsoft.Common.Section",
+            "label": "Partition Settings",
+            "elements": [
+              {
+                "name": "header",
+                "type": "Microsoft.Common.TextBlock",
+                "visible": true,
+                "options": {
+                  "text": "Slurm uses partitions to distinguish different execute node types. This workspace provides for three common use cases: High-Throughput Compute (HTC), CPU-based High-Performance Compute (HPC), and GPU-based HPC (GPU)."
+                }
+              }
+            ],
+            "visible": true
           },
           {
             "name": "HTCSection",
@@ -1741,11 +1954,10 @@
             "elements": [
               {
                 "name": "oodInfo",
-                "type": "Microsoft.Common.InfoBox",
+                "type": "Microsoft.Common.TextBlock",
                 "visible": true,
                 "options": {
-                  "icon": "Info",
-                  "text": "Open OnDemand is an open-source, web-based portal developed by the Ohio Supercomputer Center (OSC) to provide easy access to high-performance computing (HPC) resources. This platform allows users to submit and monitor jobs, manage files, and run applications from anywhere, using just a web browser. The portal is designed to simplify the user experience, making it accessible for both novice and experienced HPC users."
+                  "text": "Open OnDemand is an open-source, web-based portal developed by the Ohio Supercomputer Center (OSC) to provide easy access to high-performance computing (HPC) resources. The platform allows users to submit and monitor jobs, manage files, and run applications from anywhere using only a web browser. The portal is designed to simplify the user experience, making it accessible for both novice and experienced HPC users."
                 }
               },
               {
@@ -1760,21 +1972,21 @@
                 "visible": true
               },
               {
-                "name": "oodFilesystemInfo",
+                "name": "oodLoginNodeInfo",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[steps('ood').OODSection.deployOOD]",
+                "visible": "[and(steps('ood').OODSection.deployOOD,equals(int(steps('scheduler').loginNodesSection.initialNodes),0))]",
                 "options": {
-                  "icon": "Info",
-                  "text": "Open OnDemand for Azure CycleCloud is best deployed with Azure NetApp Files used as the file-system for the /shared and /home directories."
+                  "icon": "Warning",
+                  "text": "Open OnDemand requires a minimum of one login node for use as a proxy between Azure CycleCloud and the Open OnDemand web server. Please review selections made under the Slurm Settings menu."
                 }
               },
               {
-                "name": "oodLoginNodeInfo",
+                "name": "oodFilesystemInfo",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[steps('ood').OODSection.deployOOD]",
+                "visible": "[and(steps('ood').OODSection.deployOOD,not(equals(steps('filesystem').shared.filertype,'anf')))]",
                 "options": {
-                  "icon": "Warning",
-                  "text": "Open OnDemand for Azure CycleCloud requires a minimum of one login node for use as a proxy between Azure CycleCloud and the Open OnDemand web server. Please review selections made under the Slurm Settings menu."
+                  "icon": "Info",
+                  "text": "Open OnDemand is best-deployed with Azure NetApp Files as the file-system for the /shared and /home directories."
                 }
               },
               {
@@ -1783,10 +1995,35 @@
                 "label": "Open OnDemand VM Size",
                 "toolTip": "Select a SKU for the Open OnDemand VM",
                 "recommendedSizes": [
-                  "Standard_D4as_v4"
+                  "Standard_D4as_v5",
+                  "Standard_D4s_v5",
+                  "Standard_D4as_v4",
+                  "Standard_D4s_v4"
                 ],
                 "options": {
                   "hideDiskTypeFilter": true
+                },
+                "constraints": {
+                  "excludedSizes": [
+                    "Standard_D4as_v6",
+                    "Standard_D2als_v6",
+                    "Standard_D4als_v6",
+                    "Standard_D8als_v6",
+                    "Standard_D16als_v6",
+                    "Standard_D32als_v6",
+                    "Standard_D48als_v6",
+                    "Standard_D64als_v6",
+                    "Standard_D96als_v6",
+                    "Standard_D2s_v6",
+                    "Standard_D4s_v6",
+                    "Standard_D8s_v6",
+                    "Standard_D16s_v6",
+                    "Standard_D32s_v6",
+                    "Standard_D48s_v6",
+                    "Standard_D64s_v6",
+                    "Standard_D96s_v6",
+                    "Standard_D128s_v6"
+                  ]
                 },
                 "osPlatform": "Linux",
                 "visible": "[steps('ood').OODSection.deployOOD]"
@@ -1847,17 +2084,89 @@
                 "toolTip": "Domain of user email addresses",
                 "constraints": {
                   "required": true,
-                  "regex": "^[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}$",
+                  "regex": "^(?!-)[A-Za-z0-9-]+(?<!-)(\\.[A-Za-z0-9-]+(?<!-))*\\.[A-Za-z]{2,}$",
                   "validationMessage": "Enter a valid domain name"
                 },
                 "visible": "[steps('ood').OODSection.deployOOD]"
               },
               {
+                "name": "fqdn",
+                "type": "Microsoft.Common.TextBox",
+                "label": "FQDN",
+                "defaultValue": "",
+                "toolTip": "FQDN for the Open OnDemand web server",
+                "constraints": {
+                  "required": false,
+                  "regex": "^(?!-)[A-Za-z0-9-]+(?<!-)(\\.[A-Za-z0-9-]+(?<!-))*\\.[A-Za-z]{2,}$",
+                  "validationMessage": "Enter a valid FQDN or leave blank"
+                },
+                "visible": "[steps('ood').OODSection.deployOOD]"
+              },
+              {
                 "name": "registerEntraIDApp",
+                "type": "Microsoft.Common.OptionsGroup",
+                "label": "Microsoft Entra ID Application Registration",
+                "defaultValue": "Automatically register an Entra ID Application",
+                "toolTip": "Register a Microsoft Entra ID Application for Open OnDemand authentication using OpenID Connect",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Automatically register an Entra ID Application",
+                      "value": "autoregister"
+                    },
+                    {
+                      "label": "Use existing Entra ID Application registration",
+                      "value": "existing"
+                    },
+                    {
+                      "label": "None",
+                      "value": "no"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": "[steps('ood').OODSection.deployOOD]"
+              },
+              {
+                "name": "managedIdentity",
+                "type": "Microsoft.Solutions.ResourceSelector",
+                "label": "Managed Identity",
+                "toolTip": "Select the user-assigned managed identity created for the federated credentials",
+                "resourceType": "Microsoft.ManagedIdentity/userAssignedIdentities",
+                "constraints": {
+                  "required": true,
+                  "validationMessage": "Please select a managed identity."
+                },
+                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
+              },
+              {
+                "name": "clientId",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Application (client) ID",
+                "defaultValue": "",
+                "toolTip": "Application or client ID of the Entra ID Application in the Azure AD tenant",
+                "constraints": {
+                  "required": true,
+                  "regex": "^(\\w{8}(-\\w{4}){3}-\\w{12}?)$",
+                  "validationMessage": "Enter a valid application (client) ID"
+                },
+                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
+              },
+              {
+                "name": "startClusterInfo",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[steps('ood').OODSection.startCluster]",
+                "options": {
+                  "text": "Postponing the start of the cluster allows for additional configuration through the CycleCloud portal or with a custom cluster template. Click on this box to view the official Azure CycleCloud documentation in a new browser tab.",
+                  "uri": "https://learn.microsoft.com/azure/cyclecloud/?view=cyclecloud-8"
+                }
+              },
+              {
+                "name": "startCluster",
                 "type": "Microsoft.Common.CheckBox",
-                "label": "Register an Entra ID Application",
-                "toolTip": "Register an Entra ID Application for Open OnDemand authentication using OpenID Connect",
-                "defaultValue": true,
+                "label": "Start cluster",
+                "toolTip": "Automatically start the Open OnDemand cluster following deployment completion",
+                "defaultValue": "[not(equals(steps('ood').OODSection.registerEntraIDApp,'manual'))]",
                 "constraints": {
                   "required": false
                 },
@@ -1918,10 +2227,10 @@
         "anfCapacityInTiB": "[if(equals(steps('filesystem').additional.filertype,'anf'),int(steps('filesystem').additional.anfcapacity),basics('nullValue'))]",
         "lustreTier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,basics('nullValue'))]",
         "lustreCapacityInTib": "[if(equals(steps('filesystem').additional.filertype,'aml'),int(steps('filesystem').additional.azurelustrecapacity),basics('nullValue'))]",
-        "ipAddress": "[if(equals(steps('filesystem').additional.newexisting,'existing'),steps('filesystem').additional.ipAddress,basics('nullValue'))]",
+        "ipAddress": "[if(equals(steps('filesystem').additional.newexisting,'existing'),if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.ipAddressAml,steps('filesystem').additional.ipAddressNfs),basics('nullValue'))]",
         "mountPath": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountPath, basics('nullValue'))]",
         "exportPath": "[if(or(and(equals(steps('filesystem').additional.filertype, 'anf'),equals(steps('filesystem').additional.newexisting,'existing')),and(equals(steps('filesystem').additional.filertype, 'nfs'),equals(steps('filesystem').additional.newexisting,'existing'))), steps('filesystem').additional.exportPath,basics('nullValue'))]",
-        "mountOptions": "[if(steps('filesystem').additionalCheck.checkbox, steps('filesystem').additional.mountOptions, basics('nullValue'))]"
+        "mountOptions": "[if(steps('filesystem').additionalCheck.checkbox,if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.mountOptionsAml,steps('filesystem').additional.mountOptionsNfs), basics('nullValue'))]"
       },
       "network": {
         "type": "[steps('networking').newexisting]",
@@ -1935,6 +2244,11 @@
         "createNatGateway": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.natgateway,basics('nullValue'))]",
         "vnetToPeer": "[if(steps('networking').networkSettings.peering,parse(concat('{','\"id\": \"',steps('networking').networkSettings.vnetPeeredVnetSelector.id,'\",','\"allowGatewayTransit\": ',string(steps('networking').networkSettings.gateway),'}')),basics('nullValue'))]"
       },
+      "storagePrivateDnsZone": {
+        "type": "[if(equals(steps('networking').newexisting,'new'),'new',steps('networking').dnsZone.newExisting)]",
+        "id": "[if(and(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),steps('networking').dnsZone.dnsZoneSelector.id)]",
+        "vnetLink": "[if(or(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),if(not(equals(length(filter(steps('networking').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),steps('networking').vnetLink.createVnetLink,false))]"
+      },
       "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
       "databaseConfig": {
         "type": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.dbConnection,'disabled')]",
@@ -1946,6 +2260,7 @@
       "clusterName": "[steps('scheduler').clusterSettings.clusterName]",
       "acceptMarketplaceTerms": "[steps('scheduler').clusterSettings.acceptMarketplaceTerms]",
       "slurmSettings": {
+        "startCluster": "[steps('scheduler').clusterSettings.startCluster]",
         "version": "[steps('scheduler').schedulerSection.slurmVersion]",
         "healthCheckEnabled": "[steps('scheduler').clusterSettings.healthCheck]"
       },
@@ -1977,10 +2292,14 @@
       },
       "ood": {
         "type": "[if(steps('ood').OODSection.deployOOD,'enabled','disabled')]",
+        "startCluster": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.startCluster,basics('nullValue'))]",
         "sku": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.vmsize,basics('nullValue'))]",
         "osImage": "[if(steps('ood').OODSection.deployOOD,if(equals(steps('ood').OODSection.ImageName,'custom'),steps('ood').OODSection.customImageName,steps('ood').OODSection.ImageName),basics('nullValue'))]",
         "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",
-        "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.registerEntraIDApp,basics('nullValue'))]"
+        "fqdn": "[if(not(equals(steps('ood').OODSection.fqdn,'')),steps('ood').OODSection.fqdn,basics('nullValue'))]",
+        "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,equals(steps('ood').OODSection.registerEntraIDApp,'autoregister'),basics('nullValue'))]",
+        "appId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.clientId,basics('nullValue'))]",
+        "appManagedIdentityId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.managedIdentity.id,basics('nullValue'))]"
       },
       "tags": "[steps('tags').tagsByResource]"
     }
