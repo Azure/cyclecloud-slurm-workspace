@@ -12,7 +12,7 @@ type shared_nfs_existing_t = {
 
 type shared_anf_new_t = {
   type: 'anf-new'
-  anfServiceTier: string
+  anfServiceLevel: string
   anfCapacityInTiB: int
 }
 
@@ -22,7 +22,7 @@ type sharedFilesystem_t = shared_nfs_new_t | shared_nfs_existing_t | shared_anf_
 
 type additional_anf_new_t = {
   type: 'anf-new'
-  anfServiceTier: string
+  anfServiceLevel: string
   anfCapacityInTiB: int
   mountPath: string
 }
@@ -81,8 +81,7 @@ type filerInfo_t = {
 
 type peered_vnet_t = {
   id: string
-  location: string
-  name: string
+  allowGatewayTransit: bool
 }
 
 type vnet_autocreate_t = {
@@ -96,12 +95,10 @@ type vnet_autocreate_t = {
   bastion: bool?
   createNatGateway: bool?
   vnetToPeer: peered_vnet_t?
-  peeringAllowGatewayTransit: bool?
 }
 
 type vnet_existing_t = {
   type: 'existing'
-  name: string
   id: string
   cyclecloudSubnet: string
   computeSubnet: string
@@ -134,30 +131,20 @@ type storagePrivateDnsZone_none_t = {
 type storagePrivateDnsZone_t = storagePrivateDnsZone_new_t | storagePrivateDnsZone_existing_t | storagePrivateDnsZone_none_t
 
 @export()
-type rsc_t = {
-  id: string 
-  name: string
-  rg: string
-}
-
-@export()
 type networkOutput_t = {
-  id: string
-  name: string
-  rg: string
   type: string
-  computeSubnetName: string
+  id: string
   computeSubnetId: string
 }
 
 @export()
 type subnets_t = {
-  cyclecloud: rsc_t
-  compute: rsc_t
-  home: rsc_t?
-  additional: rsc_t?
-  bastion: rsc_t?
-  database: rsc_t?
+  cyclecloud: string
+  compute: string
+  home: string?
+  additional: string?
+  bastion: string?
+  database: string?
 }
 
 @export()
@@ -221,36 +208,26 @@ type partitions_t = {
   gpu: hpc_t //if any property becomes optional, create a *_output_t type
 }
 
-@export()
-type storedKey_t = {
-  id: string
-  location: string
-  name: string
-}
-
 type db_none_t = {
   type: 'disabled'
 }
 
 type db_fqdn_t = {
   type: 'fqdn'
+  databaseUser: string
   fqdn: string
 }
 
 type db_privateIp_t = {
   type: 'privateIp'
+  databaseUser: string
   privateIp: string
-}
-
-type dbInfo_t = {
-  id: string
-  location: string
-  name: string
 }
 
 type db_privateEndpoint_t = {
   type: 'privateEndpoint'
-  dbInfo: dbInfo_t
+  databaseUser: string
+  dbId: string
 }
 
 @export()

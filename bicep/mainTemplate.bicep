@@ -6,7 +6,7 @@ param adminUsername string
 @secure()
 param adminPassword string
 param adminSshPublicKey string = '' 
-param storedKey types.storedKey_t = {id: 'foo', location: 'foo', name:'foo'}
+param storedKeyId string = ''
 @minLength(1)
 @maxLength(64)
 param ccVMName string

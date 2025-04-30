@@ -291,7 +291,7 @@
         "visible": true
       },
       {
-        "name": "autogeneratePasswordsAndKeys",
+        "name": "publicKeySource",
         "type": "Microsoft.Common.DropDown",
         "label": "SSH public key source",
         "defaultValue": "Use existing public key",
@@ -316,11 +316,11 @@
         "label": "Admin SSH Public Key",
         "toolTip": "SSH Public Key for the Virtual Machines",
         "constraints": {
-          "required": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]",
+          "required": "[equals(basics('publicKeySource'),'entered')]",
           "regex": "^ssh-[a-zA-Z0-9]+ [A-Za-z0-9+/=]+(?: .*)?$",
           "validationMessage": "Invalid SSH public key"
         },
-        "visible": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]"
+        "visible": "[equals(basics('publicKeySource'),'entered')]"
       },
       {
         "name": "keySelector",
@@ -337,7 +337,7 @@
           "required": true,
           "validationMessage": "Please select a stored SSH key."
         },
-        "visible": "[equals(basics('autogeneratePasswordsAndKeys'),'stored')]"
+        "visible": "[equals(basics('publicKeySource'),'stored')]"
       },
       {
         "name": "nullValue",
@@ -434,7 +434,7 @@
                 }
               },
               {
-                "name": "anftier",
+                "name": "anfLevel",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Service Level",
                 "defaultValue": "Premium",
@@ -625,7 +625,7 @@
                 }
               },
               {
-                "name": "anftier",
+                "name": "anfLevel",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Service Level",
                 "defaultValue": "Premium",
@@ -1295,7 +1295,7 @@
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
                 "defaultValue": "Ubuntu 22.04",
-                "toolTip": "Select the image to use for the Login Nodes",
+                "toolTip": "Select the image to use for the Scheduler node",
                 "constraints": {
                   "allowedValues": [
                     {
@@ -1420,7 +1420,7 @@
                 },
                 "toolTip": "Password for the Slurm accounting database admin user",
                 "constraints": {
-                  "required": "[not(equals(basics('autogeneratePasswordsAndKeys'),1))]",
+                  "required": "[not(equals(basics('publicKeySource'),1))]",
                   "regex": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_\\-+=[\\]{}|\\\\:'\",.?`~\";]).{8,123}$",
                   "validationMessage": "Your password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character (@ # $ % ^ & * - _ ! + = [ ] { } | \\ : ' , . ? ` ~ \" ( ) ; )"
                 },
@@ -1541,7 +1541,7 @@
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
                 "defaultValue": "Ubuntu 22.04",
-                "toolTip": "Select the image to use for the Login Nodes",
+                "toolTip": "Select the image to use for the Login nodes",
                 "constraints": {
                   "allowedValues": [
                     {
@@ -2207,15 +2207,15 @@
       "location": "[location()]",
       "adminUsername": "[basics('adminUser')]",
       "adminPassword": "[basics('adminPasswordBox')]",
-      "adminSshPublicKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
-      "storedKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'stored'),basics('keySelector'),basics('nullValue'))]",
+      "adminSshPublicKey": "[if(equals(basics('publicKeySource'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
+      "storedKeyId": "[if(equals(basics('publicKeySource'),'stored'),basics('keySelector').id,basics('nullValue'))]",
       "ccVMName": "[basics('CycleCloudVmName')]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
       "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
       "sharedFilesystem": {
         "type": "[concat(if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs'),'-',steps('filesystem').shared.newexisting)]",
         "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),int(steps('filesystem').shared.nfscapacity),basics('nullValue'))]",
-        "anfServiceTier": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,basics('nullValue'))]",
+        "anfServiceLevel": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anfLevel,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').shared.filertype,'anf'),int(steps('filesystem').shared.anfcapacity),basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,basics('nullValue'))]",
         "exportPath": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,basics('nullValue'))]",
@@ -2223,7 +2223,7 @@
       },
       "additionalFilesystem": {
         "type": "[if(steps('filesystem').additionalCheck.checkbox,concat(steps('filesystem').additional.filertype,'-',steps('filesystem').additional.newexisting),'disabled')]",
-        "anfServiceTier": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,basics('nullValue'))]",
+        "anfServiceLevel": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anfLevel,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').additional.filertype,'anf'),int(steps('filesystem').additional.anfcapacity),basics('nullValue'))]",
         "lustreTier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,basics('nullValue'))]",
         "lustreCapacityInTib": "[if(equals(steps('filesystem').additional.filertype,'aml'),int(steps('filesystem').additional.azurelustrecapacity),basics('nullValue'))]",
@@ -2234,7 +2234,6 @@
       },
       "network": {
         "type": "[steps('networking').newexisting]",
-        "name": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.networkSelector.name)]",
         "addressSpace": "[if(equals(steps('networking').newexisting,'new'),concat(steps('networking').networkSettings.baseIpAddress,steps('networking').networkSettings.cidrPrefix),basics('nullValue'))]",
         "id": "[if(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.networkSelector.id,basics('nullValue'))]",
         "cyclecloudSubnet": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.ccsubnet)]",
@@ -2243,8 +2242,7 @@
         "additionalFilerSubnet": "[if(and(steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new')),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.filersubnet2),basics('nullValue'))]",
         "bastion": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.bastion,basics('nullValue'))]",
         "createNatGateway": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.natgateway,basics('nullValue'))]",
-        "vnetToPeer": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,basics('nullValue'))]",
-        "peeringAllowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]"
+        "vnetToPeer": "[if(steps('networking').networkSettings.peering,parse(concat('{','\"id\": \"',steps('networking').networkSettings.vnetPeeredVnetSelector.id,'\",','\"allowGatewayTransit\": ',string(steps('networking').networkSettings.gateway),'}')),basics('nullValue'))]"
       },
       "storagePrivateDnsZone": {
         "type": "[if(equals(steps('networking').newexisting,'new'),'new',steps('networking').dnsZone.newExisting)]",
@@ -2257,7 +2255,7 @@
         "databaseUser": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseUser,basics('nullValue'))]",
         "fqdn": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'fqdn'),steps('scheduler').schedulerSection.databaseURL,basics('nullValue'))]",
         "privateIp": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateIp'),steps('scheduler').schedulerSection.databasePIP,basics('nullValue'))]",
-        "dbInfo": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint'),steps('scheduler').schedulerSection.dbSelector,basics('nullValue'))]"
+        "dbId": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint'),steps('scheduler').schedulerSection.dbSelector.id,basics('nullValue'))]"
       },
       "clusterName": "[steps('scheduler').clusterSettings.clusterName]",
       "acceptMarketplaceTerms": "[steps('scheduler').clusterSettings.acceptMarketplaceTerms]",
