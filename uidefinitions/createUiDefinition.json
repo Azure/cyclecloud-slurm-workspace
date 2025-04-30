@@ -2171,10 +2171,18 @@
               {
                 "name": "startClusterInfo",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[steps('ood').OODSection.startCluster]",
+                "visible": "[and(not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),steps('ood').OODSection.startCluster)]",
                 "options": {
                   "text": "Postponing the start of the cluster allows for additional configuration through the CycleCloud portal or with a custom cluster template. Click on this box to view the official Azure CycleCloud documentation in a new browser tab.",
                   "uri": "https://learn.microsoft.com/azure/cyclecloud/?view=cyclecloud-8"
+                }
+              },
+              {
+                "name": "startClusterManualRegistration",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(steps('ood').OODSection.deployOOD,equals(steps('ood').OODSection.registerEntraIDApp,'manual'))]",
+                "options": {
+                  "text": "The Open OnDemand cluster will not automatically start to allow for completion of the Microsoft Entra ID Application registration. Additional configuration through the CycleCloud portal or with a custom cluster template is also possible."
                 }
               },
               {
@@ -2182,11 +2190,11 @@
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Start cluster",
                 "toolTip": "Automatically start the Open OnDemand cluster following deployment completion",
-                "defaultValue": "[not(equals(steps('ood').OODSection.registerEntraIDApp,'manual'))]",
+                "defaultValue": true,
                 "constraints": {
                   "required": false
                 },
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": "[and(steps('ood').OODSection.deployOOD,not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')))]"
               }
             ],
             "visible": true
@@ -2453,7 +2461,7 @@
       },
       "ood": {
         "type": "[if(steps('ood').OODSection.deployOOD,'enabled','disabled')]",
-        "startCluster": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.startCluster,basics('nullValue'))]",
+        "startCluster": "[if(steps('ood').OODSection.deployOOD,if(not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),steps('ood').OODSection.startCluster,false),basics('nullValue'))]",
         "sku": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.vmsize,basics('nullValue'))]",
         "osImage": "[if(steps('ood').OODSection.deployOOD,if(equals(steps('ood').OODSection.ImageName,'custom'),steps('ood').OODSection.customImageName,steps('ood').OODSection.ImageName),basics('nullValue'))]",
         "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",
