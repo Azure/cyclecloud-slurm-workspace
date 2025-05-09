@@ -1607,7 +1607,7 @@
               {
                 "name": "initialNodes",
                 "type": "Microsoft.Common.TextBox",
-                "label": "Initial number of login nodes",
+                "label": "Initial number of nodes",
                 "defaultValue": "1",
                 "toolTip": "Enter a number between 0 and 1000",
                 "constraints": {
@@ -1620,7 +1620,7 @@
               {
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
-                "label": "Max number of nodes",
+                "label": "Maximum number of nodes",
                 "defaultValue": "1",
                 "toolTip": "Enter a number between 1 and 1000",
                 "constraints": {
@@ -1679,13 +1679,13 @@
               {
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
-                "label": "Max number of nodes",
+                "label": "Maximum number of nodes",
                 "defaultValue": "100",
-                "toolTip": "Enter an integer between 1 and 1000",
+                "toolTip": "Enter 0 to not use this partition",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?:[1-9]\\d{0,2}|1000)$",
-                  "validationMessage": "Please enter an integer between 1 and 1000"
+                  "regex": "^(?:[0-9]\\d{0,2}|1000)$",
+                  "validationMessage": "Please enter an integer between 0 and 1000"
                 },
                 "visible": true
               },
@@ -1779,13 +1779,13 @@
               {
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
-                "label": "Max number of nodes",
+                "label": "Maximum number of nodes",
                 "defaultValue": "16",
-                "toolTip": "Enter an integer between 1 and 1000",
+                "toolTip": "Enter 0 to not use this partition",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?:[1-9]\\d{0,2}|1000)$",
-                  "validationMessage": "Please enter an integer between 1 and 1000"
+                  "regex": "^(?:[0-9]\\d{0,2}|1000)$",
+                  "validationMessage": "Please enter an integer between 0 and 1000"
                 },
                 "visible": true
               },
@@ -1882,13 +1882,13 @@
               {
                 "name": "maxNodes",
                 "type": "Microsoft.Common.TextBox",
-                "label": "Max number of nodes",
+                "label": "Maximum number of nodes",
                 "defaultValue": "8",
-                "toolTip": "Enter an integer between 1 and 1000",
+                "toolTip": "Enter 0 to not use this partition",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?:[1-9]\\d{0,2}|1000)$",
-                  "validationMessage": "Please enter an integer between 1 and 1000"
+                  "regex": "^(?:[0-9]\\d{0,2}|1000)$",
+                  "validationMessage": "Please enter an integer between 0 and 1000"
                 },
                 "visible": true
               },
