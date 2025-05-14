@@ -12,7 +12,7 @@ var create_anf = contains(filerTypes, 'anf-new')
 var create_anf_subnet = create_anf ? (sharedFilesystem.type == 'anf-new' ? network.?sharedFilerSubnet : network.?additionalFilerSubnet) : null
 var create_lustre = additionalFilesystem.type == 'aml-new'
 var deploy_bastion = network.?bastion ?? false
-var create_database = false //update once MySQL capacity is available
+var create_database = databaseConfig.type == 'create'  //update once MySQL capacity is available
 param natGatewayId string 
 param databaseConfig types.databaseConfig_t
 var create_private_endpoint = databaseConfig.type == 'privateEndpoint'

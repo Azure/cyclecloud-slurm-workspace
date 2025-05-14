@@ -203,7 +203,7 @@ module mySQLccw './mysql.bicep' = if (create_database) {
     location: location
     tags: getTags('Microsoft.DBforMySQL/flexibleServers', tags)
     Name: db_name
-    adminUser: adminUsername
+    adminUser: databaseConfig.?databaseUser
     adminPassword: databaseAdminPassword
     subnetId: subnets.database.id
   }
@@ -377,7 +377,7 @@ output tenantId string = subscription().tenantId
 // output databaseFQDN string = create_database ? mySQLccw.outputs.fqdn : ''
 output databaseInfo types.databaseOutput_t = databaseConfig.type != 'disabled' ?{
   databaseUser: databaseConfig.?databaseUser
-  url: databaseConfig.type == 'fqdn' ? databaseConfig.?fqdn : databaseConfig.type == 'privateIp' ? databaseConfig.?privateIp : ccwNetwork.outputs.?databaseFQDN 
+  url: databaseConfig.type == 'fqdn' ? databaseConfig.?fqdn : databaseConfig.type == 'privateIp' ? databaseConfig.?privateIp : databaseConfig.type == 'create' ? mySQLccw.outputs.fqdn : ccwNetwork.outputs.?databaseFQDN 
 } : {}
 output azureEnvironment string = envNameToCloudMap[environment().name]
 output nodeArrayTags types.tags_t = tags[?'Node Array'] ?? {}
