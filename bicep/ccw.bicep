@@ -7,6 +7,7 @@ param insidersBuild bool
 
 param branch string
 param projectVersion string
+param pyxisProjectVersion string
 
 param adminUsername string
 @secure()
@@ -217,6 +218,7 @@ module ccwAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
     subnetId: subnets.?additional.id ?? ''
     sku: additionalFilesystem.?lustreTier
     capacity: additionalFilesystem.?lustreCapacityInTib
+    availabilityZone:  additionalFilesystem.?availabilityZone ?? []
     infrastructureOnly: infrastructureOnly
   }
   dependsOn: [
@@ -242,6 +244,7 @@ module ccwANF 'anf.bicep' = [
       serviceLevel: filer.value.anfServiceTier
       sizeTiB: filer.value.anfCapacityInTiB
       defaultMountOptions: anfDefaultMountOptions
+      availabilityZone:  filer.value.?availabilityZone ?? []
       infrastructureOnly: infrastructureOnly
     }
     dependsOn: [
@@ -253,6 +256,7 @@ module ccwANF 'anf.bicep' = [
 
 var deployOOD = ood.type != 'disabled'
 var registerOODApp = ood.?registerEntraIDApp ?? false
+var createOODMI = deployOOD && ood.?appManagedIdentityId == null
 
 var oodNicName = 'ccwOpenOnDemandNIC'
 module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
@@ -267,13 +271,13 @@ module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
 
 // create a user assigned managed identity to be assigned to the OOD VM
 var oodManagedIdentityName = 'ccwOpenOnDemandManagedIdentity'
-resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (registerOODApp) {
+resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (createOODMI) {
   name: oodManagedIdentityName
   location: location
 }
 
 var oodAppName = 'CycleCloudOpenOnDemandApp-${uniqueString(az.resourceGroup().id)}'
-module oodApp 'oodEntraApp.bicep' = if (registerOODApp) {
+module oodApp 'ood/oodEntraApp.bicep' = if (registerOODApp) {
   name: 'oodApp'
   params: {
     umiName: oodManagedIdentityName
@@ -303,7 +307,7 @@ output filerInfoFinal types.filerInfo_t = {
       :additionalFilesystem.?exportPath ?? ''
     mountOptions: additionalFilesystem.type == 'anf-new'
       ? ccwANF[0].outputs.mountOptions
-      : additionalFilesystem.?mountOptions ?? ''
+      : additionalFilesystem.type == 'aml-new' ? ccwAMLFS.outputs.mountOptions : additionalFilesystem.?mountOptions ?? ''
     mountPath: additionalFilesystem.?mountPath ?? ''
   }
 }
@@ -312,7 +316,7 @@ output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.pr
 
 output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
 
-// Automatically inject the ccw cluster init spec
+// Automatically inject the ccw and pyxis cluster init specs
 
 var ccwClusterInitSpec = {
   type: 'gitHubReleaseURL'
@@ -321,10 +325,16 @@ var ccwClusterInitSpec = {
   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
 }
 
-// Projects <= 2025.02.06 have the nvme and pyxis logic embedded in the ccw cluster init spec
-// var requiredClusterInitSpecs = projectVersion >= '2025.02.06' ? [ccwClusterInitSpec, nvmeClusterInitSpec, pyxisClusterInitSpec] : [ccwClusterInitSpec]
-// For now, assume we just need ccwClusterInitSpec until we remove the scripts from the ccw repo
-var requiredClusterInitSpecs = [ccwClusterInitSpec]
+var pyxisClusterInitSpec = {
+  type: 'gitHubReleaseURL'
+  gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-pyxis/releases/tag/', pyxisProjectVersion)
+  spec: 'default'
+  target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
+}
+
+// Projects <= 2025.02.06 have the pyxis logic embedded in the ccw cluster init spec
+var requiredClusterInitSpecs = [ccwClusterInitSpec, pyxisClusterInitSpec]
+
 output clusterInitSpecs types.cluster_init_param_t = union(requiredClusterInitSpecs, clusterInitSpecs)
 
 output slurmSettings types.slurmSettings_t = slurmSettings
@@ -334,12 +344,12 @@ output schedulerNode types.scheduler_t = schedulerNode
 output loginNodes types.login_t = loginNodes
 
 output partitions types.partitions_t = {
-  htc: {
+  htc: union({
     sku: htc.sku
     maxNodes: htc.maxNodes
     osImage: htc.osImage
     useSpot: htc.?useSpot ?? false
-  }
+  }, contains(htc,'availabilityZone') ? { availabilityZone: htc.?availabilityZone } : {})
   hpc: hpc
   gpu: gpu
 }
@@ -379,9 +389,22 @@ output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
 
 output ood object = union(ood, {
-  version: '1.0.0'
+  version: '1.0.1'
   nic: deployOOD ? oodNIC.outputs.NICId : ''
-  managedIdentity: deployOOD ? registerOODApp ? oodApp.outputs.oodMiId : ood.?appManagedIdentityId : ''
+  managedIdentity: deployOOD ? createOODMI ? oodNewManagedIdentity.id : ood.?appManagedIdentityId : ''
   clientId: deployOOD ? registerOODApp ? oodApp.outputs.oodClientAppId : ood.?appId : ''
   tenantId: deployOOD ? subscription().tenantId : ''
 })
+
+output oodManualRegistration object = {
+  appName: oodAppName
+  umiName: oodManagedIdentityName
+  fqdn: deployOOD ? oodNIC.outputs.privateIp : ''
+}
+
+output files object = {
+  availability_zones_json: loadTextContent('./files-to-load/encoded/availability_zones.json.base64')
+  create_cc_param_py: loadTextContent('./files-to-load/encoded/create_cc_param.py.base64')
+  cyclecloud_install_py: loadTextContent('./files-to-load/encoded/cyclecloud_install.py.base64')
+  initial_params_json: loadTextContent('./files-to-load/encoded/initial_params.json.base64')
+}

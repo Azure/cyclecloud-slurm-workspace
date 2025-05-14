@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 # This script builds the ARM template and UI definition for the marketplace solution
-
-VERSION="2025.02.06"
+cd $(dirname $0)/
+VERSION="2025.04.24"
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -18,6 +18,13 @@ if [ "$BRANCH" == "HEAD" ]; then
     exit 2
 fi
 
+# az deployment create --template-uri requires a json file. This ensures that we have a json file
+# that matches what the current bicep file would generate. Note we remove the generator version, as this will
+# give false positives in the diff
+# AGB: Using absolute path to avoid issues with relative paths in az bicep commands
+az bicep build -f $(pwd)/bicep/ood/oodEntraApp.bicep --stdout | jq -r 'del(.metadata._generator)' > bicep/ood/oodEntraApp.json
+git diff --exit-code bicep/ood/oodEntraApp.json
+
 # run tests 
 pushd bicep-test
 bicep test test.bicep
@@ -26,28 +33,11 @@ popd
 UI_DEFINITION=${GIT_ROOT}/uidefinitions/createUiDefinition.json
 
 build_dir="${GIT_ROOT}/build"
-rm -rf "$build_dir"
-mkdir -p "$build_dir"
 
-echo "Copying UI definition"
-cp "$UI_DEFINITION" "$build_dir"
-python3 bicep-typeless.py
+PYTHONPATH=util/ python3 util/build.py build --branch $BRANCH --build-dir "$build_dir" --ui-definition "$UI_DEFINITION" 
 
-echo "Converting Bicep to ARM template"
-az bicep build --file "${GIT_ROOT}/bicep-typeless/mainTemplate.bicep" --outdir "$build_dir"
-rm -rf bicep-typeless
-
-echo Adding branch=$BRANCH to build/mainTemplate.json
-cat > build_sh_python_tmp.py<<EOF
-import json
-with open("build/mainTemplate.json") as fr:
-    mainTemplate = json.load(fr)
-mainTemplate["parameters"]["branch"] = {"type": "string", "defaultValue": "$BRANCH"}
-with open("build/mainTemplate.json", "w") as fw:
-    json.dump(mainTemplate, fw, indent=2)
-EOF
-python3 build_sh_python_tmp.py
-rm -f build_sh_python_tmp.py
+# Check if base 64-encoded utility files used by install.sh are the same as the prior commit
+git diff --exit-code bicep/files-to-load/encoded
 
 echo "Creating zipfile"
 pushd "$build_dir"

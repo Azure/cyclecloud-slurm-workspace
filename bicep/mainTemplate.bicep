@@ -39,7 +39,8 @@ param insidersBuild bool = false
 // build.sh will override this, but for development please set this yourself as a parameter
 param branch string = 'main'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
-param projectVersion string = '2025.02.06'
+param projectVersion string = '2025.04.24'
+param pyxisProjectVersion string = '1.0.0'
 //Internal developer use only: set true use custom CycleCloud release build 
 param manualInstall bool = false
 
@@ -50,7 +51,10 @@ resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
 }
 
 module makeCCWresources 'ccw.bicep' = {
-  name: 'pid-d5d2708b-a4ef-42c0-a89b-b8bd6dd6d29b-partnercenter'
+  // prod
+  // name: 'pid-d5d2708b-a4ef-42c0-a89b-b8bd6dd6d29b-partnercenter'
+  // preview - remember to change this in install.sh
+  name: 'pid-b3313305-4e26-4c98-93c5-06d5412cb53d-partnercenter'
   scope: ccwResourceGroup
   params: {
     location: location
@@ -80,6 +84,7 @@ module makeCCWresources 'ccw.bicep' = {
     clusterName: clusterName
     branch: branch
     projectVersion: projectVersion
+    pyxisProjectVersion: pyxisProjectVersion
     manualInstall: manualInstall
     acceptMarketplaceTerms: acceptMarketplaceTerms
     ood: ood

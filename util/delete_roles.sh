@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+cd "$( dirname "${BASH_SOURCE[0]}" )"/..
+
 DELETE_RG=0
 RG=""
 HELP=0
@@ -48,7 +50,8 @@ if [ -z "$LOCATION" ]; then
     LOCATION='eastus'
 fi
 echo Resource group $RG is in location $LOCATION
-RG_PATH=util/${RG}
+# AGB: Using absolute path to avoid issues with relative paths in az bicep commands
+RG_PATH=$(pwd)/util/${RG}
 mkdir -p $RG_PATH
 CLEANUP_JSON_PATH=${RG_PATH}/.role_assignment_cleanup.json
 CLEANUP_OUTOUT_JSON_PATH=${RG_PATH}/.role_assignment_cleanup_output.json
@@ -69,7 +72,8 @@ cat > $CLEANUP_JSON_PATH<<EOF
 EOF
 
 echo Recreating resource group $RG to get the GUIDs of the roles created in the initial CCW deployment
-az deployment sub create --location $LOCATION --template-file ./bicep/roleAssignmentCleanup.bicep -n $RG-cleanup-$LOCATION --parameters $CLEANUP_JSON_PATH > $CLEANUP_OUTOUT_JSON_PATH
+# AGB: Using absolute path to avoid issues with relative paths in az bicep commands
+az deployment sub create --location $LOCATION --template-file $(pwd)/bicep/roleAssignmentCleanup.bicep -n $RG-cleanup-$LOCATION --parameters $CLEANUP_JSON_PATH > $CLEANUP_OUTOUT_JSON_PATH
 
 assignment_names=$(cat $CLEANUP_OUTOUT_JSON_PATH | jq -r ".properties.outputs.names.value[]")
 echo Deleting, if they exist, the following role IDs: $assignment_names

@@ -77,7 +77,7 @@ if command -v apt; then
     #apt install -y 
 else
     retry_command "yum update -y --exclude=cyclecloud*" 5 60
-    retry_command "yum install -y wget jq"
+    retry_command "yum install -y jq"
 
 fi
 
@@ -108,7 +108,10 @@ fi
 # Add retry logic as it could take some delay to apply the Managed Identity
 timeout 360s bash -c 'until az login -i; do sleep 10; done'
 
-deployment_name='pid-d5d2708b-a4ef-42c0-a89b-b8bd6dd6d29b-partnercenter'
+# prod pid
+# deployment_name='pid-d5d2708b-a4ef-42c0-a89b-b8bd6dd6d29b-partnercenter'
+# dev pid
+deployment_name='pid-b3313305-4e26-4c98-93c5-06d5412cb53d-partnercenter'
 resource_group=$(echo $mds | jq -r '.compute.resourceGroupName')
 vm_id=$(echo $mds | jq -r '.compute.vmId')
 
@@ -122,7 +125,6 @@ pushd $ccw_root
 echo "* Extracting deployment output"
 az deployment group show -g $resource_group -n $deployment_name --query properties.outputs > ccwOutputs.json
 BRANCH=$(jq -r .branch.value $ccw_root/ccwOutputs.json)
-URI="https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/$BRANCH/bicep"
 MANUAL=$(jq -r .manualInstall.value $ccw_root/ccwOutputs.json)
 
 if [ "$MANUAL" == "true" ]; then
@@ -130,8 +132,8 @@ if [ "$MANUAL" == "true" ]; then
     if [ -z "$LOCAL_PACKAGE" ]; then
         echo "No local package path provided."
         echo "Copying install.sh to /opt/ccw and exiting."
-        wget -O install.sh $URI/install.sh
         popd
+        cp /var/lib/cloud/instance/user-data.txt $ccw_root/install.sh
         exit 0
     else 
         echo "Local package path provided."
@@ -150,10 +152,21 @@ mkdir -p $ccw_root/bin
 PROJECT_VERSION=$(jq -r .projectVersion.value ccwOutputs.json)
 SECRETS_FILE_PATH="/root/ccw.secrets.json"
 
-# we don't want create_cc_param.py.1 etc if someone reruns this script, so use -O to overwrite existing files
-wget -O create_cc_param.py $URI/files-to-load/create_cc_param.py
-wget -O initial_params.json $URI/files-to-load/initial_params.json
-wget -O cyclecloud_install.py $URI/files-to-load/cyclecloud_install.py
+FILES=$(jq -r .files.value ccwOutputs.json)
+#get all the keys in FILES
+keys=$(echo $FILES | jq -r 'keys[]')
+for key in $keys; do
+    # Split the string on '_'
+    IFS='_' read -r -a split_key <<< "$key"
+    # Take the last bit
+    extension="${split_key[-1]}"
+    filename="${key%_$extension}"
+    filecontent=$(echo $FILES | jq -r .$key)
+    # Print the file name
+    echo "Processing $filename.$extension"
+    # Create the file with the value decoded from base 64
+    echo $filecontent | base64 --decode > "$filename.$extension"
+done
 while [ ! -f "$SECRETS_FILE_PATH" ]; do
     echo "Waiting for VM to create secrets file..."
     sleep 1
@@ -271,6 +284,16 @@ done
 
 # needs to be done after initialization, as we now call fetch/upload
 (python3 create_cc_param.py slurm --dbPassword="${DATABASE_ADMIN_PASSWORD}") > slurm_params.json 
+
+if [[ -n $(/opt/cycle_server/./cycle_server execute 'select * from Cloud.Cluster where ClusterName=="slurm_template_3.0.11"') ]]; then 
+    cp availability_zones.json /opt/cycle_server/config/data/
+    sleep 1
+    while [ -e /opt/cycle_server/config/data/availability_zones.json ]; do
+        echo "Waiting for availability_zones.json to be imported..."
+        sleep 5
+    done
+    echo "availability_zones.json imported successfully"
+fi
 
 # copying template parameters file to admin user's home directory
 cp slurm_params.json "${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}/slurm_params.json"
