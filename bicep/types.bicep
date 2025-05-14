@@ -262,9 +262,13 @@ type db_privateEndpoint_t = {
   dbInfo: dbInfo_t
 }
 
+type db_create_t = {
+  type: 'create'
+}
+
 @export()
 @discriminator('type')
-type databaseConfig_t = db_none_t | db_fqdn_t | db_privateIp_t | db_privateEndpoint_t
+type databaseConfig_t = db_none_t | db_fqdn_t | db_privateIp_t | db_privateEndpoint_t | db_create_t
 
 @export()
 type databaseOutput_t = {
