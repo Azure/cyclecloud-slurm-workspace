@@ -1,5 +1,23 @@
 [
     {
+        "AdType": "Cloud.Node",
+        "ClusterName": "slurm_template_3.0.11",
+        "Name": "htc",
+        "Zone": "${HTCAvailabilityZone}"
+    },
+    {
+        "AdType": "Cloud.Node",
+        "ClusterName": "slurm_template_3.0.11",
+        "Name": "hpc",
+        "Zone": "${HPCAvailabilityZone}"
+    },
+    {
+        "AdType": "Cloud.Node",
+        "ClusterName": "slurm_template_3.0.11",
+        "Name": "gpu",
+        "Zone": "${GPUAvailabilityZone}"
+    },
+    {
         "Conditions": {
             "Hidden": {
                 "$expr": "!DefineNodesAvailabilityZone"
