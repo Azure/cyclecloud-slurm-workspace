@@ -20,7 +20,7 @@ function check_host_renaming() {
       # Get current hostname
       current_hostname=$(hostname | tr '[:upper:]' '[:lower:]')
       # Get hostname associated with the IP address
-      hostname_in_hosts=$(getent hosts $(ifconfig eth0 | grep "inet " | xargs) | xargs | cut -d ' ' -f2 | tr '[:upper:]' '[:lower:]') | cut -d'.' -f1
+      hostname_in_hosts=$(getent hosts $(ifconfig eth0 | grep "inet " | xargs) | xargs | cut -d ' ' -f2 | tr '[:upper:]' '[:lower:]' | cut -d'.' -f1)
       logger -s "Current hostname: $current_hostname"
       logger -s "Hostname returned by 'getent hosts': $hostname_in_hosts"
       logger -s "Target hostname: $target_hostname"
