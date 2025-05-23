@@ -16,6 +16,11 @@ function check_host_renaming() {
   if [[ $standalone_dns != "true" ]]; then
     # Get the target hostname
     target_hostname=$($JETPACK config cyclecloud.node.name | tr '[:upper:]' '[:lower:]')
+    if is_login; then
+      # Get the target hostname from the login node - these do not have the cluster name in them.
+      escaped_cluster_name=$(python3 -c "import re; print(re.sub('[^a-zA-Z0-9-]', '-', '$($JETPACK config cyclecloud.cluster.name)').lower())")
+      target_hostname=${escaped_cluster_name}-$($JETPACK config cyclecloud.node.name | tr '[:upper:]' '[:lower:]')
+    fi
     while true; do
       # Get current hostname
       current_hostname=$(hostname | tr '[:upper:]' '[:lower:]')
@@ -60,6 +65,6 @@ function check_host_renaming() {
   fi
 }
 
-if is_compute; then
+if is_compute || is_login; then
   check_host_renaming
 fi
