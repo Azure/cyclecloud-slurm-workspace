@@ -96,6 +96,11 @@ def set_slurm_params(params, dbPassword, outputs):
         params['AdditionalNFSMountOptions'] = outputs['filerInfoFinal']['value']['additional']['mountOptions']
         params['AdditionalNFSAddress'] = outputs['filerInfoFinal']['value']['additional']['ipAddress']
 
+    # Monitoring
+    params['MonitoringEnabled'] = outputs['monitoringIngestionEndpoint']['value'] != ''
+    params['MonitoringIngestionEndpoint'] = outputs['monitoringIngestionEndpoint']['value']
+    params['MonitoringIdentityClientId'] = outputs['managedIdentityId']['value']
+
 
 def set_ood_params(params, outputs):
     slurm_params = get_json_dict('initial_params.json')

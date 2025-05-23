@@ -63,7 +63,8 @@ fetch_outputs() {
 az deployment group show -g "$HUB_RG_NAME" -n "hub-vnet${SUFFIX}" --query properties.outputs > hub-vnet-outputs.json
 az deployment group show -g "$HUB_RG_NAME" -n "hub-anf-resources${SUFFIX}" --query properties.outputs > hub-anf-outputs.json
 az deployment group show -g "$HUB_RG_NAME" -n "hub-db${SUFFIX}" --query properties.outputs > hub-db-outputs.json
-cp cyclecloud-monitoring/infra/outputs.json hub-monitoring-outputs.json
+[ -f cyclecloud-monitoring/infra/outputs.json ] && cp cyclecloud-monitoring/infra/outputs.json hub-monitoring-outputs.json
+# az deployment group show -g "$HUB_RG_NAME" -n ingestionEndpoint --query properties.outputs > hub-monitoring-outputs.json
 }
 
 fetch_outputs
@@ -98,7 +99,7 @@ replace_fields ".databaseConfig={ value: { type: \"privateIp\", databaseUser: \"
 replace_fields ".databaseAdminPassword={ value: \"$DB_PASSWORD\" }"
 
 # monitoring 
-MONITORING_INGESTION_ENDPOINT=$(jq -r '.properties.outputs.ingestionEndpoint.value' hub-monitoring-outputs.json)
+MONITORING_INGESTION_ENDPOINT=$([ -f hub-monitoring-outputs.json ] && jq -r '.properties.outputs.ingestionEndpoint.value' hub-monitoring-outputs.json || echo "")
 
 az deployment sub create \
     --location "$LOCATION" \
