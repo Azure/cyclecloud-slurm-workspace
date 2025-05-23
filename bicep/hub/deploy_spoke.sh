@@ -2,11 +2,52 @@
 
 cd "$(dirname "$0")"
 
-RG="gb200-hub-westus2"
-SUFFIX="-${RG}"
-SPOKE_NUMBER="1"
+# hub params
+HUB_RG_NAME=""
 
-LOCATION='westus2'
+# spoke params
+LOCATION=""
+SPOKE_NUMBER=""
+
+# Parse arguments
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -rg|--hub-resource-group)
+            HUB_RG_NAME="$2"
+            shift 2
+            ;;
+        -s|--spoke-number)
+            SPOKE_NUMBER="$2"
+            shift 2
+            ;;
+        -l|--location)
+            LOCATION="$2"
+            shift 2
+            ;;
+        -h|--help)
+            echo "Usage: $0 --hub-resource-group <hub resource group name> --location <Azure region> --spoke-number <nth spoke>"
+            echo "       or: $0 -rg <hub resource group name> -l <Azure region> -s <nth spoke>"
+            exit 0
+            ;;
+        *)
+            echo "Unknown parameter: $1"
+            echo "Use --help for usage information."
+            exit 1
+            ;;
+    esac
+done
+
+# Validate inputs
+if [ -z "$RESOURCE_GROUP" ] || [ -z "$LOCATION" ] || [ -z "$SPOKE_NUMBER" ]; then
+    echo "Error: --resource-group, --location, --spoke-number are required."
+    echo "Use --help for usage information."
+    exit 1
+fi
+
+# hub
+SUFFIX="-${HUB_RG_NAME}"
+
+# spoke
 SPOKE_RG_NAME="gb200-ccw-${LOCATION}-0${SPOKE_NUMBER}-rg"
 SPOKE_DEPLOYMENT_NAME="spoke-ccw-0${SPOKE_NUMBER}"
 
@@ -19,9 +60,9 @@ if az deployment sub show -g -n "${SPOKE_DEPLOYMENT_NAME}" > /dev/null 2>&1; the
 fi
 
 fetch_outputs() {
-az deployment group show -g "$RG" -n "hub-vnet${SUFFIX}" --query properties.outputs > hub-vnet-outputs.json
-az deployment group show -g "$RG" -n "hub-anf-resources${SUFFIX}" --query properties.outputs > hub-anf-outputs.json
-az deployment group show -g "$RG" -n "hub-db${SUFFIX}" --query properties.outputs > hub-db-outputs.json
+az deployment group show -g "$HUB_RG_NAME" -n "hub-vnet${SUFFIX}" --query properties.outputs > hub-vnet-outputs.json
+az deployment group show -g "$HUB_RG_NAME" -n "hub-anf-resources${SUFFIX}" --query properties.outputs > hub-anf-outputs.json
+az deployment group show -g "$HUB_RG_NAME" -n "hub-db${SUFFIX}" --query properties.outputs > hub-db-outputs.json
 cp cyclecloud-monitoring/infra/outputs.json hub-monitoring-outputs.json
 }
 
@@ -45,7 +86,7 @@ replace_fields ".network.value.addressSpace=\"$ADDRESS_SPACE\""
 
 # vnet to peer 
 PEERED_VNET_ID=$(jq -r '.vnetId.value' hub-vnet-outputs.json)
-PEERED_VNET_NAME=$(echo $PEERED_VNET_ID | cut -d '/' -f9)
+PEERED_VNET_NAME=$(echo "${PEERED_VNET_ID}" | cut -d '/' -f9)
 PEERED_VNET_LOCATION=$(az network vnet show -g "$RG" -n "$PEERED_VNET_NAME" --query location -o tsv | tr -d '\r\n')
 replace_fields ".network.value.vnetToPeer={ name: \"$PEERED_VNET_NAME\", id: \"$PEERED_VNET_ID\", location: \"$PEERED_VNET_LOCATION\", subscriptionName: \"\"}"
 
