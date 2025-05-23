@@ -44,6 +44,8 @@ param monitoringProjectVersion string = '1.0.0'
 //Internal developer use only: set true use custom CycleCloud release build 
 param manualInstall bool = false
 
+param monitoringIngestionEndpoint string
+
 resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: resourceGroup
   location: location
@@ -85,6 +87,7 @@ module makeCCWresources 'ccw.bicep' = {
     branch: branch
     projectVersion: projectVersion
     monitoringProjectVersion: monitoringProjectVersion
+    monitoringIngestionEndpoint: monitoringIngestionEndpoint
     manualInstall: manualInstall
     acceptMarketplaceTerms: acceptMarketplaceTerms
     ood: ood

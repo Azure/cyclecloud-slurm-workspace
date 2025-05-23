@@ -6,15 +6,23 @@ RG="gb200-hub-westus2"
 SUFFIX="-${RG}"
 SPOKE_NUMBER="1"
 
+LOCATION='westus2'
+SPOKE_RG_NAME="gb200-ccw-${LOCATION}-0${SPOKE_NUMBER}-rg"
+SPOKE_DEPLOYMENT_NAME="spoke-ccw-0${SPOKE_NUMBER}"
+
+if az deployment sub show -g -n "${SPOKE_DEPLOYMENT_NAME}" > /dev/null 2>&1; then
+    RG_EXISTS=$(az group exists -n "$SPOKE_RG_NAME" | tr -d '\r\n')
+    if [ "$RG_EXISTS" = "false" ]; then
+        echo "Spoke #${SPOKE_NUMBER} already exists. Please set a new spoke number. Exiting."
+        exit 0
+    fi
+fi
+
 fetch_outputs() {
 az deployment group show -g "$RG" -n "hub-vnet${SUFFIX}" --query properties.outputs > hub-vnet-outputs.json
 az deployment group show -g "$RG" -n "hub-anf-resources${SUFFIX}" --query properties.outputs > hub-anf-outputs.json
 az deployment group show -g "$RG" -n "hub-db${SUFFIX}" --query properties.outputs > hub-db-outputs.json
-
-# Monitoring NTS: Copy cc-monitoring outputs to directory containing hub outputs
-# cp /path/to/outputs.json hub-monitoring-outputs.json
-
-# TODO: blob storage
+cp cyclecloud-monitoring/infra/outputs.json hub-monitoring-outputs.json
 }
 
 fetch_outputs
@@ -48,17 +56,8 @@ DB_PASSWORD=$(jq -r '.adminPassword.value' db_params.json)
 replace_fields ".databaseConfig={ value: { type: \"privateIp\", databaseUser: \"$DB_USERNAME\", privateIp: \"$DB_IP\" }}"
 replace_fields ".databaseAdminPassword={ value: \"$DB_PASSWORD\" }"
 
-LOCATION='westus2'
-SPOKE_RG_NAME="gb200-ccw-${LOCATION}-0${SPOKE_NUMBER}-rg"
-SPOKE_DEPLOYMENT_NAME="spoke-ccw-0${SPOKE_NUMBER}"
-
-if az deployment sub show -g -n "${SPOKE_DEPLOYMENT_NAME}" > /dev/null 2>&1; then
-    RG_EXISTS=$(az group exists -n "$SPOKE_RG_NAME" | tr -d '\r\n')
-    if [ "$RG_EXISTS" = "false" ]; then
-        echo "Spoke #${SPOKE_NUMBER} already exists. Please set a new spoke number. Exiting."
-        exit 0
-    fi
-fi
+# monitoring 
+MONITORING_INGESTION_ENDPOINT=$(jq -r '.properties.outputs.ingestionEndpoint.value' hub-monitoring-outputs.json)
 
 az deployment sub create \
     --location "$LOCATION" \
@@ -68,5 +67,6 @@ az deployment sub create \
     --parameters resourceGroup="${SPOKE_RG_NAME}" \
     --parameters ccVMName="ccw-${SPOKE_NUMBER}-cyclecloud-vm" \
     --parameters clusterName="ccw-${SPOKE_NUMBER}" \
+    --parameters monitoringIngestionEndpoint="${MONITORING_INGESTION_ENDPOINT}" \
     --name "spoke-ccw-0${SPOKE_DEPLOYMENT_NAME}" 
  

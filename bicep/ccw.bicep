@@ -8,6 +8,7 @@ param insidersBuild bool
 param branch string
 param projectVersion string
 param monitoringProjectVersion string
+param monitoringIngestionEndpoint string
 
 param adminUsername string
 @secure()
@@ -315,6 +316,7 @@ output filerInfoFinal types.filerInfo_t = {
 output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.principalId
 
 output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
+output monitoringIngestionEndpoint string = monitoringIngestionEndpoint
 
 // Automatically inject the ccw and monitoring cluster init specs
 
