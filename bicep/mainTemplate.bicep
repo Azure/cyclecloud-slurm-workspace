@@ -40,7 +40,7 @@ param insidersBuild bool = false
 param branch string = 'main'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
 param projectVersion string = '2025.04.24'
-param pyxisProjectVersion string = '1.0.0'
+param monitoringProjectVersion string = '1.0.0'
 //Internal developer use only: set true use custom CycleCloud release build 
 param manualInstall bool = false
 
@@ -84,7 +84,7 @@ module makeCCWresources 'ccw.bicep' = {
     clusterName: clusterName
     branch: branch
     projectVersion: projectVersion
-    pyxisProjectVersion: pyxisProjectVersion
+    monitoringProjectVersion: monitoringProjectVersion
     manualInstall: manualInstall
     acceptMarketplaceTerms: acceptMarketplaceTerms
     ood: ood

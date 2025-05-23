@@ -80,6 +80,7 @@ func subnet_ranges(decomp_ip object, subnet object) object => {
   compute: '${decomp_ip.o1}.${decomp_ip.o2}.${decomp_ip.o3+subnet.compute.o3}.${decomp_ip.o4+subnet.compute.o4}/${subnet.compute.cidr}'
 }
 
+@export()
 func subnet_config(ip string) object => subnet_ranges(decompose_ip(ip),subnet_octets(get_cidr(ip)))
 
 var subnet_cidr = subnet_config(address)
@@ -165,7 +166,9 @@ var nsg_rules = {
     AllowCycleClientComputeIn: ['460', 'Inbound', 'Allow', 'Tcp', 'CycleCloud', 'subnet', 'compute', 'subnet', 'cyclecloud']
 
     // Deny all remaining traffic
-    DenyVnetInbound: ['3100', 'Inbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
+    // TODO: Parameterize this rule or condition on peering choice
+    AllowVnetInbound: ['3100', 'Inbound', 'Allow', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
+    // DenyVnetInbound: ['3100', 'Inbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
 
     //
     // OUTBOUND RULES
@@ -183,7 +186,9 @@ var nsg_rules = {
 
     // Deny all remaining traffic and allow Internet access
     AllowInternetOutBound: ['3000', 'Outbound', 'Allow', 'Tcp', 'All', 'tag', 'VirtualNetwork', 'tag', 'Internet']
-    DenyVnetOutbound: ['3100', 'Outbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
+    // TODO: Parameterize this rule or condition on peering choice
+    AllowVnetOutbound: ['3100', 'Outbound', 'Allow', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
+    //DenyVnetOutbound: ['3100', 'Outbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
   }
   // TODO : Need to be validated
   mysql: {

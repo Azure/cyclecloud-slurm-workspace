@@ -7,7 +7,7 @@ param insidersBuild bool
 
 param branch string
 param projectVersion string
-param pyxisProjectVersion string
+param monitoringProjectVersion string
 
 param adminUsername string
 @secure()
@@ -202,7 +202,7 @@ module mySQLccw './mysql.bicep' = if (create_database) {
   params: {
     location: location
     tags: getTags('Microsoft.DBforMySQL/flexibleServers', tags)
-    Name: db_name
+    // Name: db_name
     adminUser: adminUsername
     adminPassword: databaseAdminPassword
     subnetId: subnets.database.id
@@ -316,7 +316,7 @@ output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.pr
 
 output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
 
-// Automatically inject the ccw and pyxis cluster init specs
+// Automatically inject the ccw and monitoring cluster init specs
 
 var ccwClusterInitSpec = {
   type: 'gitHubReleaseURL'
@@ -325,15 +325,15 @@ var ccwClusterInitSpec = {
   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
 }
 
-var pyxisClusterInitSpec = {
+var monitoringClusterInitSpec = {
   type: 'gitHubReleaseURL'
-  gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-pyxis/releases/tag/', pyxisProjectVersion)
+  gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-monitoring/releases/tag/', monitoringProjectVersion)
   spec: 'default'
   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
 }
 
-// Projects <= 2025.02.06 have the pyxis logic embedded in the ccw cluster init spec
-var requiredClusterInitSpecs = [ccwClusterInitSpec, pyxisClusterInitSpec]
+// Use of azslurm 4.0 does not require pyxis
+var requiredClusterInitSpecs = [ccwClusterInitSpec, monitoringClusterInitSpec]
 
 output clusterInitSpecs types.cluster_init_param_t = union(requiredClusterInitSpecs, clusterInitSpecs)
 
@@ -389,7 +389,7 @@ output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
 
 output ood object = union(ood, {
-  version: '1.0.1'
+  version: '1.1.0'
   nic: deployOOD ? oodNIC.outputs.NICId : ''
   managedIdentity: deployOOD ? createOODMI ? oodNewManagedIdentity.id : ood.?appManagedIdentityId : ''
   clientId: deployOOD ? registerOODApp ? oodApp.outputs.oodClientAppId : ood.?appId : ''

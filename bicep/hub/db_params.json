@@ -1,14 +1,11 @@
 {
-    "Name": {
-        "value": "gb200-hub"
-    },
     "adminUser": {
         "value": "hpcadmin"
     },
     "adminPassword": {
         "value": "royGbiv!1"
     },
-    "subnetId": {
-        "value": "/subscriptions/820a6cdf-49cb-4a89-9113-ccc4d94feb32/resourceGroups/gb200-hub/providers/Microsoft.Network/virtualNetworks/vnet/subnets/database"
+    "tags": {
+        "value": {}
     }
 }

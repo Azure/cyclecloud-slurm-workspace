@@ -31,6 +31,13 @@ var vnet  = {
           'Microsoft.DBforMySQL/flexibleServers'
         ]
       }
+      bastion: {
+        name: 'AzureBastionSubnet'
+        cidr: subnet_cidr.bastion
+        nat_gateway : true
+        service_endpoints: []
+        delegations: []
+      }
     }
 }
 
@@ -67,3 +74,5 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
     ]
   }
 }
+
+output vnetId string = virtualNetwork.id

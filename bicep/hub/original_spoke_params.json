@@ -1,0 +1,116 @@
+{
+  "adminUsername": {
+    "value": "hpcadmin"
+  },
+  "adminPassword": {
+    "value": "royGbiv!1"
+  },
+  "adminSshPublicKey": {
+    "value": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCxuk0+FlxDyOsDtY/XTbLW8xcQFGsCuz+SayUUfRIqV1+QR9WNppujIwR5Sf30PmoJWGu0fNAz1Gd7rpGbNIfustZW7lTAWZkZb9UavswiRCRog1EdYPugEuqTPJtULFUdND4pX7G92DCPTtScPnrAKK6j9iVIDq81hiV2n/xtieidz3UhTXztjFpiNdbNGTWVV94IbqSB/PGwbrphs5ApkBxli8W2EIVhINUCcxXB7O256fMsTg//I/4+Vi5pTGcC+3XM8KGTfQhNopDRBFDT4C58aT4xGb63D2wQJaPDJXMqAns3H+1YRs4G/JWGe1S5FIYb1qScO5D1IGC3pDizteQ5bL5EbzMw4cgVtboq04bVA07L/9rsQqO50+IG+wA/iYUvKSEtpwQej++80Hsli0wJ+mb9cCc0VUa0TO1tS7jiQqKEonslDij2YMZEkXEj961DB1H4MlJeJT7cNCSeZ9Ms5iZiVnGz7gwA6zsWjQgWQcx0G70QEWGrHEjgNAs= redmond\\abatallas@LAPTOP-G2QDGDV1"
+  },
+  "ccVMSize": {
+    "value": "Standard_D4as_v5"
+  },
+  "sharedFilesystem": {
+    "value": {
+      "type": "nfs-existing",
+      "ipAddress": "0.0.0.0",
+      "exportPath": "/home-path",
+      "mountOptions": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8"
+    }
+  },
+  "additionalFilesystem": {
+    "value": {
+      "type": "disabled"
+    }
+  },
+  "network": {
+    "value": {
+      "type": "new",
+      "addressSpace": "10.1.0.0/24",
+      "bastion": false,
+      "createNatGateway": true,
+      "vnetToPeer": {
+        "name": "t-abatallas-vnet",
+        "id": "/subscriptions/1dc1b726-3fdf-40a5-b356-3b8bd6227e52/resourceGroups/t-abatallas-rg/providers/Microsoft.Network/virtualNetworks/t-abatallas-vnet",
+        "location": "eastus",
+        "subscriptionName": ""
+      },
+      "peeringAllowGatewayTransit": true
+    }
+  },
+  "storagePrivateDnsZone": {
+    "value": {
+      "type": "new"
+    }
+  },
+  "databaseAdminPassword": {
+    "value": "royGbiv!1"
+  },
+  "databaseConfig": {
+    "value": {
+      "type": "privateIp",
+      "databaseUser": "hpcadmin",
+      "privateIp": "10.0.0.228"
+    }
+  },
+  "acceptMarketplaceTerms": {
+    "value": false
+  },
+  "slurmSettings": {
+    "value": {
+      "startCluster": false,
+      "version": "24.11.3-1",
+      "healthCheckEnabled": false
+    }
+  },
+  "schedulerNode": {
+    "value": {
+      "sku": "Standard_D4as_v5",
+      "osImage": "cycle.image.ubuntu22"
+    }
+  },
+  "loginNodes": {
+    "value": {
+      "sku": "Standard_F4s_v2",
+      "osImage": "cycle.image.ubuntu24",
+      "initialNodes": 1,
+      "maxNodes": 1
+    }
+  },
+  "htc": {
+    "value": {
+      "sku": "Standard_F2s_v2",
+      "maxNodes": 100,
+      "osImage": "cycle.image.ubuntu24",
+      "useSpot": false
+    }
+  },
+  "hpc": {
+    "value": {
+      "sku": "Standard_D2plds_v6",
+      "maxNodes": 16,
+      "osImage": "cycle.image.ubuntu24"
+    }
+  },
+  "gpu": {
+    "value": {
+      "sku": "Standard_NC24ads_A100_v4",
+      "maxNodes": 8,
+      "osImage": "cycle.image.ubuntu24"
+    }
+  },
+  "ood": {
+    "value": {
+      "type": "enabled",
+      "startCluster": false,
+      "sku": "Standard_D4as_v5",
+      "osImage": "cycle.image.ubuntu24",
+      "userDomain": "microsoft.com",
+      "registerEntraIDApp": true
+    }
+  },
+  "tags": {
+    "value": {}
+  }
+}

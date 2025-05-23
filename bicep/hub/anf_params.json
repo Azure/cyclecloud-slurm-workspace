@@ -1,14 +1,11 @@
 {
-    "name": {
-        "value": "gb200-hub"
-    },
-    "subnetId": {
-        "value": "/subscriptions/820a6cdf-49cb-4a89-9113-ccc4d94feb32/resourceGroups/gb200-hub/providers/Microsoft.Network/virtualNetworks/vnet/subnets/netapp"
-    },
     "serviceLevel": {
         "value": "Premium"
     },
     "sizeTiB": {
         "value": 4
+    },
+    "tags": {
+        "value": {}
     }
 }
