@@ -3,10 +3,8 @@
     "value": "hpcadmin"
   },
   "adminPassword": {
-    "value": "royGbiv!1"
   },
   "adminSshPublicKey": {
-    "value": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCxuk0+FlxDyOsDtY/XTbLW8xcQFGsCuz+SayUUfRIqV1+QR9WNppujIwR5Sf30PmoJWGu0fNAz1Gd7rpGbNIfustZW7lTAWZkZb9UavswiRCRog1EdYPugEuqTPJtULFUdND4pX7G92DCPTtScPnrAKK6j9iVIDq81hiV2n/xtieidz3UhTXztjFpiNdbNGTWVV94IbqSB/PGwbrphs5ApkBxli8W2EIVhINUCcxXB7O256fMsTg//I/4+Vi5pTGcC+3XM8KGTfQhNopDRBFDT4C58aT4xGb63D2wQJaPDJXMqAns3H+1YRs4G/JWGe1S5FIYb1qScO5D1IGC3pDizteQ5bL5EbzMw4cgVtboq04bVA07L/9rsQqO50+IG+wA/iYUvKSEtpwQej++80Hsli0wJ+mb9cCc0VUa0TO1tS7jiQqKEonslDij2YMZEkXEj961DB1H4MlJeJT7cNCSeZ9Ms5iZiVnGz7gwA6zsWjQgWQcx0G70QEWGrHEjgNAs= redmond\\abatallas@LAPTOP-G2QDGDV1"
   },
   "ccVMSize": {
     "value": "Standard_D4as_v5"
@@ -45,7 +43,6 @@
     }
   },
   "databaseAdminPassword": {
-    "value": "royGbiv!1"
   },
   "databaseConfig": {
     "value": {
