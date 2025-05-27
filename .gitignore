@@ -407,4 +407,5 @@ arm-ttk/
 
 # delete_roles.sh files
 util/.role_assignment_cleanup*
+bicep/hub/build/
 bicep/hub/params/*.json
