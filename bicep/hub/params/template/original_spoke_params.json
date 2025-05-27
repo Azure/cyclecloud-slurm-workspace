@@ -3,6 +3,7 @@
     "value": "hpcadmin"
   },
   "adminPassword": {
+    "value": ""
   },
   "adminSshPublicKey": {
   },
@@ -43,6 +44,7 @@
     }
   },
   "databaseAdminPassword": {
+    "value": ""
   },
   "databaseConfig": {
     "value": {
