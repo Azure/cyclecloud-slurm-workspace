@@ -1,4 +1,7 @@
 {
+  "manualInstall": {
+    "value": true
+  },
   "adminUsername": {
     "value": "hpcadmin"
   },
@@ -31,9 +34,9 @@
       "bastion": false,
       "createNatGateway": true,
       "vnetToPeer": {
-        "name": "t-abatallas-vnet",
-        "id": "/subscriptions/1dc1b726-3fdf-40a5-b356-3b8bd6227e52/resourceGroups/t-abatallas-rg/providers/Microsoft.Network/virtualNetworks/t-abatallas-vnet",
-        "location": "eastus",
+        "name": "AUTOMATED",
+        "id": "AUTOMATED",
+        "location": "AUTOMATED",
         "subscriptionName": ""
       },
       "peeringAllowGatewayTransit": true

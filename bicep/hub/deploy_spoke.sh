@@ -83,20 +83,31 @@ fetch_outputs() {
         echo "outputs/hub-vnet-outputs.json already fetched. Skipping."
     else
         echo "Fetching outputs for hub vnet..."
-        az deployment group show -g "$HUB_RG_NAME" -n "hub-vnet${SUFFIX}" --query properties.outputs > outputs/hub-vnet-outputs.json
+        az deployment group show -g "$HUB_RG_NAME" -n "hub-vnet${SUFFIX}" --query properties.outputs > outputs/hub-vnet-outputs.json.tmp
+        mv outputs/hub-vnet-outputs.json.tmp outputs/hub-vnet-outputs.json
+    fi
+
+    if [ -f outputs/hub-mi-outputs.json ]; then
+        echo "outputs/hub-mi-outputs.json already fetched. Skipping."
+    else
+        echo "Fetching outputs for hub managed identity..."
+        az deployment group show -g "$HUB_RG_NAME" -n "${HUB_RG_NAME}-hub-mi" --query properties.outputs > outputs/hub-mi-outputs.json.tmp
+        mv outputs/hub-mi-outputs.json.tmp outputs/hub-mi-outputs.json
     fi
 
     if [ -f outputs/hub-anf-outputs.json ]; then
         echo "outputs/hub-anf-outputs.json already fetched. Skipping."
     else
         echo "Fetching outputs for hub ANF..."
-        az deployment group show -g "$HUB_RG_NAME" -n "hub-anf-resources${SUFFIX}" --query properties.outputs > outputs/hub-anf-outputs.json
+        az deployment group show -g "$HUB_RG_NAME" -n "hub-anf-resources${SUFFIX}" --query properties.outputs > outputs/hub-anf-outputs.json.tmp
+        mv outputs/hub-anf-outputs.json.tmp outputs/hub-anf-outputs.json
     fi
     if [ -f outputs/hub-db-outputs.json ]; then
         echo "outputs/hub-db-outputs.json already fetched. Skipping."
     else
         echo "Fetching outputs for hub MySQL database..."
-        az deployment group show -g "$HUB_RG_NAME" -n "hub-db${SUFFIX}" --query properties.outputs > outputs/hub-db-outputs.json
+        az deployment group show -g "$HUB_RG_NAME" -n "hub-db${SUFFIX}" --query properties.outputs > outputs/hub-db-outputs.json.tmp
+        mv outputs/hub-db-outputs.json.tmp outputs/hub-db-outputs.json
     fi
     if [ -f outputs/hub-monitoring-outputs.json ]; then
         echo "outputs/hub-monitoring-outputs.json already fetched. Skipping."
@@ -110,7 +121,8 @@ fetch_outputs() {
 
 fetch_outputs
 
-cp params/original_spoke_params.json spoke_params.json
+# copy original spoke params, as a working copy
+cp params/base_spoke_params.json spoke_params.json
 
 replace_fields() {
     jq "$1" spoke_params.json > tmp_spoke_params.json && mv tmp_spoke_params.json spoke_params.json
@@ -141,11 +153,9 @@ replace_fields ".databaseConfig={ value: { type: \"privateIp\", databaseUser: \"
 replace_fields ".databaseAdminPassword={ value: \"$DB_PASSWORD\" }"
 
 # monitoring 
-# TODO these are standin values - we need to implement the mi for the hub,
-# in testing I have just used a manually create MI.
-# MONITORING_INGESTION_ENDPOINT=
-# MONITORING_CLIENT_ID=
-# HUB_MI_NAME=
+MONITORING_INGESTION_ENDPOINT=$(jq -r '.ingestionEndpoint.value' outputs/hub-monitoring-outputs.json)
+MONITORING_CLIENT_ID=$(jq -r '.hubMIClientId.value' outputs/hub-mi-outputs.json)
+HUB_MI=$(jq -r '.hubMI.value' outputs/hub-mi-outputs.json)
 if [ -z "$MONITORING_INGESTION_ENDPOINT" ] || [ -z "$MONITORING_CLIENT_ID" ]; then
     echo "Monitoring ingestion endpoint or client ID not set. Please edit the script to set them directly until hub MI automation is implemented."
     exit 1
@@ -153,7 +163,7 @@ fi
 
 replace_fields ".monitoringIngestionEndpoint.value=\"$MONITORING_INGESTION_ENDPOINT\""
 replace_fields ".monitoringIdentityClientId.value=\"$MONITORING_CLIENT_ID\""
-replace_fields ".hubMI.value=\"$HUB_MI_NAME\""
+replace_fields ".hubMI.value=\"$HUB_MI\""
 
 echo "Deploying spoke #${SPOKE_NUMBER} in resource group ${SPOKE_RG_NAME} at location ${LOCATION}... ${WHATIF_FLAG}"
 az deployment sub create \

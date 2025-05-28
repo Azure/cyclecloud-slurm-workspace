@@ -80,6 +80,10 @@ az deployment group create \
 
 echo "Virtual network deployment is complete. Please enter the Azure Portal to create a VPN Gateway while the remainder of this script runs."
 
+echo "Deploying hub managed identity..."
+./create_hub_mi.sh "${RESOURCE_GROUP}" "${LOCATION}"
+
+echo "Deploying Bastion"
 # Deploy Bastion
 bastion_subnet_id=$(az network vnet subnet show -g "${RESOURCE_GROUP}" -n AzureBastionSubnet --vnet-name "hub-vnet-${RESOURCE_GROUP}" | jq '.id' | tr -d '"')
 az deployment group create \
@@ -92,6 +96,7 @@ az deployment group create \
     $WHATIF_FLAG
 
 # Deploy MySQL server 
+echo "Deploying MySQL server"
 db_subnet_id=$(az network vnet subnet show -g "${RESOURCE_GROUP}" -n database --vnet-name "hub-vnet-${RESOURCE_GROUP}" | jq '.id' | tr -d '"')
 az deployment group create \
     --resource-group "${RESOURCE_GROUP}" \
@@ -103,6 +108,7 @@ az deployment group create \
     $WHATIF_FLAG
 
 # Deploy Azure NetApp Files
+echo "Deploying Azure NetApp Files"
 netapp_subnet_id=$(az network vnet subnet show -g "${RESOURCE_GROUP}" -n netapp --vnet-name "hub-vnet-${RESOURCE_GROUP}" | jq '.id' | tr -d '"')
 az deployment group create \
     --resource-group "${RESOURCE_GROUP}" \
@@ -110,7 +116,8 @@ az deployment group create \
     --parameters location="${LOCATION}" \
     --name "hub-anf-account-${RESOURCE_GROUP}" \
     $WHATIF_FLAG
-    
+
+echo "Deploying Azure NetApp Files volumes"    
 az deployment group create \
     --resource-group "$RESOURCE_GROUP" \
     --template-file "$(pwd)/../anf.bicep"\
@@ -123,7 +130,7 @@ az deployment group create \
 
 # Deploy monitoring
 MONITORING_PROJECT_VERSION="1.0.0"
-
+echo "Deploying monitoring"
 mkdir build/
 pushd build
 git clone --branch "${MONITORING_PROJECT_VERSION}" https://github.com/Azure/cyclecloud-monitoring.git
@@ -138,3 +145,5 @@ fi
 popd
 popd
 popd
+
+echo "Done!"

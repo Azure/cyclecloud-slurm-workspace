@@ -1,8 +1,8 @@
 targetScope = 'resourceGroup'
 import {tags_t} from '.././types.bicep'
-import * as exports from './exports.bicep'
+import * as exports from '.././exports.bicep'
 
-param name string = '{resourceGroup().name}-mi'
+param name string = '${resourceGroup().name}-mi'
 param location string = resourceGroup().location
 param tags tags_t = {}
 
@@ -15,18 +15,19 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
 
 var roles = [
     'Storage Blob Data Reader'
-    'Storage Blob Data Constributor'
+    'Storage Blob Data Contributor'
     'Monitoring Metrics Publisher'
   ]
 
 resource roleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01' = [ for role in roles: {
-  name: guid(subscription().id, principalId, exports.role_lookup[role])
-  scope: storageAccount
+  name: guid(subscription().id, managedIdentity.id, exports.role_lookup[role])
+  scope: resourceGroup()
   properties: {
     roleDefinitionId: exports.role_lookup[role]
-    
-    principalType: 'ResourceGroup'
+    principalId: managedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
   }
 }]
 
 output hubMI string = managedIdentity.id
+output hubMIClientId string = managedIdentity.properties.clientId
