@@ -3,6 +3,7 @@
         "value": "hpcadmin"
     },
     "adminPassword": {
+        "value": "ENTER_YOUR_PASSWORD_HERE"
     },
     "tags": {
         "value": {}

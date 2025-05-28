@@ -3,9 +3,10 @@
     "value": "hpcadmin"
   },
   "adminPassword": {
-    "value": ""
+    "value": "ENTER_YOUR_PASSWORD_HERE"
   },
   "adminSshPublicKey": {
+    "value": "ENTER_YOUR_PUBLIC_SSH_KEY_HERE"
   },
   "ccVMSize": {
     "value": "Standard_D4as_v5"
@@ -78,6 +79,14 @@
     }
   },
   "htc": {
+    "value": {
+      "sku": "Standard_F2s_v2",
+      "maxNodes": 100,
+      "osImage": "cycle.image.ubuntu24",
+      "useSpot": false
+    }
+  },
+  "htc2": {
     "value": {
       "sku": "Standard_F2s_v2",
       "maxNodes": 100,
