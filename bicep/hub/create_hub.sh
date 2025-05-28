@@ -1,8 +1,11 @@
 #!/bin/bash
+set -e
 
 # Initialize variables
 RESOURCE_GROUP=""
 LOCATION=""
+WHATIF=false
+FORCE=false
 
 # Parse arguments
 while [ "$#" -gt 0 ]; do
@@ -15,9 +18,19 @@ while [ "$#" -gt 0 ]; do
             LOCATION="$2"
             shift 2
             ;;
+        --what-if)
+            WHATIF=true
+            shift
+            ;;
+        --force)
+            FORCE=true
+            shift
+            ;;
         -h|--help)
-            echo "Usage: $0 --resource-group <resource group name> --location <Azure region>"
-            echo "       or: $0 -rg <resource group name> -l <Azure region>"
+            echo "Usage: $0 --resource-group <resource group name> --location <Azure region> [--what-if] [--force]"
+            echo "       or: $0 -rg <resource group name> -l <Azure region> [--what-if] [--force]"
+            echo "       --what-if: Perform a what-if deployment without making changes."
+            echo "       --force: Force the creation of resources even if they already exist."
             exit 0
             ;;
         *)
@@ -28,6 +41,11 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 
+WHATIF_FLAG=""
+if [ "$WHATIF" = true ]; then
+    WHATIF_FLAG="--what-if"
+fi
+
 # Validate inputs
 if [ -z "$RESOURCE_GROUP" ] || [ -z "$LOCATION" ]; then
     echo "Error: Both --resource-group and --location are required."
@@ -35,7 +53,7 @@ if [ -z "$RESOURCE_GROUP" ] || [ -z "$LOCATION" ]; then
     exit 1
 fi
 
-cd "$(dirname "$0")"
+pushd "$(dirname "$0")"
 
 # Check if the resource group exists and create it if it doesn't
 echo Checking if resource group "${RESOURCE_GROUP}" exists...
@@ -50,13 +68,15 @@ if [ "$RG_EXISTS" = "false" ]; then
     done
 fi
 
+echo Deploying vnet...
 # Deploy vnet
 az deployment group create \
     --resource-group "${RESOURCE_GROUP}" \
     --template-file "$(pwd)/hub-vnet.bicep" \
-    --parameters "$(pwd)/vnet_params.json" \
+    --parameters "$(pwd)/params/vnet_params.json" \
     --parameters location="$LOCATION" \
-    --name "hub-vnet-${RESOURCE_GROUP}"
+    --name "hub-vnet-${RESOURCE_GROUP}" \
+    $WHATIF_FLAG
 
 echo "Virtual network deployment is complete. Please enter the Azure Portal to create a VPN Gateway while the remainder of this script runs."
 
@@ -65,20 +85,22 @@ bastion_subnet_id=$(az network vnet subnet show -g "${RESOURCE_GROUP}" -n AzureB
 az deployment group create \
     --resource-group "${RESOURCE_GROUP}" \
     --template-file "$(pwd)/../bastion.bicep" \
-    --parameters "$(pwd)/bastion_params.json" \
+    --parameters "$(pwd)/params/bastion_params.json" \
     --parameters location="${LOCATION}" \
     --parameters subnetId="${bastion_subnet_id}" \
-    --name "hub-bastion-${RESOURCE_GROUP}"
+    --name "hub-bastion-${RESOURCE_GROUP}" \
+    $WHATIF_FLAG
 
 # Deploy MySQL server 
 db_subnet_id=$(az network vnet subnet show -g "${RESOURCE_GROUP}" -n database --vnet-name "hub-vnet-${RESOURCE_GROUP}" | jq '.id' | tr -d '"')
 az deployment group create \
     --resource-group "${RESOURCE_GROUP}" \
     --template-file "$(pwd)/../mysql.bicep" \
-    --parameters "$(pwd)/db_params.json" \
+    --parameters "$(pwd)/params/db_params.json" \
     --parameters location="${LOCATION}" \
     --parameters subnetId="${db_subnet_id}" \
-    --name "hub-db-${RESOURCE_GROUP}"
+    --name "hub-db-${RESOURCE_GROUP}" \
+    $WHATIF_FLAG
 
 # Deploy Azure NetApp Files
 netapp_subnet_id=$(az network vnet subnet show -g "${RESOURCE_GROUP}" -n netapp --vnet-name "hub-vnet-${RESOURCE_GROUP}" | jq '.id' | tr -d '"')
@@ -86,21 +108,33 @@ az deployment group create \
     --resource-group "${RESOURCE_GROUP}" \
     --template-file "$(pwd)/../anf-account.bicep" \
     --parameters location="${LOCATION}" \
-    --name "hub-anf-account-${RESOURCE_GROUP}"
+    --name "hub-anf-account-${RESOURCE_GROUP}" \
+    $WHATIF_FLAG
+    
 az deployment group create \
     --resource-group "$RESOURCE_GROUP" \
     --template-file "$(pwd)/../anf.bicep"\
-    --parameters "$(pwd)/anf_params.json" \
+    --parameters "$(pwd)/params/anf_params.json" \
     --parameters subnetId="${netapp_subnet_id}" \
     --parameters location="${LOCATION}" \
     --parameters name="shared" \
-    --name "hub-anf-resources-${RESOURCE_GROUP}"
+    --name "hub-anf-resources-${RESOURCE_GROUP}" \
+    $WHATIF_FLAG
 
 # Deploy monitoring
 MONITORING_PROJECT_VERSION="1.0.0"
-rm -rf cyclecloud-monitoring
+
+mkdir build/
+pushd build
 git clone --branch "${MONITORING_PROJECT_VERSION}" https://github.com/Azure/cyclecloud-monitoring.git
 
-cd cyclecloud-monitoring/infra
-sh $(pwd)/deploy.sh "$RESOURCE_GROUP" 
-cd ../..
+pushd cyclecloud-monitoring/infra
+if [ $WHATIF = true ]; then
+    echo "monitoring does not support what-if mode, skipping deployment"
+else
+    bash $(pwd)/deploy.sh "$RESOURCE_GROUP" 
+fi
+
+popd
+popd
+popd
