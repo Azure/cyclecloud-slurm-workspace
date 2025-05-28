@@ -69,7 +69,7 @@ Autoscale = $Autoscale
         cyclecloud.enable_chef = false
 
         [[[cluster-init cyclecloud/healthagent:default]]]
-        [[[cluster-init cyclecloud/slurm:default:4.0.0]]]
+        [[[cluster-init slurm:default:4.0.0]]]
         Optional = true
 
         [[[volume boot]]]
@@ -123,7 +123,7 @@ Autoscale = $Autoscale
         slurm.secondary_scheduler_name = ${ifThenElse(configuration_slurm_ha_enabled, "scheduler-ha-1", undefined)}
 
         [[[cluster-init cyclecloud/healthagent:default]]]
-        [[[cluster-init cyclecloud/slurm:scheduler:4.0.0]]]
+        [[[cluster-init slurm:scheduler:4.0.0]]]
 
         [[[network-interface eth0]]]
         AssociatePublicIpAddress = $UsePublicNetwork
@@ -186,7 +186,7 @@ Autoscale = $Autoscale
         AdditionalClusterInitSpecs = $LoginClusterInitSpecs
 
         [[[cluster-init cyclecloud/healthagent:default]]]
-        [[[cluster-init cyclecloud/slurm:login:4.0.0]]]
+        [[[cluster-init slurm:login:4.0.0]]]
         [[[configuration]]]
         slurm.role = login
         autoscale.enabled = false
@@ -203,7 +203,7 @@ Autoscale = $Autoscale
         slurm.use_nodename_as_hostname = $NodeNameIsHostname
 
         [[[cluster-init cyclecloud/healthagent:default]]]
-        [[[cluster-init cyclecloud/slurm:execute:4.0.0]]]
+        [[[cluster-init slurm:execute:4.0.0]]]
 
         [[[network-interface eth0]]]
         AssociatePublicIpAddress = $ExecuteNodesPublic
