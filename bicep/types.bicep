@@ -292,7 +292,7 @@ type ood_enabled_t = {
 @export()
 @discriminator('type')
 type oodConfig_t = ood_none_t | ood_enabled_t
-type cluster_init_target_t = 'login' | 'scheduler' | 'htc' | 'hpc' | 'gpu' | 'dynamic' | 'ood'
+type cluster_init_target_t = 'login' | 'scheduler' | 'htc' | 'htc2' | 'hpc' | 'gpu' | 'dynamic' | 'ood'
 
 
 type github_cluster_init_t = {

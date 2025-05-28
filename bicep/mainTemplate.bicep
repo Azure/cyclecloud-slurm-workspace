@@ -21,6 +21,7 @@ param slurmSettings types.slurmSettings_t = { startCluster: true, version: '23.1
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
 param htc types.htc_t
+param htc2 types.htc_t
 param hpc types.hpc_t
 param gpu types.hpc_t
 param tags types.resource_tags_t 
@@ -32,6 +33,8 @@ param databaseConfig types.databaseConfig_t = { type: 'disabled' }
 param clusterName string = 'ccw'
 param acceptMarketplaceTerms bool = false
 param ood types.oodConfig_t = { type: 'disabled' }
+// this should have rw access to the Hub blob storage and metrics collection to grafana
+param hubMI string
 
 param infrastructureOnly bool = false
 param insidersBuild bool = false
@@ -45,6 +48,7 @@ param monitoringProjectVersion string = '1.0.0'
 param manualInstall bool = false
 
 param monitoringIngestionEndpoint string = ''
+param monitoringIdentityClientId string = ''
 
 resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: resourceGroup
@@ -74,6 +78,7 @@ module makeCCWresources 'ccw.bicep' = {
     schedulerNode: schedulerNode
     loginNodes: loginNodes
     htc: htc
+    htc2: htc2
     hpc: hpc
     gpu: gpu
     storedKey: storedKey
@@ -87,7 +92,9 @@ module makeCCWresources 'ccw.bicep' = {
     branch: branch
     projectVersion: projectVersion
     monitoringProjectVersion: monitoringProjectVersion
+    hubMI: hubMI
     monitoringIngestionEndpoint: monitoringIngestionEndpoint
+    monitoringIdentityClientId: monitoringIdentityClientId
     manualInstall: manualInstall
     acceptMarketplaceTerms: acceptMarketplaceTerms
     ood: ood

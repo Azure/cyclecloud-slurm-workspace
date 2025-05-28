@@ -39,6 +39,13 @@ def set_slurm_params(params, dbPassword, outputs):
     params['HTCUseLowPrio'] = outputs['partitions']['value']['htc']['useSpot']
     params['HTCAvailabilityZone'] = outputs['partitions']['value']['htc']['availabilityZone'] if params['DefineNodesAvailabilityZone'] and 'availabilityZone' in outputs['partitions']['value']['htc'] else None
     
+    #HTC2
+    params['HTC2MachineType'] = outputs['partitions']['value']['htc2']['sku']
+    params['MaxHTC2ExecuteNodeCount'] = int(outputs['partitions']['value']['htc2']['maxNodes'])
+    params['HTC2ImageName'] = outputs['partitions']['value']['htc2']['osImage']
+    params['HTC2UseLowPrio'] = outputs['partitions']['value']['htc2']['useSpot']
+    params['HTC2AvailabilityZone'] = outputs['partitions']['value']['htc2']['availabilityZone'] if params['DefineNodesAvailabilityZone'] and 'availabilityZone' in outputs['partitions']['value']['htc'] else None
+    
     #HPC
     params['HPCMachineType'] = outputs['partitions']['value']['hpc']['sku']
     params['MaxHPCExecuteNodeCount'] = int(outputs['partitions']['value']['hpc']['maxNodes'])
@@ -97,9 +104,11 @@ def set_slurm_params(params, dbPassword, outputs):
         params['AdditionalNFSAddress'] = outputs['filerInfoFinal']['value']['additional']['ipAddress']
 
     # Monitoring
-    params['MonitoringEnabled'] = outputs['monitoringIngestionEndpoint']['value'] != ''
-    params['MonitoringIngestionEndpoint'] = outputs['monitoringIngestionEndpoint']['value']
-    params['MonitoringIdentityClientId'] = outputs['managedIdentityId']['value']
+    params['MonitoringEnabled'] = outputs['monitoring']["value"]['ingestionEndpoint'] != ''
+    params['MonitoringIngestionEndpoint'] = outputs['monitoring']['value']['ingestionEndpoint']
+    params['MonitoringIdentityClientId'] = outputs['monitoring']['value']['identityClientId']
+
+    params['ManagedIdentity'] = outputs['hubMI']['value']
 
 
 def set_ood_params(params, outputs):
@@ -123,6 +132,7 @@ def set_ood_params(params, outputs):
     params['ood_entra_client_id'] = outputs['ood']['value'].get('clientId')
     params['ood_entra_tenant_id'] = outputs['ood']['value'].get('tenantId')
     params['ood_nic'] = outputs['ood']['value'].get('nic')
+
 
 class ClusterInitSpec:
     def __init__(self, project: str, version: str, spec: str, targets: typing.List[str]):
@@ -203,6 +213,7 @@ def main():
         "gpu": "GPUClusterInitSpecs",
         "hpc": "HPCClusterInitSpecs",
         "htc": "HTCClusterInitSpecs",
+        "htc2": "HTC2ClusterInitSpecs",
         "scheduler": "SchedulerClusterInitSpecs",
         "dynamic": "DynamicClusterInitSpecs",
         "ood": "ClusterInitSpecs"
