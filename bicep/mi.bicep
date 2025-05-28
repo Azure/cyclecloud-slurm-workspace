@@ -19,7 +19,6 @@ module ccwMIRoleAssignments './miRoleAssignments.bicep' = {
     principalId: managedIdentity.properties.principalId
     roles: [
       'Storage Blob Data Reader'
-      'Monitoring Metrics Publisher'
     ]
     storageAccountName: storageAccountName
   }
