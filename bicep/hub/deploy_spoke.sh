@@ -1,6 +1,12 @@
 #!/bin/bash 
-
+set -e
 cd "$(dirname "$0")"
+
+# convert base64 files
+pushd "$(dirname "$0")/../../"
+./init.sh
+popd
+
 
 # hub params
 HUB_RG_NAME=""
@@ -8,6 +14,8 @@ HUB_RG_NAME=""
 # spoke params
 LOCATION=""
 SPOKE_NUMBER=""
+
+WHATIF=false
 
 # Parse arguments
 while [ "$#" -gt 0 ]; do
@@ -24,9 +32,14 @@ while [ "$#" -gt 0 ]; do
             LOCATION="$2"
             shift 2
             ;;
+        --what-if)
+            WHATIF=true
+            shift
+            ;;
         -h|--help)
-            echo "Usage: $0 --hub-resource-group <hub resource group name> --location <Azure region> --spoke-number <nth spoke>"
-            echo "       or: $0 -rg <hub resource group name> -l <Azure region> -s <nth spoke>"
+            echo "Usage: $0 --hub-resource-group <hub resource group name> --location <Azure region> --spoke-number <spoke number> [--what-if]"
+            echo "       or: $0 -rg <hub resource group name> -l <Azure region> -s <spoke number> [--what-if]"
+            echo "       --what-if: Perform a what-if deployment without making changes."
             exit 0
             ;;
         *)
@@ -38,10 +51,15 @@ while [ "$#" -gt 0 ]; do
 done
 
 # Validate inputs
-if [ -z "$RESOURCE_GROUP" ] || [ -z "$LOCATION" ] || [ -z "$SPOKE_NUMBER" ]; then
+if [ -z "$HUB_RG_NAME" ] || [ -z "$LOCATION" ] || [ -z "$SPOKE_NUMBER" ]; then
     echo "Error: --resource-group, --location, --spoke-number are required."
     echo "Use --help for usage information."
     exit 1
+fi
+
+WHATIF_FLAG=""
+if [ "$WHATIF" = true ]; then
+    WHATIF_FLAG="--what-if"
 fi
 
 # hub
@@ -84,7 +102,7 @@ fetch_outputs() {
         echo "outputs/hub-monitoring-outputs.json already fetched. Skipping."
     else
         echo "Fetching outputs for hub monitoring..."
-        [ -f cyclecloud-monitoring/infra/outputs.json ] && cp cyclecloud-monitoring/infra/outputs.json outputs/hub-monitoring-outputs.json
+        [ -f build/cyclecloud-monitoring/infra/outputs.json ] && cp build/cyclecloud-monitoring/infra/outputs.json outputs/hub-monitoring-outputs.json
         # az deployment group show -g "$HUB_RG_NAME" -n ingestionEndpoint --query properties.outputs > outputs/hub-monitoring-outputs.json
     fi
     echo "Done fetching outputs."
@@ -92,10 +110,10 @@ fetch_outputs() {
 
 fetch_outputs
 
-cp original_spoke_params.json params/spoke_params.json
+cp params/original_spoke_params.json spoke_params.json
 
 replace_fields() {
-    jq "$1" params/spoke_params.json > tmp_spoke_params.json && mv tmp_spoke_params.json params/spoke_params.json
+    jq "$1" spoke_params.json > tmp_spoke_params.json && mv tmp_spoke_params.json spoke_params.json
 }
 
 # shared FS
@@ -111,7 +129,8 @@ replace_fields ".network.value.addressSpace=\"$ADDRESS_SPACE\""
 # vnet to peer 
 PEERED_VNET_ID=$(jq -r '.vnetId.value' outputs/hub-vnet-outputs.json)
 PEERED_VNET_NAME=$(echo "${PEERED_VNET_ID}" | cut -d '/' -f9)
-PEERED_VNET_LOCATION=$(az network vnet show -g "$RG" -n "$PEERED_VNET_NAME" --query location -o tsv | tr -d '\r\n')
+
+PEERED_VNET_LOCATION=$(az network vnet show -g "$HUB_RG_NAME" -n "$PEERED_VNET_NAME" --query location -o tsv | tr -d '\r\n')
 replace_fields ".network.value.vnetToPeer={ name: \"$PEERED_VNET_NAME\", id: \"$PEERED_VNET_ID\", location: \"$PEERED_VNET_LOCATION\", subscriptionName: \"\"}"
 
 # database config
@@ -122,8 +141,21 @@ replace_fields ".databaseConfig={ value: { type: \"privateIp\", databaseUser: \"
 replace_fields ".databaseAdminPassword={ value: \"$DB_PASSWORD\" }"
 
 # monitoring 
-MONITORING_INGESTION_ENDPOINT=$([ -f outputs/hub-monitoring-outputs.json ] && jq -r '.properties.outputs.ingestionEndpoint.value' outputs/hub-monitoring-outputs.json || echo "")
+# TODO these are standin values - we need to implement the mi for the hub,
+# in testing I have just used a manually create MI.
+# MONITORING_INGESTION_ENDPOINT=
+# MONITORING_CLIENT_ID=
+# HUB_MI_NAME=
+if [ -z "$MONITORING_INGESTION_ENDPOINT" ] || [ -z "$MONITORING_CLIENT_ID" ]; then
+    echo "Monitoring ingestion endpoint or client ID not set. Please edit the script to set them directly until hub MI automation is implemented."
+    exit 1
+fi
 
+replace_fields ".monitoringIngestionEndpoint.value=\"$MONITORING_INGESTION_ENDPOINT\""
+replace_fields ".monitoringIdentityClientId.value=\"$MONITORING_CLIENT_ID\""
+replace_fields ".hubMI.value=\"$HUB_MI_NAME\""
+
+echo "Deploying spoke #${SPOKE_NUMBER} in resource group ${SPOKE_RG_NAME} at location ${LOCATION}... ${WHATIF_FLAG}"
 az deployment sub create \
     --location "$LOCATION" \
     --template-file "$(pwd)/../mainTemplate.bicep" \
@@ -133,5 +165,7 @@ az deployment sub create \
     --parameters ccVMName="ccw-${SPOKE_NUMBER}-cyclecloud-vm" \
     --parameters clusterName="ccw-${SPOKE_NUMBER}" \
     --parameters monitoringIngestionEndpoint="${MONITORING_INGESTION_ENDPOINT}" \
-    --name "spoke-ccw-0${SPOKE_DEPLOYMENT_NAME}" 
+    --name "spoke-ccw-0${SPOKE_DEPLOYMENT_NAME}" \
+    $WHATIF_FLAG
+
  
