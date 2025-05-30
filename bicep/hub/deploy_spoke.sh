@@ -113,8 +113,9 @@ fetch_outputs() {
         echo "outputs/hub-monitoring-outputs.json already fetched. Skipping."
     else
         echo "Fetching outputs for hub monitoring..."
-        [ -f build/cyclecloud-monitoring/infra/outputs.json ] && cp build/cyclecloud-monitoring/infra/outputs.json outputs/hub-monitoring-outputs.json
-        # az deployment group show -g "$HUB_RG_NAME" -n ingestionEndpoint --query properties.outputs > outputs/hub-monitoring-outputs.json
+        #[ -f build/cyclecloud-monitoring/infra/outputs.json ] && cp build/cyclecloud-monitoring/infra/outputs.json outputs/hub-monitoring-outputs.json
+        az deployment group show -g "$HUB_RG_NAME" -n ingestionEndpoint --query properties.outputs > outputs/hub-monitoring-outputs.json.tmp
+        mv outputs/hub-monitoring-outputs.json.tmp outputs/hub-monitoring-outputs.json
     fi
     echo "Done fetching outputs."
 }
@@ -153,7 +154,7 @@ replace_fields ".databaseConfig={ value: { type: \"privateIp\", databaseUser: \"
 replace_fields ".databaseAdminPassword={ value: \"$DB_PASSWORD\" }"
 
 # monitoring 
-MONITORING_INGESTION_ENDPOINT=$(jq -r '.ingestionEndpoint.value' outputs/hub-monitoring-outputs.json)
+MONITORING_INGESTION_ENDPOINT=$(jq -r '.metricsIngestionEndpoint.value' outputs/hub-monitoring-outputs.json)
 MONITORING_CLIENT_ID=$(jq -r '.hubMIClientId.value' outputs/hub-mi-outputs.json)
 HUB_MI=$(jq -r '.hubMI.value' outputs/hub-mi-outputs.json)
 if [ -z "$MONITORING_INGESTION_ENDPOINT" ] || [ -z "$MONITORING_CLIENT_ID" ]; then
