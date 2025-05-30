@@ -215,9 +215,6 @@ Autoscale = $Autoscale
         AssociatePublicIpAddress = $ExecuteNodesPublic
 
     [[nodearray hpc]]
-    CloudInit="""#!/bin/bash
-    echo DSHELL=/bin/bash >> /etc/adduser.conf
-    """
     Extends = nodearraybase
     MachineType = $HPCMachineType
     ImageName = $HPCImageName
@@ -265,6 +262,12 @@ Autoscale = $Autoscale
         slurm.use_pcpu = false
 
     [[nodearray gpu]]
+        CloudInit="""#!/bin/bash
+sed -i 's/^SHELL.*/SHELL=\/bin\/bash/g' /etc/default/useradd
+    """
+    Azure.Overprovision = false
+    Azure.MaxScaleSetSize = 1000
+
     Extends = nodearraybase
     MachineType = $GPUMachineType
     ImageName = $GPUImageName
@@ -278,7 +281,7 @@ Autoscale = $Autoscale
 
         [[[configuration]]]
         slurm.default_partition = true
-        slurm.hpc = true
+        slurm.hpc = false
         slurm.partition = gpu
         #Parameter to enable or disable IMEX service on a per-job basis
         #IMEX Support is enabled by default for GB200 but can be disabled by setting param to False
@@ -846,7 +849,7 @@ Order = 20
         [[[parameter configuration_slurm_launch_parameters]]]
         Label = Launch Parameters
         Description = Deploy Slurm with Launch Parameters (comma delimited)
-        DefaultValue = ''
+        DefaultValue = 'use_interactive_step'
         ParameterType = String
 
 
