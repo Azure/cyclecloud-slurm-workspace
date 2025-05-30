@@ -226,6 +226,7 @@ type hpc_t = {
 @export()
 type partitions_t = {
   htc: htc_output_t
+  htc2: htc_output_t
   hpc: hpc_t //if any property becomes optional, create a *_output_t type
   gpu: hpc_t //if any property becomes optional, create a *_output_t type
 }
