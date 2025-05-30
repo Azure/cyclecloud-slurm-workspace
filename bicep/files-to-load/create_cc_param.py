@@ -104,9 +104,9 @@ def set_slurm_params(params, dbPassword, outputs):
         params['AdditionalNFSAddress'] = outputs['filerInfoFinal']['value']['additional']['ipAddress']
 
     # Monitoring
-    params['MonitoringEnabled'] = outputs['monitoring']["value"]['ingestionEndpoint'] != ''
-    params['MonitoringIngestionEndpoint'] = outputs['monitoring']['value']['ingestionEndpoint']
-    params['MonitoringIdentityClientId'] = outputs['monitoring']['value']['identityClientId']
+    params['MonitoringEnabled'] = False #outputs['monitoring']["value"]['ingestionEndpoint'] != ''
+    # params['MonitoringIngestionEndpoint'] = outputs['monitoring']['value']['ingestionEndpoint']
+    # params['MonitoringIdentityClientId'] = outputs['monitoring']['value']['identityClientId']
 
     params['ManagedIdentity'] = outputs['hubMI']['value']
 

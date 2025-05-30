@@ -34,7 +34,7 @@ param clusterName string = 'ccw'
 param acceptMarketplaceTerms bool = false
 param ood types.oodConfig_t = { type: 'disabled' }
 // this should have rw access to the Hub blob storage and metrics collection to grafana
-param hubMI string
+param hubMI string = ''
 
 param infrastructureOnly bool = false
 param insidersBuild bool = false

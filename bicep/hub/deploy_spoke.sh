@@ -109,13 +109,13 @@ fetch_outputs() {
         az deployment group show -g "$HUB_RG_NAME" -n "hub-db${SUFFIX}" --query properties.outputs > outputs/hub-db-outputs.json.tmp
         mv outputs/hub-db-outputs.json.tmp outputs/hub-db-outputs.json
     fi
-    if [ -f outputs/hub-monitoring-outputs.json ]; then
-        echo "outputs/hub-monitoring-outputs.json already fetched. Skipping."
-    else
-        echo "Fetching outputs for hub monitoring..."
-        [ -f build/cyclecloud-monitoring/infra/outputs.json ] && cp build/cyclecloud-monitoring/infra/outputs.json outputs/hub-monitoring-outputs.json
-        # az deployment group show -g "$HUB_RG_NAME" -n ingestionEndpoint --query properties.outputs > outputs/hub-monitoring-outputs.json
-    fi
+    #if [ -f outputs/hub-monitoring-outputs.json ]; then
+    #    echo "outputs/hub-monitoring-outputs.json already fetched. Skipping."
+    #else
+    #    echo "Fetching outputs for hub monitoring..."
+    #    [ -f build/cyclecloud-monitoring/infra/outputs.json ] && cp build/cyclecloud-monitoring/infra/outputs.json outputs/hub-monitoring-outputs.json
+    #    # az deployment group show -g "$HUB_RG_NAME" -n ingestionEndpoint --query properties.outputs > outputs/hub-monitoring-outputs.json
+    #fi
     echo "Done fetching outputs."
 }
 
@@ -153,29 +153,31 @@ replace_fields ".databaseConfig={ value: { type: \"privateIp\", databaseUser: \"
 replace_fields ".databaseAdminPassword={ value: \"$DB_PASSWORD\" }"
 
 # monitoring 
-MONITORING_INGESTION_ENDPOINT=$(jq -r '.ingestionEndpoint.value' outputs/hub-monitoring-outputs.json)
-MONITORING_CLIENT_ID=$(jq -r '.hubMIClientId.value' outputs/hub-mi-outputs.json)
-HUB_MI=$(jq -r '.hubMI.value' outputs/hub-mi-outputs.json)
-if [ -z "$MONITORING_INGESTION_ENDPOINT" ] || [ -z "$MONITORING_CLIENT_ID" ]; then
-    echo "Monitoring ingestion endpoint or client ID not set. Please edit the script to set them directly until hub MI automation is implemented."
-    exit 1
-fi
+# MONITORING_INGESTION_ENDPOINT=$(jq -r '.ingestionEndpoint.value' outputs/hub-monitoring-outputs.json)
+# MONITORING_CLIENT_ID=$(jq -r '.hubMIClientId.value' outputs/hub-mi-outputs.json)
+# if [ -z "$MONITORING_INGESTION_ENDPOINT" ] || [ -z "$MONITORING_CLIENT_ID" ]; then
+#     echo "Monitoring ingestion endpoint or client ID not set. Please edit the script to set them directly until hub MI automation is implemented."
+#     exit 1
+# fi
 
-replace_fields ".monitoringIngestionEndpoint.value=\"$MONITORING_INGESTION_ENDPOINT\""
-replace_fields ".monitoringIdentityClientId.value=\"$MONITORING_CLIENT_ID\""
+# replace_fields ".monitoringIngestionEndpoint.value=\"$MONITORING_INGESTION_ENDPOINT\""
+# replace_fields ".monitoringIdentityClientId.value=\"$MONITORING_CLIENT_ID\""
+
+
+HUB_MI=$(jq -r '.hubMI.value' outputs/hub-mi-outputs.json)
 replace_fields ".hubMI.value=\"$HUB_MI\""
 
 echo "Deploying spoke #${SPOKE_NUMBER} in resource group ${SPOKE_RG_NAME} at location ${LOCATION}... ${WHATIF_FLAG}"
 az deployment sub create \
-    --location "$LOCATION" \
-    --template-file "$(pwd)/../mainTemplate.bicep" \
-    --parameters "$(pwd)/spoke_params.json" \
-    --parameters location="$LOCATION" \
-    --parameters resourceGroup="${SPOKE_RG_NAME}" \
-    --parameters ccVMName="ccw-${SPOKE_NUMBER}-cyclecloud-vm" \
-    --parameters clusterName="ccw-${SPOKE_NUMBER}" \
-    --parameters monitoringIngestionEndpoint="${MONITORING_INGESTION_ENDPOINT}" \
-    --name "spoke-ccw-0${SPOKE_DEPLOYMENT_NAME}" \
-    $WHATIF_FLAG
+   --location "$LOCATION" \
+   --template-file "$(pwd)/../mainTemplate.bicep" \
+   --parameters "$(pwd)/spoke_params.json" \
+   --parameters location="$LOCATION" \
+   --parameters resourceGroup="${SPOKE_RG_NAME}" \
+   --parameters ccVMName="ccw-${SPOKE_NUMBER}-cyclecloud-vm" \
+   --parameters clusterName="ccw-${SPOKE_NUMBER}" \
+   --parameters monitoringIngestionEndpoint="${MONITORING_INGESTION_ENDPOINT}" \
+   --name "spoke-ccw-0${SPOKE_DEPLOYMENT_NAME}" \
+   $WHATIF_FLAG
 
  

@@ -280,15 +280,15 @@ resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities
   location: location
 }
 
-var oodAppName = 'CycleCloudOpenOnDemandApp-${uniqueString(az.resourceGroup().id)}'
-module oodApp 'ood/oodEntraApp.bicep' = if (registerOODApp) {
-  name: 'oodApp'
-  params: {
-    umiName: oodManagedIdentityName
-    appName: oodAppName
-    fqdn: oodNIC.outputs.privateIp
-  }
-}
+// var oodAppName = 'CycleCloudOpenOnDemandApp-${uniqueString(az.resourceGroup().id)}'
+// module oodApp 'ood/oodEntraApp.bicep' = if (registerOODApp) {
+//  name: 'oodApp'
+//  params: {
+//    umiName: oodManagedIdentityName
+//    appName: oodAppName
+//    fqdn: oodNIC.outputs.privateIp
+//  }
+//}
 
 output filerInfoFinal types.filerInfo_t = {
   home: {
@@ -400,16 +400,16 @@ output acceptMarketplaceTerms bool = acceptMarketplaceTerms
 
 output ood object = union(ood, {
   version: '1.1.0'
-  nic: deployOOD ? oodNIC.outputs.NICId : ''
-  managedIdentity: deployOOD ? createOODMI ? oodNewManagedIdentity.id : ood.?appManagedIdentityId : ''
-  clientId: deployOOD ? registerOODApp ? oodApp.outputs.oodClientAppId : ood.?appId : ''
-  tenantId: deployOOD ? subscription().tenantId : ''
+  nic: '' // deployOOD ? oodNIC.outputs.NICId : ''
+  managedIdentity: '' // deployOOD ? createOODMI ? oodNewManagedIdentity.id : ood.?appManagedIdentityId : ''
+  clientId: '' // deployOOD ? registerOODApp ? oodApp.outputs.oodClientAppId : ood.?appId : ''
+  tenantId: '' // deployOOD ? subscription().tenantId : ''
 })
 
 output oodManualRegistration object = {
-  appName: oodAppName
-  umiName: oodManagedIdentityName
-  fqdn: deployOOD ? oodNIC.outputs.privateIp : ''
+  appName: '' // oodAppName
+  umiName: '' // oodManagedIdentityName
+  fqdn: '' // deployOOD ? oodNIC.outputs.privateIp : ''
 }
 
 output monitoring object = {
