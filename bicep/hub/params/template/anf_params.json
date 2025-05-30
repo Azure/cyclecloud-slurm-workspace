@@ -1,0 +1,11 @@
+{
+    "serviceLevel": {
+        "value": "Premium"
+    },
+    "sizeTiB": {
+        "value": 4
+    },
+    "tags": {
+        "value": {}
+    }
+}

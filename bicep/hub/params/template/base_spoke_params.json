@@ -1,0 +1,127 @@
+{
+  "manualInstall": {
+    "value": true
+  },
+  "adminUsername": {
+    "value": "hpcadmin"
+  },
+  "adminPassword": {
+    "value": "ENTER_YOUR_PASSWORD_HERE"
+  },
+  "adminSshPublicKey": {
+    "value": "ENTER_YOUR_PUBLIC_SSH_KEY_HERE"
+  },
+  "ccVMSize": {
+    "value": "Standard_D4as_v5"
+  },
+  "sharedFilesystem": {
+    "value": {
+      "type": "nfs-existing",
+      "ipAddress": "0.0.0.0",
+      "exportPath": "/home-path",
+      "mountOptions": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8"
+    }
+  },
+  "additionalFilesystem": {
+    "value": {
+      "type": "disabled"
+    }
+  },
+  "network": {
+    "value": {
+      "type": "new",
+      "addressSpace": "10.1.0.0/24",
+      "bastion": false,
+      "createNatGateway": true,
+      "vnetToPeer": {
+        "name": "AUTOMATED",
+        "id": "AUTOMATED",
+        "location": "AUTOMATED",
+        "subscriptionName": ""
+      },
+      "peeringAllowGatewayTransit": true
+    }
+  },
+  "storagePrivateDnsZone": {
+    "value": {
+      "type": "new"
+    }
+  },
+  "databaseAdminPassword": {
+    "value": ""
+  },
+  "databaseConfig": {
+    "value": {
+      "type": "privateIp",
+      "databaseUser": "hpcadmin",
+      "privateIp": "10.0.0.228"
+    }
+  },
+  "acceptMarketplaceTerms": {
+    "value": false
+  },
+  "slurmSettings": {
+    "value": {
+      "startCluster": false,
+      "version": "24.11.3-1",
+      "healthCheckEnabled": false
+    }
+  },
+  "schedulerNode": {
+    "value": {
+      "sku": "Standard_D4as_v5",
+      "osImage": "cycle.image.ubuntu22"
+    }
+  },
+  "loginNodes": {
+    "value": {
+      "sku": "Standard_F4s_v2",
+      "osImage": "cycle.image.ubuntu24",
+      "initialNodes": 1,
+      "maxNodes": 1
+    }
+  },
+  "htc": {
+    "value": {
+      "sku": "Standard_F2s_v2",
+      "maxNodes": 100,
+      "osImage": "cycle.image.ubuntu24",
+      "useSpot": false
+    }
+  },
+  "htc2": {
+    "value": {
+      "sku": "Standard_F2s_v2",
+      "maxNodes": 100,
+      "osImage": "cycle.image.ubuntu24",
+      "useSpot": false
+    }
+  },
+  "hpc": {
+    "value": {
+      "sku": "Standard_D2plds_v6",
+      "maxNodes": 16,
+      "osImage": "cycle.image.ubuntu24"
+    }
+  },
+  "gpu": {
+    "value": {
+      "sku": "Standard_NC24ads_A100_v4",
+      "maxNodes": 8,
+      "osImage": "cycle.image.ubuntu24"
+    }
+  },
+  "ood": {
+    "value": {
+      "type": "enabled",
+      "startCluster": false,
+      "sku": "Standard_D4as_v5",
+      "osImage": "cycle.image.ubuntu24",
+      "userDomain": "microsoft.com",
+      "registerEntraIDApp": true
+    }
+  },
+  "tags": {
+    "value": {}
+  }
+}

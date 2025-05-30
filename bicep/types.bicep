@@ -226,6 +226,7 @@ type hpc_t = {
 @export()
 type partitions_t = {
   htc: htc_output_t
+  htc2: htc_output_t
   hpc: hpc_t //if any property becomes optional, create a *_output_t type
   gpu: hpc_t //if any property becomes optional, create a *_output_t type
 }
@@ -292,7 +293,7 @@ type ood_enabled_t = {
 @export()
 @discriminator('type')
 type oodConfig_t = ood_none_t | ood_enabled_t
-type cluster_init_target_t = 'login' | 'scheduler' | 'htc' | 'hpc' | 'gpu' | 'dynamic' | 'ood'
+type cluster_init_target_t = 'login' | 'scheduler' | 'htc' | 'htc2' | 'hpc' | 'gpu' | 'dynamic' | 'ood'
 
 
 type github_cluster_init_t = {
