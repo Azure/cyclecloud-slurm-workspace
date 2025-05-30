@@ -188,6 +188,10 @@ SLURM_CLUSTER_NAME=$(jq -r .clusterName.value ccwOutputs.json)
 ADMIN_USER_HOME_DIR="/home/${CYCLECLOUD_USERNAME}"
 SLURM_TEMPLATE_PATH=$(find /opt/cycle_server/system/work/.plugins_expanded/.expanded/cloud*/plugins/cloud/initial_data/templates/slurm/slurm_template_*.txt)
 mkdir -p "${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}"
+if [ -e /opt/ccw/slurm.txt ]; then
+    echo "Found custom slurm.txt, using that as the template in the user's home dir."
+    SLURM_TEMPLATE_PATH="slurm.txt"
+fi
 cp "${SLURM_TEMPLATE_PATH}" "${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}/slurm_template.txt"
 cp ccwOutputs.json "${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}/deployment.json"
 
