@@ -13,6 +13,13 @@ var vnet  = {
   name: 'hub-vnet-${resourceGroup().name}'
   cidr: address
   subnets: {
+      default: {
+        name: 'default'
+        cidr: '10.0.0.0/29'
+        nat_gateway : false
+        service_endpoints: []
+        delegations: []
+      }
       netapp: {
         name: 'netapp'
         cidr: subnet_cidr.netapp

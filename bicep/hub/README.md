@@ -3,7 +3,7 @@
     * az login
         * Make sure the correct subscription is selected.
     * az login --scope https://graph.microsoft.com//.default
-0. Create the cyclecloud-slurm-workspace directory for deploying the hub and spoke
+1. Create the cyclecloud-slurm-workspace directory for deploying the hub and spoke
     ```bash
         git clone -b abatallas/gb200_hub_spoke https://github.com/Azure/cyclecloud-slurm-workspace.git
         cd cyclecloud-slurm-workspace/bicep/hub
@@ -30,3 +30,22 @@
     cd /opt/ccw
     bash install.sh --local-package ~hpcadmin/cyclecloud8.rpm
     ```
+
+## How to create a private endpoint for storage account resources
+1. Create a new private endpoint resource in the hub resource group via the Azure Portal. Complete this once for each storage account. Set the following under the named menu tab: 
+    * Resource
+        * Connection Method: Connect to an Azure resource in my directory
+        * Resource type: `Microsoft.Storage/storageAccounts`
+        * Resource: *Name of storage account*
+        * Target sub-resource: `blob`
+    * Virtual Network: 
+        * Virtual network: *Name of hub virtual network*
+        * Subnet: `default`
+    * DNS:
+        * Integrate with private DNS zone: `Yes`
+        * Subscription: *Subscription in which the hub is deployed*
+        * Resource group: *Resource group in which the hub is deployed*
+2. Navigate to the private DNS zone resource named `privatelink.blob.core.windows.net` in the hub resource group. 
+    * Expand the **DNS Management** sub-menu in the left-hand side menu and select *Virtual Network Links*
+    * Click **Add**
+    * Choose an arbitary name for the link, select the hub vnet in the relevant dropdown menu, and click *Create*. No modifications to the *Configuration* section are required. 
