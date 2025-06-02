@@ -20,8 +20,9 @@ param clusterInitSpecs types.cluster_init_param_t = []
 param slurmSettings types.slurmSettings_t = { startCluster: true, version: '23.11.7-1', healthCheckEnabled: false }
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
-param htc types.htc_t
-param htc2 types.htc_t
+param d64d types.htc_t
+param d16d types.htc_t
+param m64 types.htc_t
 param hpc types.hpc_t
 param gpu types.hpc_t
 param tags types.resource_tags_t 
@@ -77,8 +78,9 @@ module makeCCWresources 'ccw.bicep' = {
     slurmSettings: slurmSettings
     schedulerNode: schedulerNode
     loginNodes: loginNodes
-    htc: htc
-    htc2: htc2
+    d64d: d64d
+    d16d: d16d
+    m64: m64
     hpc: hpc
     gpu: gpu
     storedKey: storedKey

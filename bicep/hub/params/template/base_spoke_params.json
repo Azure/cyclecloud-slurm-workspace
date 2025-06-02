@@ -12,7 +12,7 @@
     "value": "ENTER_YOUR_PUBLIC_SSH_KEY_HERE"
   },
   "ccVMSize": {
-    "value": "Standard_D4as_v5"
+    "value": "Standard_D4ds_v5"
   },
   "sharedFilesystem": {
     "value": {
@@ -30,7 +30,7 @@
   "network": {
     "value": {
       "type": "new",
-      "addressSpace": "10.1.0.0/24",
+      "addressSpace": "AUTOMATED",
       "bastion": false,
       "createNatGateway": true,
       "vnetToPeer": {
@@ -69,59 +69,63 @@
   },
   "schedulerNode": {
     "value": {
-      "sku": "Standard_D4as_v5",
+      "sku": "Standard_D4ds_v5",
       "osImage": "cycle.image.ubuntu22"
     }
   },
   "loginNodes": {
     "value": {
       "sku": "Standard_F4s_v2",
-      "osImage": "cycle.image.ubuntu24",
+      "osImage": "cycle.image.ubuntu22",
       "initialNodes": 1,
       "maxNodes": 1
     }
   },
-  "htc": {
+  "d64d": {
     "value": {
-      "sku": "Standard_F2s_v2",
-      "maxNodes": 100,
-      "osImage": "cycle.image.ubuntu24",
+      "sku": "Standard_D64ds_v5",
+      "maxNodes": 32,
+      "osImage": "cycle.image.ubuntu22",
       "useSpot": false
     }
   },
-  "htc2": {
+  "d16d": {
     "value": {
-      "sku": "Standard_F2s_v2",
-      "maxNodes": 100,
-      "osImage": "cycle.image.ubuntu24",
+      "sku": "Standard_D16ds_v5",
+      "maxNodes": 192,
+      "osImage": "cycle.image.ubuntu22",
+      "useSpot": false
+    }
+  },
+  "m64": {
+    "value": {
+      "sku": "Standard_M64s_v2",
+      "maxNodes": 10,
+      "osImage": "cycle.image.ubuntu22",
       "useSpot": false
     }
   },
   "hpc": {
     "value": {
-      "sku": "Standard_D2plds_v6",
-      "maxNodes": 16,
-      "osImage": "cycle.image.ubuntu24"
+      "sku": "Standard_F2s_v2",
+      "maxNodes": 200,
+      "osImage": "cycle.image.ubuntu22"
     }
   },
   "gpu": {
     "value": {
       "sku": "Standard_NC24ads_A100_v4",
-      "maxNodes": 8,
-      "osImage": "cycle.image.ubuntu24"
+      "maxNodes": 500,
+      "osImage": "/subscriptions/e2275dba-53d4-41b0-8945-c89aa11d72a5/resourceGroups/azhpcai-images-rg/providers/Microsoft.Compute/galleries/AzHpcAiVmImageReleaseCandidates/images/Ubuntu-24.04-gen2-ARM64/versions/2025.0423.0"
     }
   },
   "ood": {
     "value": {
-      "type": "enabled",
-      "startCluster": false,
-      "sku": "Standard_D4as_v5",
-      "osImage": "cycle.image.ubuntu24",
-      "userDomain": "microsoft.com",
-      "registerEntraIDApp": true
+      "type": "disabled"
     }
   },
   "tags": {
     "value": {}
   }
 }
+

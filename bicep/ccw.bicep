@@ -28,8 +28,9 @@ param clusterInitSpecs types.cluster_init_param_t
 param slurmSettings types.slurmSettings_t 
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
-param htc types.htc_t
-param htc2 types.htc_t
+param d64d types.htc_t
+param d16d types.htc_t
+param m64 types.htc_t
 param hpc types.hpc_t
 param gpu types.hpc_t
 param tags types.resource_tags_t
@@ -325,14 +326,14 @@ var ccwClusterInitSpec = {
   type: 'gitHubReleaseURL'
   gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-slurm-workspace/releases/tag/', projectVersion)
   spec: 'default'
-  target: ['login', 'scheduler', 'htc', 'htc2', 'hpc', 'gpu', 'dynamic']
+  target: ['login', 'scheduler', 'd64d', 'd16d', 'm64', 'hpc', 'gpu', 'dynamic']
 }
 
 var monitoringClusterInitSpec = {
   type: 'gitHubReleaseURL'
   gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-monitoring/releases/tag/', monitoringProjectVersion)
   spec: 'default'
-  target: ['login', 'scheduler', 'htc', 'htc2', 'hpc', 'gpu', 'dynamic']
+  target: ['login', 'scheduler', 'd64d', 'd16d', 'm64', 'hpc', 'gpu', 'dynamic']
 }
 
 // Use of azslurm 4.0 does not require pyxis
@@ -347,19 +348,24 @@ output schedulerNode types.scheduler_t = schedulerNode
 output loginNodes types.login_t = loginNodes
 
 output partitions types.partitions_t = {
-  htc: union({
-    sku: htc.sku
-    maxNodes: htc.maxNodes
-    osImage: htc.osImage
-    useSpot: htc.?useSpot ?? false
-  }, contains(htc,'availabilityZone') ? { availabilityZone: htc.?availabilityZone } : {})
-  htc2: union({
-    sku: htc2.sku
-    maxNodes: htc2.maxNodes
-    osImage: htc2.osImage
-    useSpot: htc2.?useSpot ?? false
-    // we aren't using availability zones for now, ignore this for htc2 TODO
-  }, contains(htc,'availabilityZone') ? { availabilityZone: htc.?availabilityZone } : {})
+  d64d: union({
+    sku: d64d.sku
+    maxNodes: d64d.maxNodes
+    osImage: d64d.osImage
+    useSpot: d64d.?useSpot ?? false
+  }, contains(d64d,'availabilityZone') ? { availabilityZone: d64d.?availabilityZone } : {})
+  d16d: union({
+    sku: d16d.sku
+    maxNodes: d16d.maxNodes
+    osImage: d16d.osImage
+    useSpot: d16d.?useSpot ?? false
+  }, contains(d16d,'availabilityZone') ? { availabilityZone: d16d.?availabilityZone } : {})
+  m64: union({
+    sku: m64.sku
+    maxNodes: m64.maxNodes
+    osImage: m64.osImage
+    useSpot: m64.?useSpot ?? false
+  }, contains(m64,'availabilityZone') ? { availabilityZone: m64.?availabilityZone } : {})
   hpc: hpc
   gpu: gpu
 }

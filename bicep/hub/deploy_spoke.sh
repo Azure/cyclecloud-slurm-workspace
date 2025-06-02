@@ -136,7 +136,7 @@ MOUNT_OPTIONS=$(jq -r '.mountOptions.value' outputs/hub-anf-outputs.json)
 replace_fields ".sharedFilesystem={ value: { type: \"nfs-existing\", ipAddress: \"$IP_ADDRESS\", exportPath: \"$EXPORT_PATH\", mountOptions: \"$MOUNT_OPTIONS\" } }"
 
 # new vnet 
-ADDRESS_SPACE="10.${SPOKE_NUMBER}.0.0/24"
+ADDRESS_SPACE="10.${SPOKE_NUMBER}.0.0/20"
 replace_fields ".network.value.addressSpace=\"$ADDRESS_SPACE\""
 
 # vnet to peer 
@@ -173,10 +173,9 @@ az deployment sub create \
     --parameters "$(pwd)/spoke_params.json" \
     --parameters location="$LOCATION" \
     --parameters resourceGroup="${SPOKE_RG_NAME}" \
-    --parameters ccVMName="ccw-${SPOKE_NUMBER}-cyclecloud-vm" \
-    --parameters clusterName="ccw-${SPOKE_NUMBER}" \
+    --parameters ccVMName="ccw${SPOKE_NUMBER}-cyclecloud-vm" \
+    --parameters clusterName="ccw${SPOKE_NUMBER}" \
     --parameters monitoringIngestionEndpoint="${MONITORING_INGESTION_ENDPOINT}" \
     --name "spoke-ccw-0${SPOKE_DEPLOYMENT_NAME}" \
     $WHATIF_FLAG
-
  

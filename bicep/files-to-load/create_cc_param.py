@@ -30,22 +30,13 @@ def set_slurm_params(params, dbPassword, outputs):
         params['SubnetId'] = '/'.join([outputs['vnet']['value']['rg'], outputs['vnet']['value']['name'], outputs['vnet']['value']['computeSubnetName']])
         
     # Define Availability Zone
-    params['DefineNodesAvailabilityZone'] = any('availabilityZone' in zoneList for zoneList in [outputs['partitions']['value']['htc'], outputs['partitions']['value']['hpc'], outputs['partitions']['value']['gpu']])
+    params['DefineNodesAvailabilityZone'] = any('availabilityZone' in zoneList for zoneList in [outputs['partitions']['value']['hpc'], outputs['partitions']['value']['gpu']])
     
-    #HTC
-    params['HTCMachineType'] = outputs['partitions']['value']['htc']['sku']
-    params['MaxHTCExecuteNodeCount'] = int(outputs['partitions']['value']['htc']['maxNodes'])
-    params['HTCImageName'] = outputs['partitions']['value']['htc']['osImage']
-    params['HTCUseLowPrio'] = outputs['partitions']['value']['htc']['useSpot']
-    params['HTCAvailabilityZone'] = outputs['partitions']['value']['htc']['availabilityZone'] if params['DefineNodesAvailabilityZone'] and 'availabilityZone' in outputs['partitions']['value']['htc'] else None
-    
-    #HTC2
-    params['HTC2MachineType'] = outputs['partitions']['value']['htc2']['sku']
-    params['MaxHTC2ExecuteNodeCount'] = int(outputs['partitions']['value']['htc2']['maxNodes'])
-    params['HTC2ImageName'] = outputs['partitions']['value']['htc2']['osImage']
-    params['HTC2UseLowPrio'] = outputs['partitions']['value']['htc2']['useSpot']
-    params['HTC2AvailabilityZone'] = outputs['partitions']['value']['htc2']['availabilityZone'] if params['DefineNodesAvailabilityZone'] and 'availabilityZone' in outputs['partitions']['value']['htc'] else None
-    
+    for na in ['D64D', 'D16D', 'M64']:
+        params[f'{na}MachineType'] = outputs['partitions']['value'][na.lower()]['sku']
+        params[f'Max{na}NodeCount'] = int(outputs['partitions']['value'][na.lower()]['maxNodes'])
+        params[f'{na}ImageName'] = outputs['partitions']['value'][na.lower()]['osImage']
+
     #HPC
     params['HPCMachineType'] = outputs['partitions']['value']['hpc']['sku']
     params['MaxHPCExecuteNodeCount'] = int(outputs['partitions']['value']['hpc']['maxNodes'])
@@ -212,8 +203,9 @@ def main():
         "login": "LoginClusterInitSpecs",
         "gpu": "GPUClusterInitSpecs",
         "hpc": "HPCClusterInitSpecs",
-        "htc": "HTCClusterInitSpecs",
-        "htc2": "HTC2ClusterInitSpecs",
+        "d64d": "D64DClusterInitSpecs",
+        "d16d": "D16DClusterInitSpecs",
+        "m64": "M64ClusterInitSpecs",
         "scheduler": "SchedulerClusterInitSpecs",
         "dynamic": "DynamicClusterInitSpecs",
         "ood": "ClusterInitSpecs"
