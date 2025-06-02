@@ -22,3 +22,11 @@
     * `bicep/hub/params/base_spoke_params.json` Update `adminPassword` - CycleCloud hpcadmin password
     * `bicep/hub/params/base_spoke_params.json` Update `adminSshPublicKey` - hpcadmin public ssh key
     * `deploy_spoke.sh --hub-resource-group HUB_RG_NAME --spoke-number 1`
+6. Once the spoke finishes, perform the following to install the latest version of CycleCloud8. **Assuming the CC vm is at 10.1.0.4**
+    ```bash
+    scp cyclecloud8.rpm hpcadmin@10.1.0.4:~/
+    ssh hpcadmin@10.1.0.4
+    sudo -i
+    cd /opt/ccw
+    bash install.sh --local-package ~hpcadmin/cyclecloud8.rpm
+    ```
