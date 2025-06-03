@@ -280,7 +280,7 @@ sed -i 's/^SHELL.*/SHELL=\/bin\/bash/g' /etc/default/useradd
     Azure.Overprovision = false
     Azure.MaxScaleSetSize = 1000
     Azure.SingleScaleset = true
-    Azure.SinglePlacementGroup = false
+    Azure.SinglePlacementGroup = true
 
     Extends = nodearraybase
     MachineType = $GPUMachineType
@@ -295,7 +295,7 @@ sed -i 's/^SHELL.*/SHELL=\/bin\/bash/g' /etc/default/useradd
 
         [[[configuration]]]
         slurm.default_partition = true
-        slurm.hpc = false
+        slurm.hpc = true
         slurm.partition = gpu
         #Parameter to enable or disable IMEX service on a per-job basis
         #IMEX Support is enabled by default for GB200 but can be disabled by setting param to False
@@ -306,7 +306,7 @@ sed -i 's/^SHELL.*/SHELL=\/bin\/bash/g' /etc/default/useradd
     MaxCount = $MaxGPU2ExecuteNodeCount
         [[[configuration]]]
         slurm.default_partition = false
-        slurm.hpc = false
+        slurm.hpc = true
         slurm.partition = gpu2
         #Parameter to enable or disable IMEX service on a per-job basis
         #IMEX Support is enabled by default for GB200 but can be disabled by setting param to False
