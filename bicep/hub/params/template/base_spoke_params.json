@@ -44,7 +44,9 @@
   },
   "storagePrivateDnsZone": {
     "value": {
-      "type": "new"
+      "type": "existing",
+      "id": "ENTER_PRIVATE_DNS_ZONE_ID_HERE",
+      "vnetLink": false
     }
   },
   "databaseAdminPassword": {
@@ -69,7 +71,7 @@
   },
   "schedulerNode": {
     "value": {
-      "sku": "Standard_D4ds_v5",
+      "sku": "Standard_D16ds_v5",
       "osImage": "cycle.image.ubuntu22"
     }
   },

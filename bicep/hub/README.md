@@ -18,11 +18,13 @@
     * Pick a resource group name and location, then run the following: **Note** we will create the resource group if it does not exist.
     * `create_hub.sh --resource-group HUB_RG_NAME --location HUB_LOCATION`
 4. Add a VPN Gateway to the hub resource group using the Azure Portal.
-5. Create a spoke: i.e. a CycleCloud + Slurm cluster deployment:
+5. Follow steps below for "How to create a private endpoint for storage account resources"
+6. Create a spoke: i.e. a CycleCloud + Slurm cluster deployment:
     * `bicep/hub/params/base_spoke_params.json` Update `adminPassword` - CycleCloud hpcadmin password
     * `bicep/hub/params/base_spoke_params.json` Update `adminSshPublicKey` - hpcadmin public ssh key
+    * `bicep/hub/params/base_spoke_params.json` Update storagePrivateDnsZone.id with the private link id we created in step 5.
     * `deploy_spoke.sh --hub-resource-group HUB_RG_NAME --spoke-number 1`
-6. Once the spoke finishes, perform the following to install the latest version of CycleCloud8. **Assuming the CC vm is at 10.1.0.4**
+7. Once the spoke finishes, perform the following to install the latest version of CycleCloud8. **Assuming the CC vm is at 10.1.0.4**
     ```bash
     scp cyclecloud8.rpm hpcadmin@10.1.0.4:~/
     ssh hpcadmin@10.1.0.4
