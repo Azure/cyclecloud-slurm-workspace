@@ -7,7 +7,10 @@ param insidersBuild bool
 
 param branch string
 param projectVersion string
-param pyxisProjectVersion string
+param monitoringProjectVersion string
+param monitoringIngestionEndpoint string
+param monitoringIdentityClientId string
+param hubMI string
 
 param adminUsername string
 @secure()
@@ -25,7 +28,9 @@ param clusterInitSpecs types.cluster_init_param_t
 param slurmSettings types.slurmSettings_t 
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
-param htc types.htc_t
+param d64d types.htc_t
+param d16d types.htc_t
+param m64 types.htc_t
 param hpc types.hpc_t
 param gpu types.hpc_t
 param tags types.resource_tags_t
@@ -202,7 +207,7 @@ module mySQLccw './mysql.bicep' = if (create_database) {
   params: {
     location: location
     tags: getTags('Microsoft.DBforMySQL/flexibleServers', tags)
-    Name: db_name
+    // Name: db_name
     adminUser: adminUsername
     adminPassword: databaseAdminPassword
     subnetId: subnets.database.id
@@ -315,25 +320,24 @@ output filerInfoFinal types.filerInfo_t = {
 output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.principalId
 
 output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
-
-// Automatically inject the ccw and pyxis cluster init specs
+// Automatically inject the ccw and monitoring cluster init specs
 
 var ccwClusterInitSpec = {
   type: 'gitHubReleaseURL'
   gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-slurm-workspace/releases/tag/', projectVersion)
   spec: 'default'
-  target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
+  target: ['login', 'scheduler', 'd64d', 'd16d', 'm64', 'hpc', 'gpu', 'dynamic']
 }
 
-var pyxisClusterInitSpec = {
+var monitoringClusterInitSpec = {
   type: 'gitHubReleaseURL'
-  gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-pyxis/releases/tag/', pyxisProjectVersion)
+  gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-monitoring/releases/tag/', monitoringProjectVersion)
   spec: 'default'
-  target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
+  target: ['login', 'scheduler', 'd64d', 'd16d', 'm64', 'hpc', 'gpu', 'dynamic']
 }
 
-// Projects <= 2025.02.06 have the pyxis logic embedded in the ccw cluster init spec
-var requiredClusterInitSpecs = [ccwClusterInitSpec, pyxisClusterInitSpec]
+// Use of azslurm 4.0 does not require pyxis
+var requiredClusterInitSpecs = [ccwClusterInitSpec, monitoringClusterInitSpec]
 
 output clusterInitSpecs types.cluster_init_param_t = union(requiredClusterInitSpecs, clusterInitSpecs)
 
@@ -344,12 +348,24 @@ output schedulerNode types.scheduler_t = schedulerNode
 output loginNodes types.login_t = loginNodes
 
 output partitions types.partitions_t = {
-  htc: union({
-    sku: htc.sku
-    maxNodes: htc.maxNodes
-    osImage: htc.osImage
-    useSpot: htc.?useSpot ?? false
-  }, contains(htc,'availabilityZone') ? { availabilityZone: htc.?availabilityZone } : {})
+  d64d: union({
+    sku: d64d.sku
+    maxNodes: d64d.maxNodes
+    osImage: d64d.osImage
+    useSpot: d64d.?useSpot ?? false
+  }, contains(d64d,'availabilityZone') ? { availabilityZone: d64d.?availabilityZone } : {})
+  d16d: union({
+    sku: d16d.sku
+    maxNodes: d16d.maxNodes
+    osImage: d16d.osImage
+    useSpot: d16d.?useSpot ?? false
+  }, contains(d16d,'availabilityZone') ? { availabilityZone: d16d.?availabilityZone } : {})
+  m64: union({
+    sku: m64.sku
+    maxNodes: m64.maxNodes
+    osImage: m64.osImage
+    useSpot: m64.?useSpot ?? false
+  }, contains(m64,'availabilityZone') ? { availabilityZone: m64.?availabilityZone } : {})
   hpc: hpc
   gpu: gpu
 }
@@ -389,7 +405,7 @@ output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
 
 output ood object = union(ood, {
-  version: '1.0.1'
+  version: '1.1.0'
   nic: deployOOD ? oodNIC.outputs.NICId : ''
   managedIdentity: deployOOD ? createOODMI ? oodNewManagedIdentity.id : ood.?appManagedIdentityId : ''
   clientId: deployOOD ? registerOODApp ? oodApp.outputs.oodClientAppId : ood.?appId : ''
@@ -402,9 +418,16 @@ output oodManualRegistration object = {
   fqdn: deployOOD ? oodNIC.outputs.privateIp : ''
 }
 
+output monitoring object = {
+  ingestionEndpoint: monitoringIngestionEndpoint
+  identityClientId: monitoringIdentityClientId
+}
+output hubMI string = hubMI
+
 output files object = {
   availability_zones_json: loadTextContent('./files-to-load/encoded/availability_zones.json.base64')
   create_cc_param_py: loadTextContent('./files-to-load/encoded/create_cc_param.py.base64')
   cyclecloud_install_py: loadTextContent('./files-to-load/encoded/cyclecloud_install.py.base64')
   initial_params_json: loadTextContent('./files-to-load/encoded/initial_params.json.base64')
+  slurm_txt: loadTextContent('./files-to-load/encoded/slurm.txt.base64')
 }

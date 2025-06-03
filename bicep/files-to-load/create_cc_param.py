@@ -30,15 +30,13 @@ def set_slurm_params(params, dbPassword, outputs):
         params['SubnetId'] = '/'.join([outputs['vnet']['value']['rg'], outputs['vnet']['value']['name'], outputs['vnet']['value']['computeSubnetName']])
         
     # Define Availability Zone
-    params['DefineNodesAvailabilityZone'] = any('availabilityZone' in zoneList for zoneList in [outputs['partitions']['value']['htc'], outputs['partitions']['value']['hpc'], outputs['partitions']['value']['gpu']])
+    params['DefineNodesAvailabilityZone'] = any('availabilityZone' in zoneList for zoneList in [outputs['partitions']['value']['hpc'], outputs['partitions']['value']['gpu']])
     
-    #HTC
-    params['HTCMachineType'] = outputs['partitions']['value']['htc']['sku']
-    params['MaxHTCExecuteNodeCount'] = int(outputs['partitions']['value']['htc']['maxNodes'])
-    params['HTCImageName'] = outputs['partitions']['value']['htc']['osImage']
-    params['HTCUseLowPrio'] = outputs['partitions']['value']['htc']['useSpot']
-    params['HTCAvailabilityZone'] = outputs['partitions']['value']['htc']['availabilityZone'] if params['DefineNodesAvailabilityZone'] and 'availabilityZone' in outputs['partitions']['value']['htc'] else None
-    
+    for na in ['D64D', 'D16D', 'M64']:
+        params[f'{na}MachineType'] = outputs['partitions']['value'][na.lower()]['sku']
+        params[f'Max{na}NodeCount'] = int(outputs['partitions']['value'][na.lower()]['maxNodes'])
+        params[f'{na}ImageName'] = outputs['partitions']['value'][na.lower()]['osImage']
+
     #HPC
     params['HPCMachineType'] = outputs['partitions']['value']['hpc']['sku']
     params['MaxHPCExecuteNodeCount'] = int(outputs['partitions']['value']['hpc']['maxNodes'])
@@ -96,6 +94,13 @@ def set_slurm_params(params, dbPassword, outputs):
         params['AdditionalNFSMountOptions'] = outputs['filerInfoFinal']['value']['additional']['mountOptions']
         params['AdditionalNFSAddress'] = outputs['filerInfoFinal']['value']['additional']['ipAddress']
 
+    # Monitoring
+    params['MonitoringEnabled'] = outputs['monitoring']["value"]['ingestionEndpoint'] != ''
+    params['MonitoringIngestionEndpoint'] = outputs['monitoring']['value']['ingestionEndpoint']
+    params['MonitoringIdentityClientId'] = outputs['monitoring']['value']['identityClientId']
+
+    params['ManagedIdentity'] = outputs['hubMI']['value']
+
 
 def set_ood_params(params, outputs):
     slurm_params = get_json_dict('initial_params.json')
@@ -118,6 +123,7 @@ def set_ood_params(params, outputs):
     params['ood_entra_client_id'] = outputs['ood']['value'].get('clientId')
     params['ood_entra_tenant_id'] = outputs['ood']['value'].get('tenantId')
     params['ood_nic'] = outputs['ood']['value'].get('nic')
+
 
 class ClusterInitSpec:
     def __init__(self, project: str, version: str, spec: str, targets: typing.List[str]):
@@ -197,7 +203,9 @@ def main():
         "login": "LoginClusterInitSpecs",
         "gpu": "GPUClusterInitSpecs",
         "hpc": "HPCClusterInitSpecs",
-        "htc": "HTCClusterInitSpecs",
+        "d64d": "D64DClusterInitSpecs",
+        "d16d": "D16DClusterInitSpecs",
+        "m64": "M64ClusterInitSpecs",
         "scheduler": "SchedulerClusterInitSpecs",
         "dynamic": "DynamicClusterInitSpecs",
         "ood": "ClusterInitSpecs"

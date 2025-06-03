@@ -165,7 +165,12 @@ for key in $keys; do
     # Print the file name
     echo "Processing $filename.$extension"
     # Create the file with the value decoded from base 64
-    echo $filecontent | base64 --decode > "$filename.$extension"
+
+    if [ ! -e "$filename.$extension" ]; then
+        echo $filecontent | base64 --decode > "$filename.$extension".tmp
+        mv "$filename.$extension".tmp "$filename.$extension"
+    fi
+
 done
 while [ ! -f "$SECRETS_FILE_PATH" ]; do
     echo "Waiting for VM to create secrets file..."
@@ -183,6 +188,10 @@ SLURM_CLUSTER_NAME=$(jq -r .clusterName.value ccwOutputs.json)
 ADMIN_USER_HOME_DIR="/home/${CYCLECLOUD_USERNAME}"
 SLURM_TEMPLATE_PATH=$(find /opt/cycle_server/system/work/.plugins_expanded/.expanded/cloud*/plugins/cloud/initial_data/templates/slurm/slurm_template_*.txt)
 mkdir -p "${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}"
+if [ -e /opt/ccw/slurm.txt ]; then
+    echo "Found custom slurm.txt, using that as the template in the user's home dir."
+    SLURM_TEMPLATE_PATH="slurm.txt"
+fi
 cp "${SLURM_TEMPLATE_PATH}" "${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}/slurm_template.txt"
 cp ccwOutputs.json "${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}/deployment.json"
 
@@ -298,7 +307,16 @@ fi
 # copying template parameters file to admin user's home directory
 cp slurm_params.json "${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}/slurm_params.json"
 
-SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Cloud.Project WHERE Name=="Slurm"' | jq -r '.[0].Version')
+# custom slurm template
+if [ -f "slurm.txt" ]; then
+    echo "Found slurm.txt, using it as the template"
+    SLURM_PROJ_VERSION="CUSTOM"
+    cyclecloud import_template -c Slurm -f slurm.txt slurm_template_${SLURM_PROJ_VERSION} --force
+else
+    echo "No slurm.txt found, using default template"
+    SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Cloud.Project WHERE Name=="Slurm"' | jq -r '.[0].Version')
+fi
+
 
 cyclecloud create_cluster slurm_template_${SLURM_PROJ_VERSION} $SLURM_CLUSTER_NAME -p slurm_params.json
 echo "CC create_cluster successful"

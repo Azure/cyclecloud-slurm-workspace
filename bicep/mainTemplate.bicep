@@ -20,7 +20,9 @@ param clusterInitSpecs types.cluster_init_param_t = []
 param slurmSettings types.slurmSettings_t = { startCluster: true, version: '23.11.7-1', healthCheckEnabled: false }
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
-param htc types.htc_t
+param d64d types.htc_t
+param d16d types.htc_t
+param m64 types.htc_t
 param hpc types.hpc_t
 param gpu types.hpc_t
 param tags types.resource_tags_t 
@@ -32,6 +34,8 @@ param databaseConfig types.databaseConfig_t = { type: 'disabled' }
 param clusterName string = 'ccw'
 param acceptMarketplaceTerms bool = false
 param ood types.oodConfig_t = { type: 'disabled' }
+// this should have rw access to the Hub blob storage and metrics collection to grafana
+param hubMI string
 
 param infrastructureOnly bool = false
 param insidersBuild bool = false
@@ -43,6 +47,9 @@ param projectVersion string = '2025.06.03'
 param pyxisProjectVersion string = '1.0.0'
 //Internal developer use only: set true use custom CycleCloud release build 
 param manualInstall bool = false
+
+param monitoringIngestionEndpoint string = ''
+param monitoringIdentityClientId string = ''
 
 resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: resourceGroup
@@ -71,7 +78,9 @@ module makeCCWresources 'ccw.bicep' = {
     slurmSettings: slurmSettings
     schedulerNode: schedulerNode
     loginNodes: loginNodes
-    htc: htc
+    d64d: d64d
+    d16d: d16d
+    m64: m64
     hpc: hpc
     gpu: gpu
     storedKey: storedKey
@@ -84,7 +93,10 @@ module makeCCWresources 'ccw.bicep' = {
     clusterName: clusterName
     branch: branch
     projectVersion: projectVersion
-    pyxisProjectVersion: pyxisProjectVersion
+    monitoringProjectVersion: monitoringProjectVersion
+    hubMI: hubMI
+    monitoringIngestionEndpoint: monitoringIngestionEndpoint
+    monitoringIdentityClientId: monitoringIdentityClientId
     manualInstall: manualInstall
     acceptMarketplaceTerms: acceptMarketplaceTerms
     ood: ood
