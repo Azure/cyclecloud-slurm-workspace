@@ -301,6 +301,17 @@ sed -i 's/^SHELL.*/SHELL=\/bin\/bash/g' /etc/default/useradd
         #IMEX Support is enabled by default for GB200 but can be disabled by setting param to False
         #slurm.imex.enabled=True
 
+    [[nodearray gpu2]]
+    extends = gpu
+    MaxCount = $MaxGPU2ExecuteNodeCount
+        [[[configuration]]]
+        slurm.default_partition = false
+        slurm.hpc = false
+        slurm.partition = gpu2
+        #Parameter to enable or disable IMEX service on a per-job basis
+        #IMEX Support is enabled by default for GB200 but can be disabled by setting param to False
+        #slurm.imex.enabled=True
+
     [[nodearray dynamic]]
     Extends = nodearraybase
     MachineType = $DynamicMachineType
@@ -438,6 +449,14 @@ Order = 10
         Label = Max GPU Nodes
         Description = The total number of GPU execute nodes to start
         DefaultValue = 8
+        Config.Plugin = pico.form.NumberTextBox
+        Config.MinValue = 0
+        Config.IntegerOnly = true
+
+        [[[parameter MaxGPU2ExecuteNodeCount]]]
+        Label = Max GPU2 Nodes
+        Description = The total number of GPU2 execute nodes to start
+        DefaultValue = 120
         Config.Plugin = pico.form.NumberTextBox
         Config.MinValue = 0
         Config.IntegerOnly = true
