@@ -243,11 +243,13 @@ type db_none_t = {
 
 type db_fqdn_t = {
   type: 'fqdn'
+  databaseUser: string
   fqdn: string
 }
 
 type db_privateIp_t = {
   type: 'privateIp'
+  databaseUser: string
   privateIp: string
 }
 
@@ -259,6 +261,7 @@ type dbInfo_t = {
 
 type db_privateEndpoint_t = {
   type: 'privateEndpoint'
+  databaseUser: string
   dbInfo: dbInfo_t
 }
 
