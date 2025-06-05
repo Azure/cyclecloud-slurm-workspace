@@ -103,7 +103,7 @@ output vnet types.networkOutput_t = union(
 var deploy_bastion = network.?bastion ?? false
 module ccwBastion './bastion.bicep' = if (deploy_bastion) {
   name: 'ccwBastion'
-  scope: create_new_vnet ? az.resourceGroup() : az.resourceGroup(split(network.?existing_vnet_id, '/')[4])
+  scope: az.resourceGroup() 
   params: {
     location: location
     tags: getTags('Microsoft.Network/bastionHosts', tags)
