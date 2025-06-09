@@ -9,6 +9,7 @@ targetScope = 'resourceGroup'
 param appName string
 param umiName string
 param fqdn string
+param serviceTreeId string
 
 // NOTE: Microsoft Graph Bicep file deployment is only supported in Public Cloud
 var audiences = {
@@ -54,6 +55,7 @@ resource oodManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@20
 resource oodApp 'Microsoft.Graph/applications@v1.0' = {
   displayName: appName
   uniqueName: guid(subscription().id, resourceGroup().id, appName) // Need to be unique inside the tenant, issue is if you manually delete the app, it will failed if you recreate it with the same name
+  serviceManagementReference: serviceTreeId
 
   resource myMsiFic 'federatedIdentityCredentials@v1.0' = {
     name: '${oodApp.uniqueName}/msiAsFic'

@@ -43,6 +43,8 @@ param projectVersion string = '2025.04.24'
 param pyxisProjectVersion string = '1.0.0'
 //Internal developer use only: set true use custom CycleCloud release build 
 param manualInstall bool = false
+//Internal developer use only: use util/deploy_ccw.sh to deploy with OOD via CLI
+param oodServiceTreeId string = ''
 
 resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: resourceGroup
@@ -85,5 +87,6 @@ module makeCCWresources 'ccw.bicep' = {
     manualInstall: manualInstall
     acceptMarketplaceTerms: acceptMarketplaceTerms
     ood: ood
+    oodServiceTreeId: oodServiceTreeId
   }
 }

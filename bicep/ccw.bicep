@@ -36,6 +36,7 @@ param clusterName string
 param manualInstall bool
 param acceptMarketplaceTerms bool
 param ood types.oodConfig_t
+param oodServiceTreeId string
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8'
 
@@ -283,6 +284,7 @@ module oodApp 'ood/oodEntraApp.bicep' = if (registerOODApp) {
     umiName: oodManagedIdentityName
     appName: oodAppName
     fqdn: oodNIC.outputs.privateIp
+    serviceTreeId: oodServiceTreeId
   }
 }
 

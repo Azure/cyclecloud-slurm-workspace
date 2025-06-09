@@ -17,6 +17,9 @@
     },
     "fqdn": {
       "type": "string"
+    },
+    "serviceTreeId": {
+      "type": "string"
     }
   },
   "variables": {
@@ -91,6 +94,7 @@
       "properties": {
         "displayName": "[parameters('appName')]",
         "uniqueName": "[guid(subscription().id, resourceGroup().id, parameters('appName'))]",
+        "serviceManagementReference": "[parameters('serviceTreeId')]",
         "web": {
           "implicitGrantSettings": {
             "enableAccessTokenIssuance": false,
