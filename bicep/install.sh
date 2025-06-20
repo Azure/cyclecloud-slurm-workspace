@@ -76,9 +76,12 @@ if command -v apt; then
     retry_command "apt update -y"
     #apt install -y 
 else
+    # update the almalinux repo to use HTTPS inteads of the default HTTP for azure.repo.almalinux.org
+    sed -i 's|# baseurl=https://repo.almalinux.org/almalinux|baseurl=https://azure.repo.almalinux.org/|' /etc/yum.repos.d/almalinux.repo
+    dnf clean all
+    dnf makecache
     retry_command "yum update -y --exclude=cyclecloud*" 5 60
     retry_command "yum install -y jq"
-
 fi
 
 printf "\n\n"
