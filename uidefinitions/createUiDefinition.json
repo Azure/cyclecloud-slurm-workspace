@@ -807,7 +807,7 @@
                 "name": "mountOptionsAml",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Mount options",
-                "defaultValue": "noatime,xattr",
+                "defaultValue": "noatime,user_xattr",
                 "toolTip": "Mount options for the additional filer",
                 "constraints": {
                   "required": false,
