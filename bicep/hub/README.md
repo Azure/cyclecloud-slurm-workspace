@@ -22,7 +22,7 @@
 6. Create a spoke: i.e. a CycleCloud + Slurm cluster deployment:
     * `bicep/hub/params/base_spoke_params.json` Update `adminPassword` - CycleCloud hpcadmin password
     * `bicep/hub/params/base_spoke_params.json` Update `adminSshPublicKey` - hpcadmin public ssh key
-    * `bicep/hub/params/base_spoke_params.json` Update storagePrivateDnsZone.id with the private link id we created in step 5.
+    * `bicep/hub/params/base_spoke_params.json` Update storagePrivateDnsZone.id with the resource ID of the private DNS zone created in step 5.
     * `deploy_spoke.sh --hub-resource-group HUB_RG_NAME --spoke-number 1`
 7. Once the spoke finishes, perform the following to install the latest version of CycleCloud8. **Assuming the CC vm is at 10.1.0.4**
     ```bash

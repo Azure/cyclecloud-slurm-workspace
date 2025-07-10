@@ -45,8 +45,8 @@
   "storagePrivateDnsZone": {
     "value": {
       "type": "existing",
-      "id": "ENTER_PRIVATE_DNS_ZONE_ID_HERE",
-      "vnetLink": false
+      "id": "ENTER_PRIVATE_DNS_ZONE_RESOURCE_ID_HERE",
+      "vnetLink": true
     }
   },
   "databaseAdminPassword": {
