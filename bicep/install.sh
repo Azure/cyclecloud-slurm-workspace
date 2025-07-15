@@ -345,15 +345,6 @@ while [ $(/opt/cycle_server/./cycle_server execute --format json "
 done
 echo All Azure.MachineType records are loaded.
 
-# Enable accel networking on any nodearray that has a VM Size that supports it.
-/opt/cycle_server/./cycle_server execute \
-"SELECT AdType, ClusterName, Name, M.AcceleratedNetworkingEnabled AS EnableAcceleratedNetworking
- FROM Cloud.Node
- INNER JOIN Azure.MachineType M 
- ON M.Name===MachineType && M.Location===Region
- WHERE ClusterName==\"$SLURM_CLUSTER_NAME\"" > /tmp/accel_network.txt
- mv /tmp/accel_network.txt /opt/cycle_server/config/data
-
 # it usually takes less than 2 seconds, so before starting the longer timeouts, optimistically sleep.
 sleep 2
 echo Waiting for accelerated network records to be imported
