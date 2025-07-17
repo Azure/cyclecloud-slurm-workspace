@@ -176,6 +176,6 @@ az deployment sub create \
     --parameters ccVMName="ccw${SPOKE_NUMBER}-cyclecloud-vm" \
     --parameters clusterName="ccw${SPOKE_NUMBER}" \
     --parameters monitoringIngestionEndpoint="${MONITORING_INGESTION_ENDPOINT}" \
-    --name "spoke-ccw-0${SPOKE_DEPLOYMENT_NAME}" \
+    --name "spoke-ccw-0${SPOKE_DEPLOYMENT_NAME}-${LOCATION}" \
     $WHATIF_FLAG
  
