@@ -50,7 +50,7 @@ param manualInstall bool = false
 
 param monitoringIngestionEndpoint string = ''
 param monitoringIdentityClientId string = ''
-param monitoringProjectVersion string = '1.0.0'
+param monitoringProjectVersion string = '1.0.1'
 
 resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: resourceGroup
