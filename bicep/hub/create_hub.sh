@@ -129,7 +129,7 @@ az deployment group create \
     $WHATIF_FLAG
 
 # Deploy monitoring
-MONITORING_PROJECT_VERSION="1.0.0"
+MONITORING_PROJECT_VERSION="1.0.1"
 echo "Deploying monitoring"
 mkdir build/
 pushd build
