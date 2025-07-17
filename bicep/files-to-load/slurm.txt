@@ -26,6 +26,15 @@ Autoscale = $Autoscale
     # Lustre mounts require termination notifications to unmount
     EnableTerminateNotification = ${NFSType == "lustre" || NFSSchedType == "lustre" || AdditionalNFSType == "lustre" || EnableTerminateNotification}
     TerminateNotificationTimeout = 10m
+    CloudInit="""#!/bin/bash
+sed -i 's/^SHELL.*/SHELL=\/bin\/bash/g' /etc/default/useradd
+ 
+CLUSTER_NAME=$( jetpack config cyclecloud.cluster.name )
+mkdir -p /etc/slurm/
+ln -s /sched/${CLUSTER_NAME}/topology.conf /etc/slurm/
+
+    """
+    
 
         [[[configuration]]]
 
@@ -34,6 +43,7 @@ Autoscale = $Autoscale
         slurm.user.gid = 11100
         munge.user.uid = 11101
         munge.user.gid = 11101
+	slurm.enable_healthchecks = true
         slurm.accounting.enabled = $configuration_slurm_accounting_enabled
         slurm.accounting.url = $configuration_slurm_accounting_url
         slurm.accounting.user = $configuration_slurm_accounting_user
@@ -69,10 +79,10 @@ Autoscale = $Autoscale
         monitoring.enabled = $MonitoringEnabled
         cyclecloud.enable_chef = false
 
-        [[[cluster-init cyclecloud/healthagent:default]]]
-        [[[cluster-init cyclecloud/slurm:default:4.0.0]]]
+        [[[cluster-init cyclecloud/healthagent:default:1.0.2]]]
+        [[[cluster-init cyclecloud/slurm:default:4.0.1]]]
         Optional = true
-        [[[cluster-init cyclecloud/slurm:pyxis:4.0.0]]]
+        [[[cluster-init cyclecloud/slurm:pyxis:4.0.1]]]
 
         [[[volume boot]]]
         Size = ${ifThenElse(BootDiskSize > 0, BootDiskSize, undefined)}
@@ -124,9 +134,9 @@ Autoscale = $Autoscale
         cyclecloud.mounts.nfs_shared.disabled = ${UseBuiltinShared && !configuration_slurm_ha_enabled}
         slurm.secondary_scheduler_name = ${ifThenElse(configuration_slurm_ha_enabled, "scheduler-ha-1", undefined)}
 
-        [[[cluster-init cyclecloud/healthagent:default]]]
-        [[[cluster-init cyclecloud/slurm:scheduler:4.0.0]]]
-        [[[cluster-init cyclecloud/slurm:pyxis:4.0.0]]]
+        [[[cluster-init cyclecloud/healthagent:default:1.0.2]]]
+        [[[cluster-init cyclecloud/slurm:scheduler:4.0.1]]]
+        [[[cluster-init cyclecloud/slurm:pyxis:4.0.1]]]
 
         [[[network-interface eth0]]]
         AssociatePublicIpAddress = $UsePublicNetwork
@@ -188,15 +198,24 @@ Autoscale = $Autoscale
         ImageName = $LoginImageName
         AdditionalClusterInitSpecs = $LoginClusterInitSpecs
         
-        [[[cluster-init cyclecloud/healthagent:default]]]
-        [[[cluster-init cyclecloud/slurm:login:4.0.0]]]
-        [[[cluster-init cyclecloud/slurm:pyxis:4.0.0]]]
+        [[[cluster-init cyclecloud/healthagent:default:1.0.2]]]
+        [[[cluster-init cyclecloud/slurm:login:4.0.1]]]
+        [[[cluster-init cyclecloud/slurm:pyxis:4.0.1]]]
 
         [[[configuration]]]
         slurm.role = login
         autoscale.enabled = false
         slurm.node_prefix = ${ifThenElse(NodeNamePrefix=="Cluster Prefix", StrJoin("-", ClusterName, ""), NodeNamePrefix)}
         slurm.use_nodename_as_hostname = $NodeNameIsHostname
+
+
+    [[nodearray login-arm64]]
+        Extends = login
+	MachineType = $loginArm64MachineType
+	ImageName = $LoginArm64ImageName
+	
+
+
 
     [[node nodearraybase]]
     Abstract = true
@@ -207,9 +226,9 @@ Autoscale = $Autoscale
         slurm.node_prefix = ${ifThenElse(NodeNamePrefix=="Cluster Prefix", StrJoin("-", ClusterName, ""), NodeNamePrefix)}
         slurm.use_nodename_as_hostname = $NodeNameIsHostname
 
-        [[[cluster-init cyclecloud/healthagent:default]]]
-        [[[cluster-init cyclecloud/slurm:execute:4.0.0]]]
-        [[[cluster-init cyclecloud/slurm:pyxis:4.0.0]]]
+        [[[cluster-init cyclecloud/healthagent:default:1.0.2]]]
+        [[[cluster-init cyclecloud/slurm:execute:4.0.1]]]
+        [[[cluster-init cyclecloud/slurm:pyxis:4.0.1]]]
 
         [[[network-interface eth0]]]
         AssociatePublicIpAddress = $ExecuteNodesPublic
@@ -272,21 +291,20 @@ Autoscale = $Autoscale
         slurm.use_pcpu = false
 
     [[nodearray gpu]]
-        CloudInit="""#!/bin/bash
-sed -i 's/^SHELL.*/SHELL=\/bin\/bash/g' /etc/default/useradd
-    """
+    
+    EnableAcceleratedNetworking=true
+    
 
     # GB200: Peregrine disallows SinglePlacementGroup, but pkey requires SingleScaleset
     Azure.Overprovision = false
     Azure.MaxScaleSetSize = 1000
     Azure.SingleScaleset = true
-    Azure.SinglePlacementGroup = true
+    Azure.SinglePlacementGroup = false
 
     Extends = nodearraybase
     MachineType = $GPUMachineType
     ImageName = $GPUImageName
     MaxCount = $MaxGPUExecuteNodeCount
-    Azure.MaxScalesetSize = $HPCMaxScalesetSize
     EnableNodeHealthChecks = $EnableNodeHealthChecks
 
     Interruptible = $GPUUseLowPrio
@@ -295,22 +313,24 @@ sed -i 's/^SHELL.*/SHELL=\/bin\/bash/g' /etc/default/useradd
 
         [[[configuration]]]
         slurm.default_partition = true
-        slurm.hpc = true
+        slurm.hpc = false
         slurm.partition = gpu
         #Parameter to enable or disable IMEX service on a per-job basis
         #IMEX Support is enabled by default for GB200 but can be disabled by setting param to False
-        #slurm.imex.enabled=True
+        slurm.imex.enabled=True
 
     [[nodearray gpu2]]
     extends = gpu
     MaxCount = $MaxGPU2ExecuteNodeCount
+    Azure.SinglePlacementGroup = false
+    Azure.MaxScalesetSize = $HPCMaxScalesetSize
         [[[configuration]]]
         slurm.default_partition = false
-        slurm.hpc = true
+        slurm.hpc = false
         slurm.partition = gpu2
         #Parameter to enable or disable IMEX service on a per-job basis
         #IMEX Support is enabled by default for GB200 but can be disabled by setting param to False
-        #slurm.imex.enabled=True
+        slurm.imex.enabled=True
 
     [[nodearray dynamic]]
     Extends = nodearraybase
@@ -366,6 +386,12 @@ Order = 10
         ParameterType = Cloud.MachineType
         DefaultValue = Standard_D8as_v4
 
+        [[[parameter loginArm64MachineType]]]
+        Label = ARM64 Login node VM Type
+        Description = The VM type for ARM64 login nodes.
+        ParameterType = Cloud.MachineType
+        DefaultValue = Standard_D8plds_v5
+
         [[[parameter HPCMachineType]]]
         Label = HPC VM Type
         Description = The VM type for HPC execute nodes
@@ -394,7 +420,7 @@ Order = 10
         Label = GPU VM Type
         Description = The VM type for HPC execute nodes
         ParameterType = Cloud.MachineType
-        DefaultValue = Standard_NC24rs_v3
+        DefaultValue = Standard_ND128isr_NDR_GB200_v6
 
         [[[parameter DynamicMachineType]]]
         Label = Dyn VM Type
@@ -915,6 +941,14 @@ Order = 20
         Config.OS = linux
         DefaultValue = almalinux8
         Config.Filter := Package in {"cycle.image.ubuntu20", "cycle.image.ubuntu22", "cycle.image.sles15-hpc", "almalinux8"}
+
+        [[[parameter LoginArm64ImageName]]]
+        Label = ARM64 Login Node OS
+        ParameterType = Cloud.Image
+        Config.OS = linux
+        DefaultValue = cycle.image.ubuntu24
+        Config.Filter := Package in {"cycle.image.ubuntu20", "cycle.image.ubuntu22", "cycle.image.sles15-hpc", "almalinux8"}
+
 
         [[[parameter HPCImageName]]]
         Label = HPC OS
