@@ -3,7 +3,6 @@ import {tags_t} from './types.bicep'
 
 param location string
 param tags tags_t
-param Name string
 param adminUser string
 @secure()
 param adminPassword string
@@ -19,10 +18,10 @@ param serverEdition string = 'Burstable'
 param skuName string = 'Standard_B2ms'
 
 // Create a MySQL Flexible Server
-resource server 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' = {
+resource server 'Microsoft.DBforMySQL/flexibleServers@2024-12-30' = {
   location: location
   tags: tags
-  name: Name
+  name: 'hub-mysql-${resourceGroup().name}'
   sku: {
     name: skuName
     tier: serverEdition
@@ -48,6 +47,15 @@ resource server 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' = {
       backupRetentionDays: 7
       geoRedundantBackup: 'Disabled'
     }
+  }
+}
+
+resource require_secure_transport 'Microsoft.DBforMySQL/flexibleServers/configurations@2024-12-30' = {
+  name: 'require_secure_transport'
+  parent: server
+  properties: {
+    value: 'OFF'
+    source: 'user-override'
   }
 }
 

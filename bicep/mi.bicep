@@ -17,7 +17,9 @@ module ccwMIRoleAssignments './miRoleAssignments.bicep' = {
   name: 'ccwRoleForLockerManagedIdentity'
   params: {
     principalId: managedIdentity.properties.principalId
-    roles: ['Storage Blob Data Reader']
+    roles: [
+      'Storage Blob Data Reader'
+    ]
     storageAccountName: storageAccountName
   }
 }
