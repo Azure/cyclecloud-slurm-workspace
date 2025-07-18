@@ -80,9 +80,6 @@ az deployment group create \
 
 echo "Virtual network deployment is complete. Please enter the Azure Portal to create a VPN Gateway while the remainder of this script runs."
 
-echo "Deploying hub managed identity..."
-./create_hub_mi.sh "${RESOURCE_GROUP}" "${LOCATION}"
-
 echo "Deploying Bastion"
 # Deploy Bastion
 bastion_subnet_id=$(az network vnet subnet show -g "${RESOURCE_GROUP}" -n AzureBastionSubnet --vnet-name "hub-vnet-${RESOURCE_GROUP}" | jq '.id' | tr -d '"')
@@ -131,7 +128,7 @@ az deployment group create \
 # Deploy monitoring
 MONITORING_PROJECT_VERSION="1.0.1"
 echo "Deploying monitoring"
-mkdir build/
+rm -rf build && mkdir build/
 pushd build
 git clone --branch "${MONITORING_PROJECT_VERSION}" https://github.com/Azure/cyclecloud-monitoring.git
 
@@ -144,6 +141,12 @@ fi
 
 popd
 popd
+
+DCR_RESOURCE_GROUP=$(az deployment group show -g "${RESOURCE_GROUP}" -n managedMonitoring --query properties.outputs.dcrResourceId.value | tr -d '"' | cut -d '/' -f5)
+
+echo "Deploying hub managed identity..."
+./create_hub_mi.sh "${RESOURCE_GROUP}" "${LOCATION}" "${DCR_RESOURCE_GROUP}"
+
 popd
 
 echo "Done!"
