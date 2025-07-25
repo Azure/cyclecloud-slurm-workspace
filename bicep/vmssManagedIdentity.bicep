@@ -4,7 +4,8 @@ import {tags_t} from './types.bicep'
 param name string
 param location string
 param storageAccountName string
-param tags tags_t
+param applyRoleAssignments bool = true
+param tags tags_t = {}
 
 //create managed identity for VMSSs
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
@@ -13,7 +14,7 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
   tags: tags
 }
 
-module ccwMIRoleAssignments './miRoleAssignments.bicep' = {
+module ccwLockerManagedIdentityRoleAssignments './vmssManagedIdentityRoleAssignments.bicep' = if (applyRoleAssignments) {
   name: 'ccwRoleForLockerManagedIdentity'
   params: {
     principalId: managedIdentity.properties.principalId
