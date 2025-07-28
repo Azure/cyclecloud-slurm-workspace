@@ -15,6 +15,7 @@ param adminUsername string
 param adminPassword string
 param adminSshPublicKey string
 param storedKey types.storedKey_t
+param storageAccount types.storageAccount_t
 param ccVMName string
 param ccVMSize string
 param resourceGroup string

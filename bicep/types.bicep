@@ -317,3 +317,18 @@ type cluster_init_t = github_cluster_init_t | prestaged_cluster_init_t
 
 @export()
 type cluster_init_param_t = cluster_init_t[]
+
+type storageAccount_new_t = {
+  type: 'new'
+}
+
+type storageAccount_existing_t = {
+  type: 'existing'
+  storageAccountId: string
+  vmManagedIdentityId: string
+  vmssManagedIdentityId: string
+}
+
+@export()
+@discriminator('type')
+type storageAccount_t = storageAccount_new_t | storageAccount_existing_t
