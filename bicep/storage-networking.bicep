@@ -12,24 +12,8 @@ var privateDnsZoneResourceGroup = split(privateDnsZoneId, '/')[4]
 var createVnetLink = storagePrivateDnsZone.type == 'existing' ? storagePrivateDnsZone.vnetLink : storagePrivateDnsZone.type == 'new'
 var vnetLinkScope = contains(storagePrivateDnsZone,'id') ? split(privateDnsZoneId, '/')[4] : az.resourceGroup().name
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' existing = {
   name: saName
-  location: location
-  tags: tags
-  sku: {
-    name: 'Standard_LRS'
-  }
-  kind: 'StorageV2'
-  properties:{
-    accessTier: 'Hot'
-    minimumTlsVersion: 'TLS1_2'
-    allowSharedKeyAccess: false
-    publicNetworkAccess: 'Disabled'
-    allowBlobPublicAccess: false
-    networkAcls: {
-      defaultAction: 'Deny'
-      }      
-  }
 }
 
 var storageBlobPrivateEndpointName = 'ccwstorage-blob-pe'

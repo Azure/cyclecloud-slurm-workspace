@@ -114,7 +114,17 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
 }
 
 param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.7.320250909'
+var vmMiName = 'ccwCycleCloudVirtualMachineManagedIdentity'
+module ccwVirtualMachineManagedIdentity './vmManagedIdentity.bicep' = if (!infrastructureOnly && storageAccount.type == 'new') {
+  name: vmMiName
+  params: {
+    name: vmMiName
+    location: location
+    tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
+  }
+}
 
+var ccwVirtualMachineManagedIdentityId = !infrastructureOnly ? ( storageAccount.type == 'new' ? ccwVirtualMachineManagedIdentity!.outputs.managedIdentityId : storageAccount.vmManagedIdentityId) : ''
 module ccwVM './vm.bicep' = if (!infrastructureOnly) {
   name: 'ccwVM-cyclecloud'
   params: {
@@ -152,49 +162,60 @@ module ccwVM './vm.bicep' = if (!infrastructureOnly) {
         createOption: split(cyclecloudBaseImage, ':')[0] == 'azurecyclecloud' ? 'FromImage' : 'Empty'
       }
     ]
+    managedIdentityId: ccwVirtualMachineManagedIdentityId
   }
   dependsOn: [
     ccwNetwork
   ]
 }
 
-var miName = 'ccwLockerManagedIdentity'
-module ccwManagedIdentity 'mi.bicep' = if (!infrastructureOnly) {
-  name: miName
-  params: {
-    name: miName
-    location: location
-    storageAccountName: ccwStorage.outputs.storageAccountName
-    tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
-  }
-}
-
-module ccwRoleAssignments './vmRoleAssignments.bicep' = if (!infrastructureOnly) {
-  name: 'ccwRoleFor-${ccVMName}-${location}'
-  scope: subscription()
-  params: {
-    roles: [
-      'Contributor'
-      'Storage Account Contributor'
-      'Storage Blob Data Contributor'
-    ]
-    principalId: ccwVM.outputs.principalId
-  }
-  dependsOn: [
-    ccwVM
-  ]
-}
-
-module ccwStorage './storage.bicep' = {
-  name: 'ccwStorage'
+module ccwNewStorageAccount './storage-new.bicep' = if (storageAccount.type == 'new') {
+  name: 'ccwNewStorageAccount'
   params: {
     location: location
     tags: getTags('Microsoft.Storage/storageAccounts', tags)
-    saName: 'ccwstorage${uniqueString(az.resourceGroup().id)}'
-    subnetId: subnets.cyclecloud.id 
+  }
+}
+var storageAccountName  = storageAccount.type == 'existing' ? split(storageAccount.storageAccountId, '/')[8] : ccwNewStorageAccount!.outputs.storageAccountName
+
+module ccwStorageNetworking './storage-networking.bicep' = {
+  name: 'ccwStorageAccountNetworking'
+  params: {
+    location: location
+    saName: storageAccountName
+    tags: getTags('Microsoft.Storage/storageAccounts', tags)
+    subnetId: subnets.cyclecloud.id
     storagePrivateDnsZone: storagePrivateDnsZone
   }
 }
+
+var vmssMiName = 'ccwLockerManagedIdentity'
+module ccwVMSSManagedIdentity 'vmssManagedIdentity.bicep' = if (!infrastructureOnly && storageAccount.type == 'new') {
+  name: vmssMiName
+  params: {
+    name: vmssMiName
+    location: location
+    storageAccountName: storageAccountName
+    tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
+  }
+}
+var vmssManagedIdentityId = !infrastructureOnly ? ( storageAccount.type == 'new' ? ccwVMSSManagedIdentity!.outputs.managedIdentityId : storageAccount.vmssManagedIdentityId) : ''
+
+// module ccwRoleAssignments './vmRoleAssignments.bicep' = if (!infrastructureOnly) {
+//   name: 'ccwRoleFor-${ccVMName}-${location}'
+//   scope: subscription()
+//   params: {
+//     roles: [
+//       'Contributor'
+//       'Storage Account Contributor'
+//       'Storage Blob Data Contributor'
+//     ]
+//     principalId: ccwVM.outputs.principalId
+//   }
+//   dependsOn: [
+//     ccwVM
+//   ]
+// }
 
 var create_database = contains(slurmSettings, 'databaseAdminPassword')
 var db_name = 'ccw-mysqldb-${uniqueString(az.resourceGroup().id)}'
@@ -314,9 +335,10 @@ output filerInfoFinal types.filerInfo_t = {
   }
 }
 
-output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.principalId
+output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM!.outputs.principalId
 
-output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
+// MI for VMSS
+output managedIdentityId string = vmssManagedIdentityId
 
 // Automatically inject the ccw and pyxis cluster init specs
 
@@ -370,7 +392,7 @@ var clusterNameCleaned = join(clusterNameArrCleaned,'')
 
 output resourceGroup string = resourceGroup
 output location string = location
-output storageAccountName string = ccwStorage.outputs.storageAccountName
+output storageAccountName string = storageAccountName
 output clusterName string = clusterNameCleaned
 output publicKey string = publicKey
 output adminUsername string = adminUsername
