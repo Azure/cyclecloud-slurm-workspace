@@ -1,7 +1,7 @@
 targetScope = 'resourceGroup'
 import {tags_t} from './types.bicep'
 
-param name string
+param name string = 'ccwCycleCloudVirtualMachineManagedIdentity'
 param location string
 param applyRoleAssignments bool = true
 param tags tags_t = {}
@@ -25,3 +25,5 @@ module ccwCycleCloudVirtualMachineRoleAssignments './vmManagedIdentityRoleAssign
     principalId: managedIdentity.properties.principalId
   }
 }
+
+output managedIdentityId string = managedIdentity.id

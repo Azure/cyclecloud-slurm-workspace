@@ -85,7 +85,6 @@ fi
 az deployment group create \
     --resource-group "$RESOURCE_GROUP" \
     --template-file $(pwd)/bicep/vmManagedIdentity.bicep \
-    --parameters name="ccwCycleCloudVirtualMachineManagedIdentity" \
     --parameters location="$LOCATION" \
     --parameters applyRoleAssignments="$APPLY_ROLE_ASSIGNMENTS" \
     --name "ccw-vm-mi-deployment-${RESOURCE_GROUP}-${LOCATION}"
