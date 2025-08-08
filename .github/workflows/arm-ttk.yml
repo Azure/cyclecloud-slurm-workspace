@@ -13,10 +13,10 @@ on:
     paths:
       - 'bicep/**'
       - 'uidefinitions/**'
+      - '.github/**'
+      - './build.sh'
+      - 'util/**'
   workflow_dispatch:
-
-env:
-  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}  # https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
 
 defaults:
   run:
@@ -25,6 +25,7 @@ defaults:
 jobs:
   arm_validation:
     runs-on: ubuntu-latest
+    if: github.repository == 'Azure/cyclecloud-slurm-workspace' 
     permissions:
       contents: read    
 
@@ -39,6 +40,8 @@ jobs:
 
       - name: Build ARM
         id: build
+        env: 
+          BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
           set -e
-          ./build.sh ${{ env.BRANCH_NAME }}
+          ./build.sh "$BRANCH"
