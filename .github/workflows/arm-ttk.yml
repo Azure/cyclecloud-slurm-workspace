@@ -22,6 +22,7 @@ defaults:
 jobs:
   arm_validation:
     runs-on: ubuntu-latest
+    if: github.repository == 'Azure/cyclecloud-slurm-workspace' 
     permissions:
       contents: read    
 
