@@ -13,6 +13,9 @@ on:
     paths:
       - 'bicep/**'
       - 'uidefinitions/**'
+      - '.github/**'
+      - './build.sh'
+      - 'util/**'
   workflow_dispatch:
 
 defaults:
