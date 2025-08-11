@@ -3,6 +3,10 @@
 # azslurm 4.0.0 used python3.0.10, and if you upgrade without wiping it out, it keeps 3.0.10
 rm -rf /opt/azurehpc/slurm/venv
 
+BACKUP_DIR=~/slurm_m1_backups/$(date +%s)
+mkdir -p $BACKUP_DIR
+cp -r /etc/slurm/* $BACKUP_DIR
+
 curl https://raw.githubusercontent.com/Azure/cyclecloud-slurm/tags/slurm_m1-1.0.0/azure-slurm-install/upgrade_scheduler.sh | bash -
 
 curl https://raw.githubusercontent.com/Azure/cyclecloud-slurm/tags/slurm_m1-1.0.0/scale_m1/scale_to_n_nodes.py > ~/bin/scale_m1
