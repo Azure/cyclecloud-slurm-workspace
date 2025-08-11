@@ -5,6 +5,11 @@ Usage: cyclecloud export_parameters ccw1 | python3 update_params.py > slurm_para
 This script will upgrade the monitoring project to 1.0.2 and increase the BootDiskSize to 1024 GB.
 """
 
+
+if len(sys.argv) < 2:
+    print("Usage: python3 update_params.y image_name")
+    sys.exit(1)
+
 data = json.load(sys.stdin)
 
 for x in data:
@@ -15,5 +20,7 @@ for x in data:
         data[x][monitoring["Name"]] = monitoring
     elif "BootDiskSize" == x:
         data[x] = 1024
+    elif "GPUImageName" == x:
+        data[x] = sys.argv[1]
 
 json.dump(data, sys.stdout, indent=2)
