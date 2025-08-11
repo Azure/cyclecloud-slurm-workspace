@@ -13,7 +13,7 @@ yum clean all
 yum makecache
 
 # Update cyclecloud8 to latest version
-yum -y update cyclecloud8
+yum -y install cyclecloud8-8.8.0-3421
 
 # Check if the update was successful
 UPDATED_CC_BUILD_VERSION=$(cat /opt/cycle_server/system/version)
