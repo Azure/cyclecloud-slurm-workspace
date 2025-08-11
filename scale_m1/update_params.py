@@ -14,10 +14,14 @@ data = json.load(sys.stdin)
 
 for x in data:
     if "ClusterInitSpecs" in x and data.get(x):
-        monitoring = data[x].pop("monitoring:default:1.0.1")
-        monitoring["Name"] = "monitoring:default:1.0.2"
-        monitoring["Version"] = "1.0.2"
-        data[x][monitoring["Name"]] = monitoring
+        for version in ["1.0.0", "1.0.1"]:
+            key = f"monitoring:default:{version}"
+            if key not in data[x]:
+                continue
+            monitoring = data[x].pop(key)
+            monitoring["Name"] = "monitoring:default:1.0.2"
+            monitoring["Version"] = "1.0.2"
+            data[x][monitoring["Name"]] = monitoring
     elif "BootDiskSize" == x:
         data[x] = 1024
     elif "GPUImageName" == x:
