@@ -19,9 +19,12 @@ cp ~/ccw1/slurm_params.json ~/ccw1/slurm_params_$(date +%s).json
 2) Change `[[[cluster-init cyclecloud/slurm:*:4.0.0]]]` to `[[[cluster-init cyclecloud/slurm:*:4.0.2]]]` in `slurm_template.txt`
 4) Change `[[[cluster-init cyclecloud/healthagent:*:1.0.2]]]` to `[[[cluster-init cyclecloud/slurm:*:1.0.3]]]` in `slurm_template.txt`
 5) Export and update the parameters. Note this will update the monitoring project to 1.0.2 and increase the BootDiskSize to 1024GB
+
+**NOTE** Edit IMAGE_NAME below with the new GB200 image.
 ```bash
 curl https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/refs/heads/feature/scale_m1/scale_m1/update_params.py > update_params.py
-cyclecloud export_parameters ccw1 | python3 update_params.py > ~/ccw1/slurm_params.json
+IMAGE_NAME=# Enter image name here
+cyclecloud export_parameters ccw1 | python3 update_params.py $IMAGE_NAME > ~/ccw1/slurm_params.json
 ```
 6) Re-import the cluster.
 ```bash
@@ -34,12 +37,20 @@ ssh into the scheduler vm, and log in as `root`
 ```bash
 curl https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/refs/heads/feature/scale_m1/scale_m1/upgrade_slurmctld.sh | bash -
 ```
+This script makes the folowing changes:
+1) Writes a new health agent to `/sched/ccw1/healthagent`.
+2) Installs `/opt/cycle/capture_log.sh` on the scheduler node.
+3) Installs updated imex_epilog.sh to `/sched/ccw1/epilog.d`.
+4) Installs updated imex_epilog.sh to `/sched/ccw1/prolog.d`.
+5) Installs `/opt/azurehpc/slurm/start_services.sh`.
+
+The scheduler daemons will be up the whole time, but the partitions will be marked DOWN for a short period - on the order of 1 minute - while the upgrade is performed. Jobs can still be submitted to these partitions but new jobs will not be started. **The slurm configuration will not be changed.**
 
 
 # Scaling M1
 
 ## scale_m1 command
-The `scale_m1` command is installed at `/root/bin/scale_m1`. All of the following commands are assumed to be run as root.
+The `scale_m1` command is installed at `/root/bin/scale_m1`. All of the following commands are assumed to be run as `root`. THere is a log for these commands at `/opt/azurehpc/slurm/logs/scale_m1.log`.
 
 ## Creating a reservation
 ```bash
