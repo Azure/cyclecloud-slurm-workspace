@@ -1,9 +1,8 @@
 # Upgrading to M1
 
 ## Upgrade CycleCloud
-ssh into the cyclecloud vm
+ssh into the cyclecloud vm as `root`
 ```bash
-sudo -i
 curl https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/refs/heads/feature/scale_m1/scale_m1/upgrade_cyclecloud.sh | bash -
 ```
 
@@ -17,8 +16,8 @@ _Note_ All of the commands should be run as `hpcadmin`.
 cp ~/ccw1/slurm_template.txt ~/ccw1/slurm_template_$(date +%s).txt
 cp ~/ccw1/slurm_params.json ~/ccw1/slurm_params_$(date +%s).json
 ```
-2) Change `[[[cluster-init cyclecloud/slurm:*:4.0.0]]]` to `[[[cluster-init cyclecloud/slurm:*:4.0.2]]]`
-4) Change `[[[cluster-init cyclecloud/healthagent:*:1.0.2]]]` to `[[[cluster-init cyclecloud/slurm:*:1.0.3]]]`
+2) Change `[[[cluster-init cyclecloud/slurm:*:4.0.0]]]` to `[[[cluster-init cyclecloud/slurm:*:4.0.2]]]` in `slurm_template.txt`
+4) Change `[[[cluster-init cyclecloud/healthagent:*:1.0.2]]]` to `[[[cluster-init cyclecloud/slurm:*:1.0.3]]]` in `slurm_template.txt`
 5) Export and update the parameters. Note this will update the monitoring project to 1.0.2 and increase the BootDiskSize to 1024GB
 ```bash
 curl https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/refs/heads/feature/scale_m1/scale_m1/update_params.py > update_params.py
@@ -26,14 +25,13 @@ cyclecloud export_parameters ccw1 | python3 update_params.py > ~/ccw1/slurm_para
 ```
 6) Re-import the cluster.
 ```bash
-cyclecloud import_cluster ccw1 -f slurm_template.txt -p slurm_params.json -c Slurm --force
+cyclecloud import_cluster ccw1 -f ~/ccw1/slurm_template.txt -p ~/ccw1/slurm_params.json -c Slurm --force
 ```
 
 
 ## Upgrade the Scheduler
-ssh into the scheduler vm
+ssh into the scheduler vm, and log in as `root`
 ```bash
-sudo -i
 curl https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/refs/heads/feature/scale_m1/scale_m1/upgrade_slurmctld.sh | bash -
 ```
 
