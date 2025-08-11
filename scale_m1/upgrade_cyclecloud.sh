@@ -30,27 +30,3 @@ pushd /tmp/cyclecloud-monitoring
 /usr/local/bin/cyclecloud project upload azure-storage
 popd
 rm -rf /tmp/cyclecloud-monitoring
-
-# Insert CC-Slurm 4.0.0 project record
-cat >/opt/cycle_server/config/data/slurm400.txt<<EOF
-
-AdType = "Cloud.Project"
-Version = "4.0.0"
-ProjectType = "scheduler"
-Url = "https://github.com/Azure/cyclecloud-slurm/releases/4.0.0"
-AutoUpgrade = false
-Name = "slurm"
-
-EOF
-
-# Confirm insertion of Slurm 4.0.0 project record
-echo "Inserting Slurm 4.0.0 project record..."
-sleep 10
-if [ $(/opt/cycle_server/./cycle_server execute --format json "SELECT Version FROM Cloud.Project WHERE ProjectType == \"scheduler\" &&  Name == \"Slurm\"" | jq '[.[] | .Version]' | grep 4.0.0 | wc -l) != 0 ]; then
-    echo "Slurm 4.0.0 project record inserted successfully."
-else
-    echo "Failed to insert Slurm 4.0.0 project record."
-    exit 1
-fi
-
-echo "In-place update completed successfully."
