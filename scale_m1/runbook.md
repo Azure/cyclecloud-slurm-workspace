@@ -41,8 +41,6 @@ curl https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/refs/hea
 ## scale_m1 command
 The `scale_m1` command is installed at `/root/bin/scale_m1`. All of the following commands are assumed to be run as root.
 
-TODO logging
-
 ## Creating a reservation
 ```bash
 scale_m1 create_reservation -p gpu
