@@ -17,7 +17,7 @@ cp ~/ccw1/slurm_template.txt ~/ccw1/slurm_template_$(date +%s).txt
 cp ~/ccw1/slurm_params.json ~/ccw1/slurm_params_$(date +%s).json
 ```
 2) Change `[[[cluster-init cyclecloud/slurm:*:4.0.0]]]` to `[[[cluster-init cyclecloud/slurm:*:4.0.2]]]` in `slurm_template.txt`
-4) Change `[[[cluster-init cyclecloud/healthagent:*:1.0.2]]]` to `[[[cluster-init cyclecloud/slurm:*:1.0.3]]]` in `slurm_template.txt`
+4) Change `[[[cluster-init cyclecloud/healthagent:*:1.0.2]]]` to `[[[cluster-init cyclecloud/healthagent:*:1.0.3]]]` in `slurm_template.txt`
 5) Export and update the parameters. Note this will update the monitoring project to 1.0.2 and increase the BootDiskSize to 1024GB
 
 **NOTE** Edit IMAGE_NAME below with the new GB200 image.
