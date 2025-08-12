@@ -46,6 +46,12 @@ This script makes the folowing changes:
 
 The scheduler daemons will be up the whole time, but the partitions will be marked DOWN for a short period - on the order of 1 minute - while the upgrade is performed. Jobs can still be submitted to these partitions but new jobs will not be started. **The slurm configuration will not be changed.**
 
+### Upgrade the Health Program
+
+```
+curl https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/refs/heads/feature/scale_m1/scale_m1/upgrade_health_program.sh | bash -
+```
+
 
 # Scaling M1
 
