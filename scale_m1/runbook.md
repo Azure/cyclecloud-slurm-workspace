@@ -96,10 +96,10 @@ scale_m1 prune -p gpu > nodes_to_terminate.txt
 2) Confirm the nodes to terminate by looking at `/sched/ccw1/topology.conf.pre-pruning` and the current state of the cluster. Again, note that we can not guarantee an optimal selection.
 3) run `scontrol update nodename=NODES_TO_TERMINATE state=power_down`
 4) There is a delay between sending the power_down command and Slurm actually changing the state. Wait until `sinfo -n NODES_TO_TERMINATE -t powering_down,powered_down` shows that all of the nodes have at least entered the powering_down state, i.e. the state ends with `%` like `idle%`
-5) run `azslurm topology -n -p gpu > new_topology.conf`. Confirm that this new file is correct, then `cp new_topology.conf $(realpath /etc/slurm/topology.conf)`
+5) run `azslurm topology -n -p gpu -o new_topology.conf`. Confirm that this new file is correct, then `cp new_topology.conf $(realpath /etc/slurm/topology.conf)`
 5) run `scontrol recoconfigure` so that the new topology is loaded.
 6) run `scontrol show topology` to confirm it has taken effect.
-7) Either delete the reservation via `scontrol delete reservationname=scale_m1` or begin removing nodes from it via `scontrol update rservationname=scale_m1 nodes=NEW_SET_OF_NODES` to allow jobs to run on these nodes.
+7) Either delete the reservation via `scontrol delete reservationname=scale_m1` or begin removing nodes from it via `scontrol update reservationname=scale_m1 nodes=NEW_SET_OF_NODES` to allow jobs to run on these nodes.
 
 ## Automatic pruning and reconfiguring
 ```bash
