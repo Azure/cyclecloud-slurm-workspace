@@ -183,9 +183,10 @@ SLURM_CLUSTER_NAME=$(jq -r .clusterName.value ccwOutputs.json)
 # Copy the Slurm template and deployment outputs to the admin user's home directory
 ADMIN_USER_HOME_DIR="/home/${CYCLECLOUD_USERNAME}"
 SLURM_TEMPLATE_PATH=$(find /opt/cycle_server/system/work/.plugins_expanded/.expanded/cloud*/plugins/cloud/initial_data/templates/slurm/slurm_template_*.txt)
-mkdir -p "${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}"
-cp "${SLURM_TEMPLATE_PATH}" "${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}/slurm_template.txt"
-cp ccwOutputs.json "${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}/deployment.json"
+HOME_CLUSTER_DIR="${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}"
+mkdir -p "${HOME_CLUSTER_DIR}"
+cp "${SLURM_TEMPLATE_PATH}" "${HOME_CLUSTER_DIR}/slurm_template.txt"
+cp ccwOutputs.json "${HOME_CLUSTER_DIR}/deployment.json"
 
 if [[ "$MANUAL" == "true" ]]; then
     USE_INSIDERS_BUILD="false"
@@ -297,7 +298,9 @@ if [[ -n $(/opt/cycle_server/./cycle_server execute 'select * from Cloud.Cluster
 fi
 
 # copying template parameters file to admin user's home directory
-cp slurm_params.json "${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}/slurm_params.json"
+SLURM_PARAMS_COPY="${HOME_CLUSTER_DIR}/slurm_params.json"
+cp slurm_params.json "${SLURM_PARAMS_COPY}"
+chown "${CYCLECLOUD_USERNAME}:${CYCLECLOUD_USERNAME}" "${SLURM_PARAMS_COPY}"
 
 SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Cloud.Project WHERE Name=="Slurm"' | jq -r '.[0].Version')
 
