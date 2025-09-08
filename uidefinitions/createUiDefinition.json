@@ -2432,6 +2432,12 @@
       "ccVMName": "[basics('CycleCloudVmName')]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
       "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
+      "storageAccount": {
+        "type": "[basics('byoStorageAndIdentities')]",
+        "storageAccountId": "[if(equals(basics('byoStorageAndIdentities'),'existing'),basics('storageDropDown'),basics('nullValue'))]",
+        "vmManagedIdentityId": "[if(equals(basics('byoStorageAndIdentities'),'existing'),basics('vmManagedIdentityDropDown'),basics('nullValue'))]",
+        "vmssManagedIdentityId": "[if(equals(basics('byoStorageAndIdentities'),'existing'),basics('vmssManagedIdentityDropDown'),basics('nullValue'))]"
+      },
       "sharedFilesystem": {
         "type": "[concat(if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs'),'-',steps('filesystem').shared.newexisting)]",
         "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),int(steps('filesystem').shared.nfscapacity),basics('nullValue'))]",
