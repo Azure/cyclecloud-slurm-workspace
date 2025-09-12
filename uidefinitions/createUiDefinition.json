@@ -1319,10 +1319,6 @@
                       "value": "almalinux8"
                     },
                     {
-                      "label": "Ubuntu 20.04",
-                      "value": "cycle.image.ubuntu20"
-                    },
-                    {
                       "label": "Ubuntu 22.04",
                       "value": "cycle.image.ubuntu22"
                     },
@@ -1565,10 +1561,6 @@
                       "value": "almalinux8"
                     },
                     {
-                      "label": "Ubuntu 20.04",
-                      "value": "cycle.image.ubuntu20"
-                    },
-                    {
                       "label": "Ubuntu 22.04",
                       "value": "cycle.image.ubuntu22"
                     },
@@ -1702,10 +1694,6 @@
                       "value": "almalinux8"
                     },
                     {
-                      "label": "Ubuntu 20.04",
-                      "value": "cycle.image.ubuntu20"
-                    },
-                    {
                       "label": "Ubuntu 22.04",
                       "value": "cycle.image.ubuntu22"
                     },
@@ -1800,10 +1788,6 @@
                     {
                       "label": "Alma Linux 8.10",
                       "value": "almalinux8"
-                    },
-                    {
-                      "label": "Ubuntu 20.04",
-                      "value": "cycle.image.ubuntu20"
                     },
                     {
                       "label": "Ubuntu 22.04",
@@ -1903,10 +1887,6 @@
                     {
                       "label": "Alma Linux 8.10",
                       "value": "almalinux8"
-                    },
-                    {
-                      "label": "Ubuntu 20.04",
-                      "value": "cycle.image.ubuntu20"
                     },
                     {
                       "label": "Ubuntu 22.04",
