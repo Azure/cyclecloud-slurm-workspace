@@ -1315,7 +1315,7 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.10",
+                      "label": "Alma Linux 8",
                       "value": "almalinux8"
                     },
                     {
@@ -1557,7 +1557,7 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.10",
+                      "label": "Alma Linux 8",
                       "value": "almalinux8"
                     },
                     {
@@ -1690,7 +1690,7 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.10",
+                      "label": "Alma Linux 8",
                       "value": "almalinux8"
                     },
                     {
@@ -1786,7 +1786,7 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.10",
+                      "label": "Alma Linux 8",
                       "value": "almalinux8"
                     },
                     {
@@ -1885,7 +1885,7 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.10",
+                      "label": "Alma Linux 8",
                       "value": "almalinux8"
                     },
                     {
