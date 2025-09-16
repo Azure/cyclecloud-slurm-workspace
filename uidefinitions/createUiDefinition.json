@@ -5,7 +5,7 @@
   "parameters": {
     "config": {
       "basics": {
-        "description": "Version **2025.07.08**: [Release Notes](https://learn.microsoft.com/azure/cyclecloud/release-notes/ccws/release-notes)",
+        "description": "Version **2025.09.15**: [Release Notes](https://learn.microsoft.com/azure/cyclecloud/release-notes/ccws/release-notes)",
         "resourceGroup": {
           "visible": false
         },
@@ -1315,16 +1315,12 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.10",
-                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
-                    },
-                    {
-                      "label": "Ubuntu 20.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2004:latest"
+                      "label": "Alma Linux 8",
+                      "value": "almalinux8"
                     },
                     {
                       "label": "Ubuntu 22.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                      "value": "cycle.image.ubuntu22"
                     },
                     {
                       "label": "Custom image",
@@ -1561,16 +1557,12 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.10",
-                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
-                    },
-                    {
-                      "label": "Ubuntu 20.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2004:latest"
+                      "label": "Alma Linux 8",
+                      "value": "almalinux8"
                     },
                     {
                       "label": "Ubuntu 22.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                      "value": "cycle.image.ubuntu22"
                     },
                     {
                       "label": "Custom image",
@@ -1698,16 +1690,12 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.10",
-                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
-                    },
-                    {
-                      "label": "Ubuntu 20.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2004:latest"
+                      "label": "Alma Linux 8",
+                      "value": "almalinux8"
                     },
                     {
                       "label": "Ubuntu 22.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                      "value": "cycle.image.ubuntu22"
                     },
                     {
                       "label": "Custom image",
@@ -1798,16 +1786,12 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.10",
-                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
-                    },
-                    {
-                      "label": "Ubuntu 20.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2004:latest"
+                      "label": "Alma Linux 8",
+                      "value": "almalinux8"
                     },
                     {
                       "label": "Ubuntu 22.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                      "value": "cycle.image.ubuntu22"
                     },
                     {
                       "label": "Custom image",
@@ -1901,16 +1885,12 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8.10",
-                      "value": "almalinux:almalinux-hpc:8_10-hpc-gen2:latest"
-                    },
-                    {
-                      "label": "Ubuntu 20.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2004:latest"
+                      "label": "Alma Linux 8",
+                      "value": "almalinux8"
                     },
                     {
                       "label": "Ubuntu 22.04",
-                      "value": "microsoft-dsvm:ubuntu-hpc:2204:latest"
+                      "value": "cycle.image.ubuntu22"
                     },
                     {
                       "label": "Custom image",
@@ -2054,7 +2034,7 @@
                   "allowedValues": [
                     {
                       "label": "Ubuntu 22.04",
-                      "value": "canonical:0001-com-ubuntu-server-jammy:22_04-lts-gen2:latest"
+                      "value": "cycle.image.ubuntu22"
                     },
                     {
                       "label": "Custom image",
