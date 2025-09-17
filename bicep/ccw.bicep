@@ -7,6 +7,7 @@ param insidersBuild bool
 
 param branch string
 param projectVersion string
+param oodProjectVersion string
 param pyxisProjectVersion string
 
 param adminUsername string
@@ -389,7 +390,7 @@ output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
 
 output ood object = union(ood, {
-  version: '1.0.1'
+  version: oodProjectVersion
   nic: deployOOD ? oodNIC.outputs.NICId : ''
   managedIdentity: deployOOD ? createOODMI ? oodNewManagedIdentity.id : ood.?appManagedIdentityId : ''
   clientId: deployOOD ? registerOODApp ? oodApp.outputs.oodClientAppId : ood.?appId : ''
