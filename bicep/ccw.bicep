@@ -7,6 +7,7 @@ param insidersBuild bool
 
 param branch string
 param projectVersion string
+param oodProjectVersion string
 param pyxisProjectVersion string
 
 param adminUsername string
@@ -122,7 +123,7 @@ module ccwVirtualMachineManagedIdentity './vmManagedIdentity.bicep' = if (!infra
   }
 }
 
-param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.7.220250630'
+param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.7.320250909'
 var ccwVirtualMachineManagedIdentityId = !infrastructureOnly ? ( storageAccount.type == 'new' ? ccwVirtualMachineManagedIdentity!.outputs.managedIdentityId : storageAccount.vmManagedIdentityId) : ''
 module ccwVM './vm.bicep' = if (!infrastructureOnly) {
   name: 'ccwVM-cyclecloud'
@@ -412,7 +413,7 @@ output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
 
 output ood object = union(ood, {
-  version: '1.0.1'
+  version: oodProjectVersion
   nic: deployOOD ? oodNIC.outputs.NICId : ''
   managedIdentity: deployOOD ? createOODMI ? oodNewManagedIdentity.id : ood.?appManagedIdentityId : ''
   clientId: deployOOD ? registerOODApp ? oodApp.outputs.oodClientAppId : ood.?appId : ''
