@@ -40,11 +40,6 @@ var base_octets_non24 = union(base_octets,{
     o4: 32
     cidr: 28
   }
-  lustre: {
-    o3: 0
-    o4: 128
-    cidr: 26
-  }
   database: {
     o3: 0
     o4: 224
@@ -53,6 +48,11 @@ var base_octets_non24 = union(base_octets,{
 }) 
 
 assert cidr19 = subnet_octets(19) ==  union(base_octets_non24,{
+  lustre: {
+    o3: 8
+    o4: 0
+    cidr: 21
+  }
   compute: {
     o3: 16
     o4: 0
@@ -61,6 +61,11 @@ assert cidr19 = subnet_octets(19) ==  union(base_octets_non24,{
 })
 
 assert cidr20 = subnet_octets(20) ==  union(base_octets_non24,{
+  lustre: {
+    o3: 4
+    o4: 0
+    cidr: 22
+  }
   compute: {
     o3: 8
     o4: 0
@@ -69,6 +74,11 @@ assert cidr20 = subnet_octets(20) ==  union(base_octets_non24,{
 })
 
 assert cidr21 = subnet_octets(21) ==  union(base_octets_non24,{
+  lustre: {
+    o3: 2
+    o4: 0
+    cidr: 23
+  }
   compute: {
     o3: 4
     o4: 0
@@ -77,6 +87,11 @@ assert cidr21 = subnet_octets(21) ==  union(base_octets_non24,{
 })
 
 assert cidr22 = subnet_octets(22) ==  union(base_octets_non24,{
+  lustre: {
+    o3: 1
+    o4: 0
+    cidr: 24
+  }
   compute: {
     o3: 2
     o4: 0
@@ -85,6 +100,11 @@ assert cidr22 = subnet_octets(22) ==  union(base_octets_non24,{
 })
 
 assert cidr23 = subnet_octets(23) ==  union(base_octets_non24,{
+  lustre: {
+    o3: 0
+    o4: 128
+    cidr: 25
+  }
   compute: {
     o3: 1
     o4: 0
