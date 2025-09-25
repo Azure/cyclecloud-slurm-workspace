@@ -17,7 +17,7 @@ param natGatewayId string
 param databaseConfig types.databaseConfig_t
 var create_private_endpoint = databaseConfig.type == 'privateEndpoint'
 
-//purpose: calculate 2^n for n between 0 and 6 or return 0 if n is -1, otherwise -1
+//purpose: calculate 2^n for n between 0 and 8 or return 0 if n<0
 @export()
 func pow2_or_0 (exp int) int => 
   [0, 1, 2, 4, 8, 16, 32, 64, 128][max(exp+1, 0)]
@@ -54,11 +54,11 @@ func subnet_octets(cidr int) object => {
     cidr: 26
   }
   lustre: {
-    o3: 0
-    o4: (cidr == 24) ? 48 : 128
-    cidr: (cidr == 24) ? 28 : 26
+    o3: (cidr == 24) ? 0 : pow2_or_0(22-cidr)
+    o4: (cidr == 24) ? 48 : (cidr == 23) ? 128 : 0
+    cidr: (cidr == 24) ? 28 : cidr+2
   }
-  database: {
+  database: { //TODO AGB: Adjust once MySQL capacity is available
     o3: 0
     o4: (cidr == 24) ? 40 : 224
     cidr: (cidr == 24) ? 29 : 28
