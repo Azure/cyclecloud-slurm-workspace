@@ -12,6 +12,7 @@ param storedKey types.storedKey_t = {id: 'foo', location: 'foo', name:'foo'}
 param ccVMName string
 param ccVMSize string
 param resourceGroup string
+param storageAccount types.storageAccount_t
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t = { type: 'disabled' }
 param network types.vnet_t
@@ -62,6 +63,7 @@ module makeCCWresources 'ccw.bicep' = {
     adminUsername: adminUsername
     adminPassword: adminPassword
     adminSshPublicKey: adminSshPublicKey
+    storageAccount: storageAccount
     sharedFilesystem: sharedFilesystem
     additionalFilesystem: additionalFilesystem
     network: network
