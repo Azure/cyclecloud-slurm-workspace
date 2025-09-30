@@ -22,6 +22,9 @@ fi
 # that matches what the current bicep file would generate. Note we remove the generator version, as this will
 # give false positives in the diff
 # AGB: Using absolute path to avoid issues with relative paths in az bicep commands
+echo az CLI version: 
+az version
+az bicep version
 az bicep build -f $(pwd)/bicep/ood/oodEntraApp.bicep --stdout | jq -r 'del(.metadata._generator)' | jq -r 'del(.metadata)' > bicep/ood/oodEntraApp.json
 git diff --exit-code bicep/ood/oodEntraApp.json
 
