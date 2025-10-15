@@ -287,7 +287,9 @@ done
 # needs to be done after initialization, as we now call fetch/upload
 (python3 create_cc_param.py slurm --dbPassword="${DATABASE_ADMIN_PASSWORD}") > slurm_params.json 
 
-if [[ -n $(/opt/cycle_server/./cycle_server execute 'select * from Cloud.Cluster where ClusterName=="slurm_template_3.0.11"') ]]; then 
+SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Cloud.Project WHERE Name=="Slurm"' | jq -r '.[0].Version')
+
+if [[ -n $(/opt/cycle_server/./cycle_server execute "select * from Cloud.Cluster where ClusterName==\"slurm_template_${SLURM_PROJ_VERSION}\"") ]]; then 
     cp availability_zones.json /opt/cycle_server/config/data/
     sleep 1
     while [ -e /opt/cycle_server/config/data/availability_zones.json ]; do
@@ -301,8 +303,6 @@ fi
 SLURM_PARAMS_COPY="${HOME_CLUSTER_DIR}/slurm_params.json"
 cp slurm_params.json "${SLURM_PARAMS_COPY}"
 chown "${CYCLECLOUD_USERNAME}:${CYCLECLOUD_USERNAME}" "${SLURM_PARAMS_COPY}"
-
-SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Cloud.Project WHERE Name=="Slurm"' | jq -r '.[0].Version')
 
 cyclecloud create_cluster slurm_template_${SLURM_PROJ_VERSION} $SLURM_CLUSTER_NAME -p slurm_params.json
 echo "CC create_cluster successful"
