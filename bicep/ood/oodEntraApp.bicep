@@ -7,8 +7,12 @@ targetScope = 'resourceGroup'
 // as the credential (configured as part of the application's federated identity credential).
 
 param appName string
-param umiName string
-param fqdn string
+param umiName string = 'ccw-ood-mi-entra-test'
+param fqdn string = 'OPEN_ONDEMAND_VM_IP.com'
+
+// new stuff for CC app registration
+param cyclecloudVMIpAddress string = 'CYCLECLOUD_VM_IP.com'
+var ccUserAccessGuid string = guid(resourceGroup().id, 'user_access')
 
 // NOTE: Microsoft Graph Bicep file deployment is only supported in Public Cloud
 var audiences = {
@@ -51,9 +55,11 @@ resource oodManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@20
 // Create a (client) application registration with a federated identity credential (FIC)
 // The FIC is configured with the managed identity as the subject
 // The application is listed under the "App registrations" in the Azure Portal
+var appUniqueName = guid(subscription().id, resourceGroup().id, appName) // Need to be unique inside the tenant because recreating with the same name will fail if the app is manually deleted
+var superUserRoleId = guid(resourceGroup().id, 'superuser')
 resource oodApp 'Microsoft.Graph/applications@v1.0' = {
   displayName: appName
-  uniqueName: guid(subscription().id, resourceGroup().id, appName) // Need to be unique inside the tenant, issue is if you manually delete the app, it will failed if you recreate it with the same name
+  uniqueName: appUniqueName 
 
   resource myMsiFic 'federatedIdentityCredentials@v1.0' = {
     name: '${oodApp.uniqueName}/msiAsFic'
@@ -65,6 +71,7 @@ resource oodApp 'Microsoft.Graph/applications@v1.0' = {
     subject: oodManagedIdentity.properties.principalId
   }
 
+  // begin Authentication section
   web: {
     implicitGrantSettings: {
       enableAccessTokenIssuance: false
@@ -78,6 +85,24 @@ resource oodApp 'Microsoft.Graph/applications@v1.0' = {
     ]
   }
 
+  // single-page application settings
+  spa: {
+    redirectUris: [
+      uri('https://${cyclecloudVMIpAddress}','/login')
+      uri('https://${cyclecloudVMIpAddress}','/home')
+    ]
+  }
+
+  publicClient: {
+    redirectUris:[
+      'http://localhost'
+      'https://localhost'
+    ]
+  }
+
+  isFallbackPublicClient: true
+  // end Authentication section
+
   optionalClaims: {
     idToken: [
       {
@@ -89,9 +114,82 @@ resource oodApp 'Microsoft.Graph/applications@v1.0' = {
     ]
   }
 
-  // This is to define API permissions under App registration -> API permission in the Azure Portal
-  requiredResourceAccess: [
+  // begin App Roles section
+  appRoles: [
     {
+      allowedMemberTypes: [
+        'User'
+				'Application'
+			]
+			description: 'CycleCloud Administrator'
+			displayName: 'Administrator'
+			id: guid(resourceGroup().id, 'administrator')
+			isEnabled: true
+			value: 'Administrator'
+		}
+    {
+      allowedMemberTypes: [
+        'User'
+        'Application'
+      ]
+      description: 'CycleCloud SuperUser'
+      displayName: 'SuperUser'
+      id: superUserRoleId
+      isEnabled: true
+      value: 'SuperUser'
+		}
+		{
+			allowedMemberTypes: [
+				'User'
+				'Application'
+			]
+			description: 'CycleCloud User'
+			displayName: 'User'
+			id: guid(resourceGroup().id, 'user')
+			isEnabled: true
+			value: 'User'
+		}
+  ]
+  // end App Roles section
+}
+
+var clientAppId = oodApp.appId
+
+resource updateApplication 'Microsoft.Graph/applications@v1.0' = {
+  uniqueName: appUniqueName
+  displayName: appName
+
+  // begin API Permissions Section
+  api: {
+    oauth2PermissionScopes: [
+      {
+        adminConsentDescription: 'PLS CONSENT'
+        adminConsentDisplayName: 'THIS IS A CONSENT MESSAGE'
+        id: ccUserAccessGuid
+        isEnabled: true
+        //lang: null
+        //origin: 'Application'
+        type: 'User'
+        userConsentDescription: null
+        userConsentDisplayName: null
+        value: 'user_access'
+      }
+    ]
+
+    requestedAccessTokenVersion: null
+  }
+
+  requiredResourceAccess: [
+    { // This is the custom API permission for CycleCloud
+      resourceAppId: clientAppId
+      resourceAccess: [ 
+        {
+          id: ccUserAccessGuid
+          type: 'Scope'
+        }
+      ]
+    }
+    { // Microsoft Graph API
       resourceAppId: graphAppId
       resourceAccess: [ for (scope,i) in appScopes: {
           id: filter(graphScopes, graphScopes => graphScopes.value == scope)[0].id
@@ -100,8 +198,31 @@ resource oodApp 'Microsoft.Graph/applications@v1.0' = {
       ]
     }
   ]
+  // end API Permissions section
+
+  // begin Expose an API section
+  identifierUris: [
+    'api://${clientAppId}'
+  ]
+  // end Expose an API section
+
+  dependsOn: [
+    oodApp
+  ]
+}
+
+resource servicePrincipal 'Microsoft.Graph/servicePrincipals@v1.0' = {
+  appId: clientAppId
+}
+
+// assign "Super User" app role to user who ran the deployment
+resource superUserAssignment 'Microsoft.Graph/appRoleAssignedTo@v1.0' = {
+  appRoleId: superUserRoleId
+  resourceId: servicePrincipal.id
+  principalId: deployer().objectId
 }
 
 // outputs
-output oodClientAppId string = oodApp.appId
+output oodClientTenantId string = tenant().tenantId
+output oodClientAppId string = clientAppId
 output oodMiId string = oodManagedIdentity.id
