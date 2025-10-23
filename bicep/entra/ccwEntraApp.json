@@ -1,0 +1,259 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "languageVersion": "2.0",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appName": {
+      "type": "string"
+    },
+    "umiName": {
+      "type": "string"
+    },
+    "fqdn": {
+      "type": "string",
+      "defaultValue": "OPEN_ONDEMAND_NIC_IP.PLACEHOLDER"
+    },
+    "cyclecloudVMIpAddress": {
+      "type": "string",
+      "defaultValue": "CYCLECLOUD_VM_IP.PLACEHOLDER"
+    }
+  },
+  "variables": {
+    "ccUserAccessGuid": "[guid(resourceGroup().id, 'user_access')]",
+    "audiences": {
+      "AzureCloud": {
+        "uri": "api://AzureADTokenExchange"
+      },
+      "AzureUSGovernment": {
+        "uri": "api://AzureADTokenExchangeUSGov"
+      },
+      "USNat": {
+        "uri": "api://AzureADTokenExchangeUSNat"
+      },
+      "USSec": {
+        "uri": "api://AzureADTokenExchangeUSSec"
+      },
+      "AzureChinaCloud": {
+        "uri": "api://AzureADTokenExchangeChina"
+      }
+    },
+    "cloudEnvironment": "[environment().name]",
+    "loginEndpoint": "[environment().authentication.loginEndpoint]",
+    "tenantId": "[tenant().tenantId]",
+    "issuer": "[format('{0}{1}/v2.0', variables('loginEndpoint'), variables('tenantId'))]",
+    "graphAppId": "00000003-0000-0000-c000-000000000000",
+    "appScopes": [
+      "profile",
+      "User.Read"
+    ],
+    "appUniqueName": "[guid(subscription().id, resourceGroup().id, parameters('appName'))]",
+    "superUserRoleId": "[guid(resourceGroup().id, 'superuser')]"
+  },
+  "imports": {
+    "microsoftGraphV1": {
+      "provider": "MicrosoftGraph",
+      "version": "0.1.8-preview"
+    }
+  },
+  "resources": {
+    "ccwEntraApp::myMsiFic": {
+      "import": "microsoftGraphV1",
+      "type": "Microsoft.Graph/applications/federatedIdentityCredentials@v1.0",
+      "properties": {
+        "name": "[format('{0}/msiAsFic', reference('ccwEntraApp').uniqueName)]",
+        "description": "Trust the Open OnDemand's user-assigned MI as a credential for the application",
+        "audiences": [
+          "[variables('audiences')[variables('cloudEnvironment')].uri]"
+        ],
+        "issuer": "[variables('issuer')]",
+        "subject": "[reference('ccwEntraManagedIdentity').principalId]"
+      },
+      "dependsOn": [
+        "ccwEntraApp",
+        "ccwEntraManagedIdentity"
+      ]
+    },
+    "msGraphSP": {
+      "existing": true,
+      "import": "microsoftGraphV1",
+      "type": "Microsoft.Graph/servicePrincipals@v1.0",
+      "properties": {
+        "appId": "[variables('graphAppId')]"
+      }
+    },
+    "ccwEntraManagedIdentity": {
+      "existing": true,
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2023-01-31",
+      "name": "[parameters('umiName')]"
+    },
+    "ccwEntraApp": {
+      "import": "microsoftGraphV1",
+      "type": "Microsoft.Graph/applications@v1.0",
+      "properties": {
+        "displayName": "[parameters('appName')]",
+        "uniqueName": "[variables('appUniqueName')]",
+        "web": {
+          "implicitGrantSettings": {
+            "enableAccessTokenIssuance": false,
+            "enableIdTokenIssuance": true
+          },
+          "redirectUriSettings": [
+            {
+              "index": 0,
+              "uri": "[uri(format('https://{0}', parameters('fqdn')), '/oidc')]"
+            }
+          ]
+        },
+        "spa": {
+          "redirectUris": [
+            "[uri(format('https://{0}', parameters('cyclecloudVMIpAddress')), '/login')]",
+            "[uri(format('https://{0}', parameters('cyclecloudVMIpAddress')), '/home')]"
+          ]
+        },
+        "publicClient": {
+          "redirectUris": [
+            "http://localhost",
+            "https://localhost"
+          ]
+        },
+        "isFallbackPublicClient": true,
+        "optionalClaims": {
+          "idToken": [
+            {
+              "additionalProperties": [],
+              "essential": false,
+              "name": "upn",
+              "source": null
+            }
+          ]
+        },
+        "appRoles": [
+          {
+            "allowedMemberTypes": [
+              "User",
+              "Application"
+            ],
+            "description": "CycleCloud Administrator",
+            "displayName": "Administrator",
+            "id": "[guid(resourceGroup().id, 'administrator')]",
+            "isEnabled": true,
+            "value": "Administrator"
+          },
+          {
+            "allowedMemberTypes": [
+              "User",
+              "Application"
+            ],
+            "description": "CycleCloud SuperUser",
+            "displayName": "SuperUser",
+            "id": "[variables('superUserRoleId')]",
+            "isEnabled": true,
+            "value": "SuperUser"
+          },
+          {
+            "allowedMemberTypes": [
+              "User",
+              "Application"
+            ],
+            "description": "CycleCloud User",
+            "displayName": "User",
+            "id": "[guid(resourceGroup().id, 'user')]",
+            "isEnabled": true,
+            "value": "User"
+          }
+        ]
+      }
+    },
+    "updateApplication": {
+      "import": "microsoftGraphV1",
+      "type": "Microsoft.Graph/applications@v1.0",
+      "properties": {
+        "uniqueName": "[variables('appUniqueName')]",
+        "displayName": "[parameters('appName')]",
+        "api": {
+          "oauth2PermissionScopes": [
+            {
+              "adminConsentDescription": "Azure CycleCloud Workspace for Slurm with Entra ID authentication",
+              "adminConsentDisplayName": "CycleCloud can access the user profile & use it to log into the web application.",
+              "id": "[variables('ccUserAccessGuid')]",
+              "isEnabled": true,
+              "type": "User",
+              "userConsentDescription": null,
+              "userConsentDisplayName": null,
+              "value": "user_access"
+            }
+          ],
+          "requestedAccessTokenVersion": 1
+        },
+        "requiredResourceAccess": [
+          {
+            "resourceAppId": "[reference('ccwEntraApp').appId]",
+            "resourceAccess": [
+              {
+                "id": "[variables('ccUserAccessGuid')]",
+                "type": "Scope"
+              }
+            ]
+          },
+          {
+            "copy": [
+              {
+                "name": "resourceAccess",
+                "count": "[length(variables('appScopes'))]",
+                "input": {
+                  "id": "[filter(reference('msGraphSP').oauth2PermissionScopes, lambda('graphScopes', equals(lambdaVariables('graphScopes').value, variables('appScopes')[copyIndex('resourceAccess')])))[0].id]",
+                  "type": "Scope"
+                }
+              }
+            ],
+            "resourceAppId": "[variables('graphAppId')]"
+          }
+        ],
+        "identifierUris": [
+          "[format('api://{0}', reference('ccwEntraApp').appId)]"
+        ]
+      },
+      "dependsOn": [
+        "ccwEntraApp",
+        "msGraphSP"
+      ]
+    },
+    "servicePrincipal": {
+      "import": "microsoftGraphV1",
+      "type": "Microsoft.Graph/servicePrincipals@v1.0",
+      "properties": {
+        "appId": "[reference('ccwEntraApp').appId]"
+      },
+      "dependsOn": [
+        "ccwEntraApp"
+      ]
+    },
+    "superUserAssignment": {
+      "import": "microsoftGraphV1",
+      "type": "Microsoft.Graph/appRoleAssignedTo@v1.0",
+      "properties": {
+        "appRoleId": "[variables('superUserRoleId')]",
+        "resourceId": "[reference('servicePrincipal').id]",
+        "principalId": "[deployer().objectId]"
+      },
+      "dependsOn": [
+        "servicePrincipal"
+      ]
+    }
+  },
+  "outputs": {
+    "ccwEntraClientTenantId": {
+      "type": "string",
+      "value": "[tenant().tenantId]"
+    },
+    "ccwEntraClientAppId": {
+      "type": "string",
+      "value": "[reference('ccwEntraApp').appId]"
+    },
+    "ccwEntraMiId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('umiName'))]"
+    }
+  }
+}

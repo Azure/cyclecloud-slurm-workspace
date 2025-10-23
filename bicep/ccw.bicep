@@ -17,6 +17,7 @@ param storedKey types.storedKey_t
 param ccVMName string
 param ccVMSize string
 param resourceGroup string
+param entraIdInfo types.entra_t
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t 
 param network types.vnet_t 
@@ -259,7 +260,8 @@ module ccwANF 'anf.bicep' = [
 ]
 
 var deployOOD = ood.type != 'disabled'
-var registerOODApp = ood.?registerEntraIDApp ?? false
+// Temporary deprecation of automatic registration of Entra app registration
+var registerOODApp = false // ood.?registerEntraIDApp ?? false 
 var createOODMI = deployOOD && ood.?appManagedIdentityId == null
 
 var oodNicName = 'ccwOpenOnDemandNIC'
@@ -281,7 +283,7 @@ resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities
 }
 
 var oodAppName = 'CycleCloudOpenOnDemandApp-${uniqueString(az.resourceGroup().id)}'
-module oodApp 'ood/oodEntraApp.bicep' = if (registerOODApp) {
+module oodApp 'entra/ccwEntraApp.bicep' = if (registerOODApp) {
   name: 'oodApp'
   params: {
     umiName: oodManagedIdentityName
@@ -384,12 +386,15 @@ output insidersBuild bool = insidersBuild
 output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
 
+output entraIdInfo object = union(entraIdInfo,
+  {loginEndpoint: environment().authentication.loginEndpoint})
+
 output ood object = union(ood, {
   version: oodProjectVersion
-  nic: deployOOD ? oodNIC.outputs.NICId : ''
+  nic: deployOOD ? oodNIC!.outputs.NICId : ''
   managedIdentity: deployOOD ? createOODMI ? oodNewManagedIdentity.id : ood.?appManagedIdentityId : ''
-  clientId: deployOOD ? registerOODApp ? oodApp.outputs.oodClientAppId : ood.?appId : ''
-  tenantId: deployOOD ? subscription().tenantId : ''
+  clientId: deployOOD ? registerOODApp ? oodApp!.outputs.ccwEntraClientAppId : ood.?appId : ''
+  tenantId: deployOOD ? registerOODApp ? oodApp!.outputs.ccwEntraClientTenantId : ood.?appTenantId : ''
 })
 
 output oodManualRegistration object = {
