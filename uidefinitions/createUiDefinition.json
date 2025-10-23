@@ -364,6 +364,54 @@
         "visible": "[equals(basics('autogeneratePasswordsAndKeys'),'stored')]"
       },
       {
+        "name": "enableEntra",
+        "type": "Microsoft.Common.CheckBox",
+        "label": "Enable Microsoft Entra ID SSO",
+        "toolTip": "Enable single sign-on (SSO) with Microsoft Entra ID",
+        "defaultValue": false,
+        "constraints": {
+          "required": false
+        }
+      },
+      {
+        "name": "tenantId",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Tenant ID",
+        "defaultValue": "",
+        "toolTip": "Tenant ID of the Entra ID Application in Azure Active Directory",
+        "constraints": {
+          "required": true,
+          "regex": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$",
+          "validationMessage": "Enter a valid tenant ID"
+        },
+        "visible": "[basics('enableEntra')]"
+      },
+      {
+        "name": "clientId",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Application (client) ID",
+        "defaultValue": "",
+        "toolTip": "Application or client ID of the Entra ID Application in the Azure AD tenant",
+        "constraints": {
+          "required": true,
+          "regex": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$",
+          "validationMessage": "Enter a valid client ID"
+        },
+        "visible": "[basics('enableEntra')]"
+      },
+      {
+        "name": "entraManagedIdentity",
+        "type": "Microsoft.Solutions.ResourceSelector",
+        "label": "Managed Identity",
+        "toolTip": "Select the user-assigned managed identity created for the federated credentials associated with the application registration",
+        "resourceType": "Microsoft.ManagedIdentity/userAssignedIdentities",
+        "constraints": {
+          "required": true,
+          "validationMessage": "Please select a managed identity."
+        },
+        "visible": "[basics('enableEntra')]"
+      },
+      {
         "name": "nullValue",
         "type": "Microsoft.Common.CheckBox",
         "label": "Null Value",
@@ -2135,9 +2183,9 @@
               },
               {
                 "name": "registerEntraIDApp",
-                "type": "Microsoft.Common.OptionsGroup",
+                "type": "Microsoft.Common.DropDown",
                 "label": "Microsoft Entra ID Application Registration",
-                "defaultValue": "Automatically register an Entra ID Application",
+                "defaultValue": "Use existing Entra ID Application registration",
                 "toolTip": "Register a Microsoft Entra ID Application for Open OnDemand authentication using OpenID Connect",
                 "constraints": {
                   "allowedValues": [
@@ -2150,13 +2198,21 @@
                       "value": "existing"
                     },
                     {
-                      "label": "Manual registration",
+                      "label": "Manual registration'",
                       "value": "manual"
                     }
                   ],
                   "required": true
                 },
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": "[and(steps('ood').OODSection.deployOOD,not(basics('enableEntra')))]"
+              },
+              {
+                "name": "ccEntraIdInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]",
+                "options": {
+                  "text": "The Open OnDemand cluster will use the Entra ID Application Registration indicated in the Basics menu."
+                }
               },
               {
                 "name": "managedIdentity",
@@ -2167,6 +2223,19 @@
                 "constraints": {
                   "required": true,
                   "validationMessage": "Please select a managed identity."
+                },
+                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
+              },
+              {
+                "name": "tenantId",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Tenant ID",
+                "defaultValue": "",
+                "toolTip": "Tenant ID of the Azure AD tenant",
+                "constraints": {
+                  "required": true,
+                  "regex": "^(\\w{8}(-\\w{4}){3}-\\w{12}?)$",
+                  "validationMessage": "Enter a valid tenant ID"
                 },
                 "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
               },
@@ -2441,6 +2510,12 @@
       "ccVMName": "[basics('CycleCloudVmName')]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
       "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
+      "entraIdInfo": {
+        "type": "[if(basics('enableEntra'),'enabled','disabled')]",
+        "tenantId": "[if(basics('enableEntra'),basics('tenantId'),basics('nullValue'))]",
+        "clientId": "[if(basics('enableEntra'),basics('clientId'),basics('nullValue'))]",
+        "managedIdentityId": "[if(basics('enableEntra'),basics('entraManagedIdentity').id,basics('nullValue'))]"
+      },
       "sharedFilesystem": {
         "type": "[concat(if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs'),'-',steps('filesystem').shared.newexisting)]",
         "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),int(steps('filesystem').shared.nfscapacity),basics('nullValue'))]",
@@ -2534,8 +2609,9 @@
         "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",
         "fqdn": "[if(not(equals(steps('ood').OODSection.fqdn,'')),steps('ood').OODSection.fqdn,basics('nullValue'))]",
         "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,equals(steps('ood').OODSection.registerEntraIDApp,'autoregister'),basics('nullValue'))]",
-        "appId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.clientId,basics('nullValue'))]",
-        "appManagedIdentityId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.managedIdentity.id,basics('nullValue'))]"
+        "appTenantId": "[if(steps('ood').OODSection.deployOOD,if(basics('enableEntra'),basics('tenantId'),steps('ood').OODSection.tenantId),basics('nullValue'))]",
+        "appId": "[if(steps('ood').OODSection.deployOOD,if(basics('enableEntra'),basics('clientId'),steps('ood').OODSection.clientId),basics('nullValue'))]",
+        "appManagedIdentityId": "[if(basics('enableEntra'),basics('entraManagedIdentity').id,if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.managedIdentity.id,basics('nullValue')))]"
       },
       "monitoring": {
         "type": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,'enabled','disabled')]",
