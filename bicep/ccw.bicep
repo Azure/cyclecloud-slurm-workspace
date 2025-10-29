@@ -409,4 +409,5 @@ output files object = union({
   initial_params_json: loadTextContent('./files-to-load/encoded/initial_params.json.base64')
 }, loadTextContent('./files-to-load/custom/custom_slurm_template.txt') != '' ? {
   custom_slurm_template_txt: loadFileAsBase64('./files-to-load/custom/custom_slurm_template.txt')
+  create_custom_parameters_sh: loadFileAsBase64('./files-to-load/custom/create_custom_parameters.sh')
 } : {})
