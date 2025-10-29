@@ -403,9 +403,10 @@ output oodManualRegistration object = {
   fqdn: deployOOD ? oodNIC.outputs.privateIp : ''
 }
 
-output files object = {
-  availability_zones_json: loadTextContent('./files-to-load/encoded/availability_zones.json.base64')
+output files object = union({
   create_cc_param_py: loadTextContent('./files-to-load/encoded/create_cc_param.py.base64')
   cyclecloud_install_py: loadTextContent('./files-to-load/encoded/cyclecloud_install.py.base64')
   initial_params_json: loadTextContent('./files-to-load/encoded/initial_params.json.base64')
-}
+}, loadTextContent('./files-to-load/custom/custom_slurm_template.txt') != '' ? {
+  custom_slurm_template_txt: loadFileAsBase64('./files-to-load/custom/custom_slurm_template.txt')
+} : {})
