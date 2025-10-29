@@ -8,6 +8,7 @@ mkdir -p -m 777 $ccw_root
 
 # DEV USER: Set this to the path of your build
 LOCAL_PACKAGE=""
+SLURM_CCW_TEMPLATE_NAME="slurm_template_ccw"
 
 while (( "$#" )); do
         case $1 in
@@ -289,7 +290,10 @@ done
 
 SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Cloud.Project WHERE Name=="Slurm"' | jq -r '.[0].Version')
 
-if [[ -n $(/opt/cycle_server/./cycle_server execute "select * from Cloud.Cluster where ClusterName==\"slurm_template_${SLURM_PROJ_VERSION}\"") ]]; then 
+# Create CCW-specific Slurm template from existing Slurm template
+if [[ -n $(/opt/cycle_server/./cycle_server execute "select * from Cloud.Cluster where ClusterName==\"slurm_template_${SLURM_PROJ_VERSION}\"") ]]; then  
+    cyclecloud import_template $SLURM_CCW_TEMPLATE_NAME -c Slurm -f "${HOME_CLUSTER_DIR}/slurm_template.txt"
+
     cp availability_zones.json /opt/cycle_server/config/data/
     sleep 1
     while [ -e /opt/cycle_server/config/data/availability_zones.json ]; do
@@ -297,6 +301,10 @@ if [[ -n $(/opt/cycle_server/./cycle_server execute "select * from Cloud.Cluster
         sleep 5
     done
     echo "availability_zones.json imported successfully"
+
+    cycle_server execute 'update Cloud.Node set Zone="$HTCAvailabilityZone" where ClusterName == "'"$SLURM_CCW_TEMPLATE_NAME"'" && Name == "htc"'
+    cycle_server execute 'update Cloud.Node set Zone="$HPCAvailabilityZone" where ClusterName == "'"$SLURM_CCW_TEMPLATE_NAME"'" && Name == "hpc"'
+    cycle_server execute 'update Cloud.Node set Zone="$GPUAvailabilityZone" where ClusterName == "'"$SLURM_CCW_TEMPLATE_NAME"'" && Name == "gpu"'
 fi
 
 # copying template parameters file to admin user's home directory
@@ -304,7 +312,7 @@ SLURM_PARAMS_COPY="${HOME_CLUSTER_DIR}/slurm_params.json"
 cp slurm_params.json "${SLURM_PARAMS_COPY}"
 chown "${CYCLECLOUD_USERNAME}:${CYCLECLOUD_USERNAME}" "${SLURM_PARAMS_COPY}"
 
-cyclecloud create_cluster slurm_template_${SLURM_PROJ_VERSION} $SLURM_CLUSTER_NAME -p slurm_params.json
+cyclecloud create_cluster $SLURM_CCW_TEMPLATE_NAME $SLURM_CLUSTER_NAME -p slurm_params.json
 echo "CC create_cluster successful"
 
 ## BEGIN temporary login node max count patch

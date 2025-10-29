@@ -1,30 +1,12 @@
 [
     {
-        "AdType": "Cloud.Node",
-        "ClusterName": "slurm_template_3.0.11",
-        "Name": "htc",
-        "Zone": "${HTCAvailabilityZone}"
-    },
-    {
-        "AdType": "Cloud.Node",
-        "ClusterName": "slurm_template_3.0.11",
-        "Name": "hpc",
-        "Zone": "${HPCAvailabilityZone}"
-    },
-    {
-        "AdType": "Cloud.Node",
-        "ClusterName": "slurm_template_3.0.11",
-        "Name": "gpu",
-        "Zone": "${GPUAvailabilityZone}"
-    },
-    {
         "Conditions": {
             "Hidden": {
                 "$expr": "!DefineNodesAvailabilityZone"
             }
         },
         "Order": 14000,
-        "ClusterName": "slurm_template_3.0.11",
+        "ClusterName": "slurm_template_ccw",
         "AdType": "Cloud.ClusterParameter",
         "Description": "List of availability zones where HTC nodes will be spread",
         "Label": "HTC Availability Zone",
@@ -40,7 +22,7 @@
             }
         },
         "Order": 15000,
-        "ClusterName": "slurm_template_3.0.11",
+        "ClusterName": "slurm_template_ccw",
         "AdType": "Cloud.ClusterParameter",
         "Description": "List of availability zones where HPC nodes will be spread",
         "Label": "HPC Availability Zone",
@@ -56,7 +38,7 @@
             }
         },
         "Order": 16000,
-        "ClusterName": "slurm_template_3.0.11",
+        "ClusterName": "slurm_template_ccw",
         "AdType": "Cloud.ClusterParameter",
         "Description": "List of availability zones where GPU nodes will be spread",
         "Label": "GPU Availability Zone",
@@ -67,7 +49,7 @@
     },
     {
         "Order": 13000,
-        "ClusterName": "slurm_template_3.0.11",
+        "ClusterName": "slurm_template_ccw",
         "AdType": "Cloud.ClusterParameter",
         "Label": "Availability Zones",
         "Value": false,
