@@ -182,7 +182,15 @@ SLURM_CLUSTER_NAME=$(jq -r .clusterName.value ccwOutputs.json)
 
 # Copy the Slurm template and deployment outputs to the admin user's home directory
 ADMIN_USER_HOME_DIR="/home/${CYCLECLOUD_USERNAME}"
-SLURM_TEMPLATE_PATH=$(find /opt/cycle_server/system/work/.plugins_expanded/.expanded/cloud*/plugins/cloud/initial_data/templates/slurm/slurm_template_*.txt)
+if [ -f "custom_slurm_template.txt" ]; then
+    echo "Using provided custom Slurm template."
+    USE_CUSTOM_TEMPLATE=true
+    SLURM_TEMPLATE_PATH="custom_slurm_template.txt"
+else
+    echo "Using default Slurm template."
+    USE_CUSTOM_TEMPLATE=false
+    SLURM_TEMPLATE_PATH=$(find /opt/cycle_server/system/work/.plugins_expanded/.expanded/cloud*/plugins/cloud/initial_data/templates/slurm/slurm_template_*.txt)
+fi
 HOME_CLUSTER_DIR="${ADMIN_USER_HOME_DIR}/${SLURM_CLUSTER_NAME}"
 mkdir -p "${HOME_CLUSTER_DIR}"
 cp "${SLURM_TEMPLATE_PATH}" "${HOME_CLUSTER_DIR}/slurm_template.txt"
@@ -285,37 +293,33 @@ while  [ -z "$lockerStatus" ]; do
 done
 
 # needs to be done after initialization, as we now call fetch/upload
-(python3 create_cc_param.py slurm --dbPassword="${DATABASE_ADMIN_PASSWORD}") > slurm_params.json 
+(python3 create_cc_param.py slurm --dbPassword="${DATABASE_ADMIN_PASSWORD}") > slurm_params_base.json 
+
+if [ $USE_CUSTOM_TEMPLATE == false ]; then
+    mv slurm_params_base.json slurm_params.json
+else
+    chmod +x create_custom_parameters.sh
+    ./create_custom_parameters.sh slurm_params_base.json ccwOutputs.json > slurm_params.json
+fi
 
 SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Cloud.Project WHERE Name=="Slurm"' | jq -r '.[0].Version')
-
-if [[ -n $(/opt/cycle_server/./cycle_server execute "select * from Cloud.Cluster where ClusterName==\"slurm_template_${SLURM_PROJ_VERSION}\"") ]]; then 
-    cp availability_zones.json /opt/cycle_server/config/data/
-    sleep 1
-    while [ -e /opt/cycle_server/config/data/availability_zones.json ]; do
-        echo "Waiting for availability_zones.json to be imported..."
-        sleep 5
-    done
-    echo "availability_zones.json imported successfully"
-fi
 
 # copying template parameters file to admin user's home directory
 SLURM_PARAMS_COPY="${HOME_CLUSTER_DIR}/slurm_params.json"
 cp slurm_params.json "${SLURM_PARAMS_COPY}"
 chown "${CYCLECLOUD_USERNAME}:${CYCLECLOUD_USERNAME}" "${SLURM_PARAMS_COPY}"
 
-cyclecloud create_cluster slurm_template_${SLURM_PROJ_VERSION} $SLURM_CLUSTER_NAME -p slurm_params.json
-echo "CC create_cluster successful"
+if [ $USE_CUSTOM_TEMPLATE == false ]; then
+    TEMPLATE_NAME=slurm_template_${SLURM_PROJ_VERSION}
+else
+    INNER_TEMPLATE_NAME=$(sed -n 's/^\[[[:space:]]*cluster[[:space:]]\{1,\}\([^][]*\)[[:space:]]*\]$/\1/p' ${SLURM_TEMPLATE_PATH})
+    TEMPLATE_NAME="slurm_template_custom"
+    cyclecloud import_template ${TEMPLATE_NAME} -c "${INNER_TEMPLATE_NAME}" -f ${SLURM_TEMPLATE_PATH} --force
+    echo "Successfully imported custom template"
+fi
 
-## BEGIN temporary login node max count patch
-# TODO After azslurm 3.0.12 is released we should have a proper parameter for maxcount for login nodes
-LOGIN_NODES_MAX_COUNT=$(jq -r '.loginNodes.value.maxNodes' ccwOutputs.json)
-# ensure the value is actually an integer
-python3 -c "import sys; int(sys.argv[1])" $LOGIN_NODES_MAX_COUNT
-/opt/cycle_server/./cycle_server execute "UPDATE Cloud.Node \
-                                          SET MaxCount=${LOGIN_NODES_MAX_COUNT} \
-                                          WHERE ClusterName==\"$SLURM_CLUSTER_NAME\" && Name==\"login\""
-## END temporary login node max count patch
+cyclecloud create_cluster "${TEMPLATE_NAME}" ${SLURM_CLUSTER_NAME} -p slurm_params.json
+echo "CC create_cluster successful"
 
 if [ $INCLUDE_OOD == true ]; then
     # When we add OOD as an icon to CycleCloud, only parameter creation and create_cluster calls should
