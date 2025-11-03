@@ -289,16 +289,6 @@ done
 
 SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Cloud.Project WHERE Name=="Slurm"' | jq -r '.[0].Version')
 
-if [[ -n $(/opt/cycle_server/./cycle_server execute "select * from Cloud.Cluster where ClusterName==\"slurm_template_${SLURM_PROJ_VERSION}\"") ]]; then 
-    cp availability_zones.json /opt/cycle_server/config/data/
-    sleep 1
-    while [ -e /opt/cycle_server/config/data/availability_zones.json ]; do
-        echo "Waiting for availability_zones.json to be imported..."
-        sleep 5
-    done
-    echo "availability_zones.json imported successfully"
-fi
-
 # copying template parameters file to admin user's home directory
 SLURM_PARAMS_COPY="${HOME_CLUSTER_DIR}/slurm_params.json"
 cp slurm_params.json "${SLURM_PARAMS_COPY}"

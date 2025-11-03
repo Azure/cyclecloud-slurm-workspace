@@ -404,7 +404,6 @@ output oodManualRegistration object = {
 }
 
 output files object = {
-  availability_zones_json: loadTextContent('./files-to-load/encoded/availability_zones.json.base64')
   create_cc_param_py: loadTextContent('./files-to-load/encoded/create_cc_param.py.base64')
   cyclecloud_install_py: loadTextContent('./files-to-load/encoded/cyclecloud_install.py.base64')
   initial_params_json: loadTextContent('./files-to-load/encoded/initial_params.json.base64')
