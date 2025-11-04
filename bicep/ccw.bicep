@@ -176,6 +176,7 @@ module ccwRoleAssignments './vmRoleAssignments.bicep' = if (!infrastructureOnly)
       'Contributor'
       'Storage Account Contributor'
       'Storage Blob Data Contributor'
+      'Monitoring Metrics Publisher'
     ]
     principalId: ccwVM.outputs.principalId
   }
