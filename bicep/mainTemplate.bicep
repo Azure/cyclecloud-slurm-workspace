@@ -41,7 +41,7 @@ param branch string = 'main'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
 param projectVersion string = '2025.09.15'
 // Must be updated with each Open OnDemand release
-param oodProjectVersion string = '1.1.1'
+param oodProjectVersion string = '1.1.2'
 param pyxisProjectVersion string = '1.0.0'
 //Internal developer use only: set true use custom CycleCloud release build 
 param manualInstall bool = false
