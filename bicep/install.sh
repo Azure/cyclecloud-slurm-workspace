@@ -367,6 +367,15 @@ if [ $INCLUDE_OOD == true ]; then
         cyclecloud start_cluster OpenOnDemand
         echo "CC start_cluster for OpenOnDemand successful"
     fi
+    OOD_CLUSTER_DIR="${ADMIN_USER_HOME_DIR}/OpenOnDemand"
+    mkdir -p "${OOD_CLUSTER_DIR}"
+    # copying template file to admin user's home directory
+    cp ood/templates/OpenOnDemand.txt "${OOD_CLUSTER_DIR}/OpenOnDemand_template.txt"
+    # copying template parameters file to admin user's home directory
+    OOD_PARAMS_COPY="${OOD_CLUSTER_DIR}/ood_params.json"
+    cp ood_params.json "${OOD_PARAMS_COPY}"
+    # set permissions for OOD 
+    chown -R "${CYCLECLOUD_USERNAME}:${CYCLECLOUD_USERNAME}" "${OOD_CLUSTER_DIR}"
     rm -f ood_params.json
     echo "Deleted OOD input parameters file" 
 fi
