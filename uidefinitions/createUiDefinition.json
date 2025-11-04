@@ -99,6 +99,88 @@
         "visible": "[equals(basics('newexisting'),'new')]"
       },
       {
+        "name": "byoStorageAndIdentities",
+        "type": "Microsoft.Common.OptionsGroup",
+        "label": "TODO AGB: LABEL",
+        "defaultValue": "Create new storage account and managed identities",
+        "toolTip": "TODO AGB: TOOLTIP",
+        "constraints": {
+          "allowedValues": [
+            {
+              "label": "Create new storage account and managed identities",
+              "value": "new"
+            },
+            {
+              "label": "Use existing storage account and managed identities",
+              "value": "existing"
+            }
+          ],
+          "required": true
+        },
+        "visible": true
+      },
+      {
+        "name": "brownfieldStorageInfo",
+        "type": "Microsoft.Common.InfoBox",
+        "visible": "[equals(basics('byoStorageAndIdentities'),'existing')]",
+        "options": {
+          "text": "TODO AGB: Ensure that the script has been run in RG, link is to deployment docs...",
+          "uri": "https://learn.microsoft.com/azure/cyclecloud/?view=cyclecloud-8"
+        }
+      },
+      {
+        "name": "storageApi",
+        "type": "Microsoft.Solutions.ArmApiControl",
+        "request": {
+          "method": "GET",
+          "path": "[concat(subscription().id,'/providers/Microsoft.Storage/storageAccounts?api-version=2024-01-01')]"
+        }
+      },
+      {
+        "name": "storageDropDown",
+        "type": "Microsoft.Common.DropDown",
+        "label": "Storage Account",
+        "toolTip": "TODO AGB: STORAGE TOOLTIP",
+        "multiLine": true,
+        "constraints": {
+          "allowedValues": "[map(basics('storageApi').value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"description\":\"', concat('Resource group: ',first(skip(split(item.id,'/'),4)),'\\nRegion: ',item.location), '\",\"value\":\"', item.id, '\"}')))]",
+          "required": true
+        },
+        "visible": "[equals(basics('byoStorageAndIdentities'),'existing')]"
+      },
+      {
+        "name": "managedIdentityApi",
+        "type": "Microsoft.Solutions.ArmApiControl",
+        "request": {
+          "method": "GET",
+          "path": "[concat(subscription().id,'/providers/Microsoft.ManagedIdentity/userAssignedIdentities?api-version=2024-11-30')]"
+        }
+      },
+      {
+        "name": "vmManagedIdentityDropDown",
+        "type": "Microsoft.Common.DropDown",
+        "label": "VM Managed Identity",
+        "toolTip": "TODO AGB: VM MANAGED IDENTITY TOOLTIP",
+        "multiLine": true,
+        "constraints": {
+          "allowedValues": "[map(basics('managedIdentityApi').value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"description\":\"', concat('Resource group: ',first(skip(split(item.id,'/'),4)),'\\nRegion: ',item.location), '\",\"value\":\"', item.id, '\"}')))]",
+          "required": true
+        },
+        "visible": "[equals(basics('byoStorageAndIdentities'),'existing')]"
+      },
+      {
+        "name": "vmssManagedIdentityDropDown",
+        "type": "Microsoft.Common.DropDown",
+        "label": "VMSS Managed Identity",
+        "toolTip": "TODO AGB: VMSS MANAGED IDENTITY TOOLTIP",
+        "multiLine": true,
+        "constraints": {
+          "allowedValues": "[map(basics('managedIdentityApi').value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"description\":\"', concat('Resource group: ',first(skip(split(item.id,'/'),4)),'\\nRegion: ',item.location), '\",\"value\":\"', item.id, '\"}')))]",
+          "required": true
+        },
+        "visible": "[equals(basics('byoStorageAndIdentities'),'existing')]"
+      },
+      {
         "name": "CycleCloudVmName",
         "type": "Microsoft.Common.TextBox",
         "label": "CycleCloud VM Name",
@@ -2351,6 +2433,12 @@
       "ccVMName": "[basics('CycleCloudVmName')]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
       "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
+      "storageAccount": {
+        "type": "[basics('byoStorageAndIdentities')]",
+        "storageAccountId": "[if(equals(basics('byoStorageAndIdentities'),'existing'),basics('storageDropDown'),basics('nullValue'))]",
+        "vmManagedIdentityId": "[if(equals(basics('byoStorageAndIdentities'),'existing'),basics('vmManagedIdentityDropDown'),basics('nullValue'))]",
+        "vmssManagedIdentityId": "[if(equals(basics('byoStorageAndIdentities'),'existing'),basics('vmssManagedIdentityDropDown'),basics('nullValue'))]"
+      },
       "sharedFilesystem": {
         "type": "[concat(if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs'),'-',steps('filesystem').shared.newexisting)]",
         "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),int(steps('filesystem').shared.nfscapacity),basics('nullValue'))]",
