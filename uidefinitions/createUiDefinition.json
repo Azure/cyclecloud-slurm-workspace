@@ -374,6 +374,18 @@
         }
       },
       {
+        "name": "entraManagedIdentity",
+        "type": "Microsoft.Solutions.ResourceSelector",
+        "label": "Managed Identity",
+        "toolTip": "Select the user-assigned managed identity created for the federated credentials associated with the application registration",
+        "resourceType": "Microsoft.ManagedIdentity/userAssignedIdentities",
+        "constraints": {
+          "required": true,
+          "validationMessage": "Please select a managed identity."
+        },
+        "visible": "[basics('enableEntra')]"
+      },
+      {
         "name": "tenantId",
         "type": "Microsoft.Common.TextBox",
         "label": "Tenant ID",
@@ -396,18 +408,6 @@
           "required": true,
           "regex": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$",
           "validationMessage": "Enter a valid client ID"
-        },
-        "visible": "[basics('enableEntra')]"
-      },
-      {
-        "name": "entraManagedIdentity",
-        "type": "Microsoft.Solutions.ResourceSelector",
-        "label": "Managed Identity",
-        "toolTip": "Select the user-assigned managed identity created for the federated credentials associated with the application registration",
-        "resourceType": "Microsoft.ManagedIdentity/userAssignedIdentities",
-        "constraints": {
-          "required": true,
-          "validationMessage": "Please select a managed identity."
         },
         "visible": "[basics('enableEntra')]"
       },
