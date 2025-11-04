@@ -70,6 +70,7 @@ def set_slurm_params(params, dbPassword, outputs):
     #login node(s)
     params['loginMachineType'] = (outputs['loginNodes']['value']['sku']).strip()
     params['NumberLoginNodes'] = int(outputs['loginNodes']['value']['initialNodes'])
+    params['MaxLoginNodeCount'] = int(outputs['loginNodes']['value']['maxNodes'])
     params['LoginImageName'] = outputs['loginNodes']['value']['osImage']
     params['EnableNodeHealthChecks'] = outputs['slurmSettings']['value']['healthCheckEnabled']
 
