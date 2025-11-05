@@ -1,13 +1,13 @@
 extension microsoftGraphV1
 targetScope = 'resourceGroup'
 // WARNING!!!
-// If this file changes, you need to run `az build -f bicep/ood/oodEntraApp.bicep` and add the new json to the git commit.
+// If this file changes, you need to run `az bicep build -f bicep/entra/ccwEntraApp.bicep` and add the new json to the git commit.
 
 // Creates a secret-less client application, using a user-assigned managed identity
 // as the credential (configured as part of the application's federated identity credential).
 
 param appName string
-param umiName string = 'ccw-ood-mi-entra-test'
+param umiName string
 param fqdn string = 'OPEN_ONDEMAND_VM_IP.com'
 
 // new stuff for CC app registration

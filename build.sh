@@ -25,8 +25,8 @@ fi
 echo az CLI version: 
 az version
 az bicep version
-az bicep build -f $(pwd)/bicep/ood/oodEntraApp.bicep --stdout | jq -r 'del(.metadata._generator)' | jq -r 'del(.metadata)' > bicep/ood/oodEntraApp.json
-git diff --exit-code bicep/ood/oodEntraApp.json
+az bicep build -f $(pwd)/bicep/entra/ccwEntraApp.bicep --stdout | jq -r 'del(.metadata._generator)' | jq -r 'del(.metadata)' > bicep/entra/ccwEntraApp.json
+git diff --exit-code bicep/entra/ccwEntraApp.json
 
 # run tests 
 pushd bicep-test
