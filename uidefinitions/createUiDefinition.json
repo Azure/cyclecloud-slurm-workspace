@@ -2163,8 +2163,8 @@
                 "toolTip": "Domain of user email addresses",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?!-)[A-Za-z0-9-]+(?<!-)(\\.[A-Za-z0-9-]+(?<!-))*\\.[A-Za-z]{2,}$",
-                  "validationMessage": "Enter a valid domain name"
+                  "regex": "^(?:[a-zA-Z0-9-]+\\.[a-zA-Z]{2,})(?:\\s*,\\s*[a-zA-Z0-9-]+\\.[a-zA-Z]{2,})*$",
+                  "validationMessage": "Enter valid domain name(s), separated by commas if multiple"
                 },
                 "visible": "[steps('ood').OODSection.deployOOD]"
               },
