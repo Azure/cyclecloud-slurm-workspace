@@ -295,8 +295,21 @@ type ood_enabled_t = {
 @export()
 @discriminator('type')
 type oodConfig_t = ood_none_t | ood_enabled_t
-type cluster_init_target_t = 'login' | 'scheduler' | 'htc' | 'hpc' | 'gpu' | 'dynamic' | 'ood'
 
+type monitoring_disabled_t = {
+  type: 'disabled'
+}
+
+type monitoring_enabled_t = {
+  type: 'enabled'
+  ingestionEndpoint: string
+}
+
+@export()
+@discriminator('type')
+type monitoring_t = monitoring_disabled_t | monitoring_enabled_t
+
+type cluster_init_target_t = 'login' | 'scheduler' | 'htc' | 'hpc' | 'gpu' | 'dynamic' | 'ood'
 
 type github_cluster_init_t = {
   type: 'gitHubReleaseURL'
