@@ -23,3 +23,4 @@ module ccwMIRoleAssignments './miRoleAssignments.bicep' = {
 }
 
 output managedIdentityId string = managedIdentity.id
+output managedIdentityClientId string = managedIdentity.properties.clientId

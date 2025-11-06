@@ -37,6 +37,7 @@ param clusterName string
 param manualInstall bool
 param acceptMarketplaceTerms bool
 param ood types.oodConfig_t
+param monitoring types.monitoring_t
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8'
 
@@ -402,6 +403,12 @@ output oodManualRegistration object = {
   appName: oodAppName
   umiName: oodManagedIdentityName
   fqdn: deployOOD ? oodNIC.outputs.privateIp : ''
+}
+
+output monitoring object = {
+  enabled: monitoring.type == 'enabled'
+  ingestionEndpoint: monitoring.type == 'enabled' ? monitoring.ingestionEndpoint : ''
+  managedIdentityClientId: monitoring.type == 'enabled' ? ccwManagedIdentity!.outputs.managedIdentityClientId : ''
 }
 
 output files object = {
