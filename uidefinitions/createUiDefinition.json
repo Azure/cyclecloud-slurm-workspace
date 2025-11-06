@@ -2313,6 +2313,48 @@
                 "visible": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones)]"
               }
             ]
+          },
+                    {
+            "name": "monitoringSection",
+            "type": "Microsoft.Common.Section",
+            "label": "Monitoring",
+            "elements": [
+              {
+                "name": "monitoringInfo",
+                "type": "Microsoft.Common.TextBlock",
+                "visible": true,
+                "options": {
+                  "text": "Optional monitoring configuration. Enable to deploy monitoring sidecar/agents. Provide Managed Identity client ID and ingestion endpoint if required for data collection authorization."
+                }
+              },
+              {
+                "name": "monitoringEnabled",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Enable monitoring",
+                "toolTip": "Deploy monitoring agents and enable data collection.",
+                "defaultValue": false,
+                "constraints": {
+                  "required": false
+                }
+              },
+              {
+                "name": "monitoringIngestionEndpoint",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Monitoring ingestion endpoint",
+                "toolTip": "Ingestion endpoint URL for Azure Monitor workspace",
+                "constraints": {
+                  "required": true,
+                  "validations": [
+                    {
+                      "regex": "^https?:\\/\\/[^\\/]+\\.[^\\/]+\\.metrics\\.ingest\\.monitor\\.azure\\.(com|us)\\/dataCollectionRules\\/[^\\/]+\\/streams\\/Microsoft-PrometheusMetrics\\/api\\/v1\\/write\\?api-version=\\d{4}-\\d{2}-\\d{2}$",
+                      "message": "Must be a valid monitoring ingestion endpoint URL"
+                    }
+                  ]
+                },
+                "visible": "[steps('advancedSettings').monitoringSection.monitoringEnabled]"
+              }
+            ],
+            "visible": true
           }
         ]
       },
@@ -2446,6 +2488,10 @@
         "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,equals(steps('ood').OODSection.registerEntraIDApp,'autoregister'),basics('nullValue'))]",
         "appId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.clientId,basics('nullValue'))]",
         "appManagedIdentityId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.managedIdentity.id,basics('nullValue'))]"
+      },
+      "monitoring": {
+        "type": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,'enabled','disabled')]",
+        "ingestionEndpoint": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,steps('advancedSettings').monitoringSection.monitoringIngestionEndpoint,basics('nullValue'))]"
       },
       "tags": "[steps('tags').tagsByResource]"
     }
