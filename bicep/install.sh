@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eox pipefail
+set -eo pipefail
 # this is not set if you run this manually
 export PATH=$PATH:/usr/local/bin
 ccw_root="/opt/ccw"
@@ -413,7 +413,7 @@ if [ $ENABLE_ENTRA_AUTH == true ]; then
     chown cycle_server:cycle_server /tmp/entra_auth.txt # unsure if this is necessary
     chmod 664 /tmp/entra_auth.txt # unsure if this is necessary
     mv /tmp/entra_auth.txt /opt/cycle_server/config/data/entra_auth.txt
-    echo "Entra ID authentication records imported
+    echo "Entra ID authentication records imported"
 fi
 
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)

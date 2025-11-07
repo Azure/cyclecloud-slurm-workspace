@@ -8,10 +8,9 @@ targetScope = 'resourceGroup'
 
 param appName string
 param umiName string
-param fqdn string = 'OPEN_ONDEMAND_VM_IP.com'
+param fqdn string = 'OPEN_ONDEMAND_VM_IP.PLACEHOLDER'
+param cyclecloudVMIpAddress string = 'CYCLECLOUD_VM_IP.PLACEHOLDER'
 
-// new stuff for CC app registration
-param cyclecloudVMIpAddress string = 'CYCLECLOUD_VM_IP.com'
 var ccUserAccessGuid string = guid(resourceGroup().id, 'user_access')
 
 // NOTE: Microsoft Graph Bicep file deployment is only supported in Public Cloud
