@@ -63,6 +63,7 @@
     "MaxGPUExecuteNodeCount": 4,
     "MaxHPCExecuteNodeCount": 4,
     "MaxHTCExecuteNodeCount": 4,
+    "MaxLoginNodeCount": 1,
     "NFSAddress": null,
     "NFSDiskWarning": null,
     "NFSSchedAddress": null,

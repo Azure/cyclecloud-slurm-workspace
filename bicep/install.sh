@@ -289,16 +289,6 @@ done
 
 SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Cloud.Project WHERE Name=="Slurm"' | jq -r '.[0].Version')
 
-if [[ -n $(/opt/cycle_server/./cycle_server execute "select * from Cloud.Cluster where ClusterName==\"slurm_template_${SLURM_PROJ_VERSION}\"") ]]; then 
-    cp availability_zones.json /opt/cycle_server/config/data/
-    sleep 1
-    while [ -e /opt/cycle_server/config/data/availability_zones.json ]; do
-        echo "Waiting for availability_zones.json to be imported..."
-        sleep 5
-    done
-    echo "availability_zones.json imported successfully"
-fi
-
 # copying template parameters file to admin user's home directory
 SLURM_PARAMS_COPY="${HOME_CLUSTER_DIR}/slurm_params.json"
 cp slurm_params.json "${SLURM_PARAMS_COPY}"
@@ -306,16 +296,6 @@ chown "${CYCLECLOUD_USERNAME}:${CYCLECLOUD_USERNAME}" "${SLURM_PARAMS_COPY}"
 
 cyclecloud create_cluster slurm_template_${SLURM_PROJ_VERSION} $SLURM_CLUSTER_NAME -p slurm_params.json
 echo "CC create_cluster successful"
-
-## BEGIN temporary login node max count patch
-# TODO After azslurm 3.0.12 is released we should have a proper parameter for maxcount for login nodes
-LOGIN_NODES_MAX_COUNT=$(jq -r '.loginNodes.value.maxNodes' ccwOutputs.json)
-# ensure the value is actually an integer
-python3 -c "import sys; int(sys.argv[1])" $LOGIN_NODES_MAX_COUNT
-/opt/cycle_server/./cycle_server execute "UPDATE Cloud.Node \
-                                          SET MaxCount=${LOGIN_NODES_MAX_COUNT} \
-                                          WHERE ClusterName==\"$SLURM_CLUSTER_NAME\" && Name==\"login\""
-## END temporary login node max count patch
 
 if [ $INCLUDE_OOD == true ]; then
     # When we add OOD as an icon to CycleCloud, only parameter creation and create_cluster calls should
@@ -367,6 +347,15 @@ if [ $INCLUDE_OOD == true ]; then
         cyclecloud start_cluster OpenOnDemand
         echo "CC start_cluster for OpenOnDemand successful"
     fi
+    OOD_CLUSTER_DIR="${ADMIN_USER_HOME_DIR}/OpenOnDemand"
+    mkdir -p "${OOD_CLUSTER_DIR}"
+    # copying template file to admin user's home directory
+    cp ood/templates/OpenOnDemand.txt "${OOD_CLUSTER_DIR}/OpenOnDemand_template.txt"
+    # copying template parameters file to admin user's home directory
+    OOD_PARAMS_COPY="${OOD_CLUSTER_DIR}/ood_params.json"
+    cp ood_params.json "${OOD_PARAMS_COPY}"
+    # set permissions for OOD 
+    chown -R "${CYCLECLOUD_USERNAME}:${CYCLECLOUD_USERNAME}" "${OOD_CLUSTER_DIR}"
     rm -f ood_params.json
     echo "Deleted OOD input parameters file" 
 fi
