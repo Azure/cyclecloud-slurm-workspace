@@ -32,6 +32,7 @@ param databaseConfig types.databaseConfig_t = { type: 'disabled' }
 param clusterName string = 'ccw'
 param acceptMarketplaceTerms bool = false
 param ood types.oodConfig_t = { type: 'disabled' }
+param monitoring types.monitoring_t = { type: 'disabled' }
 
 param infrastructureOnly bool = false
 param insidersBuild bool = false
@@ -88,5 +89,6 @@ module makeCCWresources 'ccw.bicep' = {
     manualInstall: manualInstall
     acceptMarketplaceTerms: acceptMarketplaceTerms
     ood: ood
+    monitoring: monitoring
   }
 }
