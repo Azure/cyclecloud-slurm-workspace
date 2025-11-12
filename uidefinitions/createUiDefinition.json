@@ -1315,12 +1315,24 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8",
-                      "value": "almalinux8"
+                      "label": "Ubuntu 24.04",
+                      "value": "cycle.image.ubuntu24"
                     },
                     {
                       "label": "Ubuntu 22.04",
                       "value": "cycle.image.ubuntu22"
+                    },
+                    {
+                      "label": "SLES 15 HPC",
+                      "value": "cycle.image.sles15-hpc"
+                    },
+                    {
+                      "label": "Alma Linux 8",
+                      "value": "almalinux8"
+                    },
+                    {
+                      "label": "Alma Linux 9",
+                      "value": "almalinux9"
                     },
                     {
                       "label": "Custom image",
@@ -1365,19 +1377,14 @@
                 "name": "slurmVersion",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Slurm Version",
-                "defaultValue": "24.05.4",
+                "defaultValue": "25.05.2",
                 "toolTip": "Select the version of Slurm to use",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "23.11.10",
-                      "description": "Version 23.11.10",
-                      "value": "23.11.10-2"
-                    },
-                    {
-                      "label": "24.05.4",
-                      "description": "Version 24.05.4",
-                      "value": "24.05.4-2"
+                      "label": "25.05.2",
+                      "description": "Version 25.05.2",
+                      "value": "25.05.2"
                     }
                   ],
                   "required": true
@@ -1557,12 +1564,24 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8",
-                      "value": "almalinux8"
+                      "label": "Ubuntu 24.04",
+                      "value": "cycle.image.ubuntu24"
                     },
                     {
                       "label": "Ubuntu 22.04",
                       "value": "cycle.image.ubuntu22"
+                    },
+                    {
+                      "label": "SLES 15 HPC",
+                      "value": "cycle.image.sles15-hpc"
+                    },
+                    {
+                      "label": "Alma Linux 8",
+                      "value": "almalinux8"
+                    },
+                    {
+                      "label": "Alma Linux 9",
+                      "value": "almalinux9"
                     },
                     {
                       "label": "Custom image",
@@ -1690,12 +1709,24 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8",
-                      "value": "almalinux8"
+                      "label": "Ubuntu 24.04",
+                      "value": "cycle.image.ubuntu24"
                     },
                     {
                       "label": "Ubuntu 22.04",
                       "value": "cycle.image.ubuntu22"
+                    },
+                    {
+                      "label": "SLES 15 HPC",
+                      "value": "cycle.image.sles15-hpc"
+                    },
+                    {
+                      "label": "Alma Linux 8",
+                      "value": "almalinux8"
+                    },
+                    {
+                      "label": "Alma Linux 9",
+                      "value": "almalinux9"
                     },
                     {
                       "label": "Custom image",
@@ -1786,12 +1817,24 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8",
-                      "value": "almalinux8"
+                      "label": "Ubuntu 24.04",
+                      "value": "cycle.image.ubuntu24"
                     },
                     {
                       "label": "Ubuntu 22.04",
                       "value": "cycle.image.ubuntu22"
+                    },
+                    {
+                      "label": "SLES 15 HPC",
+                      "value": "cycle.image.sles15-hpc"
+                    },
+                    {
+                      "label": "Alma Linux 8",
+                      "value": "almalinux8"
+                    },
+                    {
+                      "label": "Alma Linux 9",
+                      "value": "almalinux9"
                     },
                     {
                       "label": "Custom image",
@@ -1885,12 +1928,24 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Alma Linux 8",
-                      "value": "almalinux8"
+                      "label": "Ubuntu 24.04",
+                      "value": "cycle.image.ubuntu24"
                     },
                     {
                       "label": "Ubuntu 22.04",
                       "value": "cycle.image.ubuntu22"
+                    },
+                    {
+                      "label": "SLES 15 HPC",
+                      "value": "cycle.image.sles15-hpc"
+                    },
+                    {
+                      "label": "Alma Linux 8",
+                      "value": "almalinux8"
+                    },
+                    {
+                      "label": "Alma Linux 9",
+                      "value": "almalinux9"
                     },
                     {
                       "label": "Custom image",
@@ -2032,6 +2087,10 @@
                 "toolTip": "Select the image to use for the OOD virtual machine",
                 "constraints": {
                   "allowedValues": [
+                    {
+                      "label": "Ubuntu 24.04",
+                      "value": "cycle.image.ubuntu24"
+                    },
                     {
                       "label": "Ubuntu 22.04",
                       "value": "cycle.image.ubuntu22"
