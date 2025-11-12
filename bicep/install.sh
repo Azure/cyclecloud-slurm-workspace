@@ -370,11 +370,7 @@ if [ $ENABLE_ENTRA_AUTH == true ]; then
     ENTRA_TENANT_ID=$(jq -r .entraIdInfo.value.tenantId ccwOutputs.json)
     ENTRA_CLIENT_ID=$(jq -r .entraIdInfo.value.clientId ccwOutputs.json)
     ENTRA_OBJECT_ID=$(jq -r .cyclecloudPrincipalId.value ccwOutputs.json)
-    if [ $env == "usgov" ]; then
-        ENTRA_AUTH_ENDPOINT="https://login.microsoftonline.us"
-    else
-        ENTRA_AUTH_ENDPOINT="https://login.microsoftonline.com"
-    fi
+    ENTRA_AUTH_ENDPOINT=$(jq -r .entraIdInfo.value.loginEndpoint ccwOutputs.json)
     # Note to future dev: These indentations are with tab characters, not spaces.
     # Pressing the tab key in VSCode will insert four spaces unless you change the settings.
     # This is needed for the file to be properly parsed.
@@ -397,7 +393,7 @@ if [ $ENABLE_ENTRA_AUTH == true ]; then
 
 	Category = "Authorization"
 	AdType = "Application.Setting"
-	Description = "The Entra ID authentication endpoint to use, including the protocol (Example: 'https://login.microsoftonline.com')."
+	Description = "The Entra ID authentication endpoint to use, including the protocol (Example: '${ENTRA_AUTH_ENDPOINT%.*}.com')."
 	Label = "Endpoint"
 	Value = "${ENTRA_AUTH_ENDPOINT}"
 	Name = "authentication.entra.endpoint"

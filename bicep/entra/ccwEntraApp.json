@@ -184,7 +184,7 @@
               "value": "user_access"
             }
           ],
-          "requestedAccessTokenVersion": null
+          "requestedAccessTokenVersion": 1
         },
         "requiredResourceAccess": [
           {

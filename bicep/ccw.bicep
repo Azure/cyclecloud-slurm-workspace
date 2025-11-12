@@ -383,7 +383,8 @@ output insidersBuild bool = insidersBuild
 output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
 
-output entraIdInfo object = entraIdInfo
+output entraIdInfo object = union(entraIdInfo,
+  {loginEndpoint: environment().authentication.loginEndpoint})
 
 output ood object = union(ood, {
   version: oodProjectVersion

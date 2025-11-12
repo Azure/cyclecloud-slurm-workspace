@@ -175,7 +175,7 @@ resource updateApplication 'Microsoft.Graph/applications@v1.0' = {
       }
     ]
 
-    requestedAccessTokenVersion: null
+    requestedAccessTokenVersion: 1
   }
 
   requiredResourceAccess: [
