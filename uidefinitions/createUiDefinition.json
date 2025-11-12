@@ -2363,17 +2363,26 @@
                 "type": "Microsoft.Common.TextBlock",
                 "visible": true,
                 "options": {
-                  "text": "Optional monitoring configuration. Enable to deploy monitoring sidecar/agents. Provide Managed Identity client ID and ingestion endpoint if required for data collection authorization."
+                  "text": "Optionally deploy monitoring agents & sidecars with an ingestion endpoint for data collection authorization."
                 }
               },
               {
                 "name": "monitoringEnabled",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Enable monitoring",
-                "toolTip": "Deploy monitoring agents and enable data collection.",
+                "toolTip": "Deploy monitoring agents and enable data collection",
                 "defaultValue": false,
                 "constraints": {
                   "required": false
+                }
+              },
+              {
+                "name": "monitoringInstructions",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[steps('advancedSettings').monitoringSection.monitoringEnabled]",
+                "options": {
+                  "text": "Review the linked document to learn how to create the monitoring infrastructure suitable for Azure CycleCloud.",
+                  "uri": "https://github.com/Azure/cyclecloud-monitoring/blob/1.0.4/README.md"
                 }
               },
               {
