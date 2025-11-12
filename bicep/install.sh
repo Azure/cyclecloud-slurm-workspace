@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -eo pipefail +o histexpand
 # this is not set if you run this manually
 export PATH=$PATH:/usr/local/bin
 ccw_root="/opt/ccw"
@@ -369,6 +369,7 @@ if [ $ENABLE_ENTRA_AUTH == true ]; then
     echo "Configuring Entra ID authentication for CycleCloud"
     ENTRA_TENANT_ID=$(jq -r .entraIdInfo.value.tenantId ccwOutputs.json)
     ENTRA_CLIENT_ID=$(jq -r .entraIdInfo.value.clientId ccwOutputs.json)
+    ENTRA_OBJECT_ID=$(jq -r .cyclecloudPrincipalId.value ccwOutputs.json)
     if [ $env == "usgov" ]; then
         ENTRA_AUTH_ENDPOINT="https://login.microsoftonline.us"
     else
@@ -408,12 +409,32 @@ if [ $ENABLE_ENTRA_AUTH == true ]; then
 	Value = true
 	Name = "authentication.entra.enabled"
 	ParameterType = "Boolean"
+
+	Authentication = "internal"
+	EntraTID = "${ENTRA_TENANT_ID}"
+	UID = 19000
+	EntraOID = "${ENTRA_OBJECT_ID}"
+	Superuser = true
+	NodeAccessDisabled = true
+	AdType = "AuthenticatedUser"
+	Roles = {"Administrator","User","Cluster Creator"}
+	NodeUserName = "cc-vm-mi"
+	ServiceAccount = true
+	Name = "cc-vm-mi"
+	ForcePasswordReset = false
 	EOF
 
     chown cycle_server:cycle_server /tmp/entra_auth.txt # unsure if this is necessary
     chmod 664 /tmp/entra_auth.txt # unsure if this is necessary
     mv /tmp/entra_auth.txt /opt/cycle_server/config/data/entra_auth.txt
+    echo Waiting for Entra records to be imported
+    timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt 2> /dev/null); do sleep 10; done'
     echo "Entra ID authentication records imported"
+
+    # initializing CycleCloud CLI with Entra ID auth
+    echo "Initializing CycleCloud CLI with Entra ID authentication"
+    sudo -i -u ${CYCLECLOUD_USERNAME} bash -c "/usr/local/bin/cyclecloud initialize --batch --identity --object_id=${ENTRA_OBJECT_ID} --url=https://localhost --verify-ssl=false --loglevel=debug --force"
+    echo "CycleCloud CLI initialization with Entra ID successful"
 fi
 
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
