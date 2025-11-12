@@ -1323,10 +1323,6 @@
                       "value": "cycle.image.ubuntu22"
                     },
                     {
-                      "label": "SLES 15 HPC",
-                      "value": "cycle.image.sles15-hpc"
-                    },
-                    {
                       "label": "Alma Linux 8",
                       "value": "almalinux8"
                     },
@@ -1572,10 +1568,6 @@
                       "value": "cycle.image.ubuntu22"
                     },
                     {
-                      "label": "SLES 15 HPC",
-                      "value": "cycle.image.sles15-hpc"
-                    },
-                    {
                       "label": "Alma Linux 8",
                       "value": "almalinux8"
                     },
@@ -1717,10 +1709,6 @@
                       "value": "cycle.image.ubuntu22"
                     },
                     {
-                      "label": "SLES 15 HPC",
-                      "value": "cycle.image.sles15-hpc"
-                    },
-                    {
                       "label": "Alma Linux 8",
                       "value": "almalinux8"
                     },
@@ -1823,10 +1811,6 @@
                     {
                       "label": "Ubuntu 22.04",
                       "value": "cycle.image.ubuntu22"
-                    },
-                    {
-                      "label": "SLES 15 HPC",
-                      "value": "cycle.image.sles15-hpc"
                     },
                     {
                       "label": "Alma Linux 8",
@@ -1934,10 +1918,6 @@
                     {
                       "label": "Ubuntu 22.04",
                       "value": "cycle.image.ubuntu22"
-                    },
-                    {
-                      "label": "SLES 15 HPC",
-                      "value": "cycle.image.sles15-hpc"
                     },
                     {
                       "label": "Alma Linux 8",
