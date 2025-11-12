@@ -47,7 +47,7 @@ resource msGraphSP 'Microsoft.Graph/servicePrincipals@v1.0' existing = {
 var graphScopes = msGraphSP.oauth2PermissionScopes
 
 // Retrieve the user assigned managed identity assigned to the OOD VM
-resource oodManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
+resource ccwEntraManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
   name: umiName
 }
 
@@ -56,18 +56,18 @@ resource oodManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@20
 // The application is listed under the "App registrations" in the Azure Portal
 var appUniqueName = guid(subscription().id, resourceGroup().id, appName) // Need to be unique inside the tenant because recreating with the same name will fail if the app is manually deleted
 var superUserRoleId = guid(resourceGroup().id, 'superuser')
-resource oodApp 'Microsoft.Graph/applications@v1.0' = {
+resource ccwEntraApp 'Microsoft.Graph/applications@v1.0' = {
   displayName: appName
   uniqueName: appUniqueName 
 
   resource myMsiFic 'federatedIdentityCredentials@v1.0' = {
-    name: '${oodApp.uniqueName}/msiAsFic'
+    name: '${ccwEntraApp.uniqueName}/msiAsFic'
     description: 'Trust the Open OnDemand\'s user-assigned MI as a credential for the application'
     audiences: [
        audiences[cloudEnvironment].uri
     ]
     issuer: issuer
-    subject: oodManagedIdentity.properties.principalId
+    subject: ccwEntraManagedIdentity.properties.principalId
   }
 
   // begin Authentication section
@@ -152,7 +152,7 @@ resource oodApp 'Microsoft.Graph/applications@v1.0' = {
   // end App Roles section
 }
 
-var clientAppId = oodApp.appId
+var clientAppId = ccwEntraApp.appId
 
 resource updateApplication 'Microsoft.Graph/applications@v1.0' = {
   uniqueName: appUniqueName
@@ -206,7 +206,7 @@ resource updateApplication 'Microsoft.Graph/applications@v1.0' = {
   // end Expose an API section
 
   dependsOn: [
-    oodApp
+    ccwEntraApp
   ]
 }
 
@@ -222,6 +222,6 @@ resource superUserAssignment 'Microsoft.Graph/appRoleAssignedTo@v1.0' = {
 }
 
 // outputs
-output oodClientTenantId string = tenant().tenantId
-output oodClientAppId string = clientAppId
-output oodMiId string = oodManagedIdentity.id
+output ccwEntraClientTenantId string = tenant().tenantId
+output ccwEntraClientAppId string = clientAppId
+output ccwEntraMiId string = ccwEntraManagedIdentity.id

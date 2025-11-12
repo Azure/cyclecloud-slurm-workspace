@@ -389,8 +389,8 @@ output ood object = union(ood, {
   version: oodProjectVersion
   nic: deployOOD ? oodNIC!.outputs.NICId : ''
   managedIdentity: deployOOD ? createOODMI ? oodNewManagedIdentity.id : ood.?appManagedIdentityId : ''
-  clientId: deployOOD ? registerOODApp ? oodApp!.outputs.oodClientAppId : ood.?appId : ''
-  tenantId: deployOOD ? registerOODApp ? oodApp!.outputs.oodClientTenantId : ood.?appTenantId : ''
+  clientId: deployOOD ? registerOODApp ? oodApp!.outputs.ccwEntraClientAppId : ood.?appId : ''
+  tenantId: deployOOD ? registerOODApp ? oodApp!.outputs.ccwEntraClientTenantId : ood.?appTenantId : ''
 })
 
 output oodManualRegistration object = {
