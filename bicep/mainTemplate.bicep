@@ -43,7 +43,6 @@ param branch string = 'main'
 param projectVersion string = '2025.09.15'
 // Must be updated with each Open OnDemand release
 param oodProjectVersion string = '1.1.2'
-param pyxisProjectVersion string = '1.0.0'
 //Internal developer use only: set true use custom CycleCloud release build 
 param manualInstall bool = false
 
@@ -85,7 +84,6 @@ module makeCCWresources 'ccw.bicep' = {
     branch: branch
     projectVersion: projectVersion
     oodProjectVersion: oodProjectVersion
-    pyxisProjectVersion: pyxisProjectVersion
     manualInstall: manualInstall
     acceptMarketplaceTerms: acceptMarketplaceTerms
     ood: ood

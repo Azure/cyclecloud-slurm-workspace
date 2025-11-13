@@ -8,7 +8,6 @@ param insidersBuild bool
 param branch string
 param projectVersion string
 param oodProjectVersion string
-param pyxisProjectVersion string
 
 param adminUsername string
 @secure()
@@ -319,7 +318,7 @@ output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.pr
 
 output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
 
-// Automatically inject the ccw and pyxis cluster init specs
+// Automatically inject the ccw cluster init spec
 
 var ccwClusterInitSpec = {
   type: 'gitHubReleaseURL'
@@ -328,15 +327,7 @@ var ccwClusterInitSpec = {
   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
 }
 
-var pyxisClusterInitSpec = {
-  type: 'gitHubReleaseURL'
-  gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-pyxis/releases/tag/', pyxisProjectVersion)
-  spec: 'default'
-  target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
-}
-
-// Projects <= 2025.02.06 have the pyxis logic embedded in the ccw cluster init spec
-var requiredClusterInitSpecs = [ccwClusterInitSpec, pyxisClusterInitSpec]
+var requiredClusterInitSpecs = [ccwClusterInitSpec]
 
 output clusterInitSpecs types.cluster_init_param_t = union(requiredClusterInitSpecs, clusterInitSpecs)
 
