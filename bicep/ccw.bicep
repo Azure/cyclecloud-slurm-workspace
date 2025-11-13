@@ -258,7 +258,8 @@ module ccwANF 'anf.bicep' = [
 ]
 
 var deployOOD = ood.type != 'disabled'
-var registerOODApp = ood.?registerEntraIDApp ?? false
+// Temporary deprecation of automatic registration of Entra app registration
+var registerOODApp = false // ood.?registerEntraIDApp ?? false 
 var createOODMI = deployOOD && ood.?appManagedIdentityId == null
 
 var oodNicName = 'ccwOpenOnDemandNIC'
