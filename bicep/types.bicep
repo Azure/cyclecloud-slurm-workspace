@@ -1,6 +1,21 @@
 @export()
 type availabilityZone_t = '1' | '2' | '3'
 
+type entra_disabled_t = {
+  type: 'disabled'
+}
+
+type entra_enabled_t = {
+  type: 'enabled'
+  tenantId: string
+  clientId: string
+  managedIdentityId: string
+}
+
+@discriminator('type')
+@export()
+type entra_t = entra_disabled_t | entra_enabled_t
+
 type shared_nfs_new_t = {
   type: 'nfs-new'
   nfsCapacityInGb: int
