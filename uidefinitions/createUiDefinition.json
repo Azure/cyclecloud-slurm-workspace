@@ -2173,7 +2173,7 @@
                 "constraints": {
                   "required": true,
                   "regex": "^(?:[a-zA-Z0-9-]+\\.[a-zA-Z]{2,})(?:\\s*,\\s*[a-zA-Z0-9-]+\\.[a-zA-Z]{2,})*$",
-                  "validationMessage": "Enter valid domain name(s), separated by commas if multiple"
+                  "validationMessage": "Enter valid domain name(s), separated by commas if using multiple"
                 },
                 "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]"
               },
