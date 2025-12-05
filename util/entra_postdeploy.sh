@@ -4,23 +4,24 @@ set -e
 CCW_RESOURCE_GROUP=""
 HELP=0
 
-while (( "$#" )); do
+
+while [ "$#" -gt 0 ]; do
     case "$1" in
         -rg|--ccw-resource-group)
-            CCW_RESOURCE_GROUP=$2
+            CCW_RESOURCE_GROUP="$2"
             shift 2
             ;;
         --help)
             HELP=1
             shift
             ;;
-        -*|--*=)
+        -*)
             echo "Unknown option $1" >&2
             HELP=1
             shift
             ;;
         *)
-            echo "Unknown option  $1" >&2
+            echo "Unknown argument $1" >&2
             HELP=1
             shift
             ;;
