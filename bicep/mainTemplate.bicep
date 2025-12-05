@@ -12,6 +12,7 @@ param storedKey types.storedKey_t = {id: 'foo', location: 'foo', name:'foo'}
 param ccVMName string
 param ccVMSize string
 param resourceGroup string
+param entraIdInfo types.entra_t = { type: 'disabled' }
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t = { type: 'disabled' }
 param network types.vnet_t
@@ -40,7 +41,7 @@ param insidersBuild bool = true
 // build.sh will override this, but for development please set this yourself as a parameter
 param branch string = 'main'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
-param projectVersion string = '2025.09.15'
+param projectVersion string = '2025.12.01'
 // Must be updated with each Open OnDemand release
 param oodProjectVersion string = '1.1.2'
 //Internal developer use only: set true use custom CycleCloud release build 
@@ -62,6 +63,7 @@ module makeCCWresources 'ccw.bicep' = {
     adminUsername: adminUsername
     adminPassword: adminPassword
     adminSshPublicKey: adminSshPublicKey
+    entraIdInfo: entraIdInfo
     sharedFilesystem: sharedFilesystem
     additionalFilesystem: additionalFilesystem
     network: network
