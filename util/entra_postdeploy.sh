@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 CCW_RESOURCE_GROUP=""
 HELP=0
@@ -33,7 +34,7 @@ if [ -z "$CCW_RESOURCE_GROUP" ] ; then
 fi
 
 if [ $HELP == 1 ]; then
-    echo Usage: entra_postdeploy.sh --ccw-resource-group (RG in which CCW was deployed) 1>&2
+    echo "Usage: entra_postdeploy.sh --ccw-resource-group (RG in which CCW was deployed)" 1>&2
     exit 1
 fi
 
