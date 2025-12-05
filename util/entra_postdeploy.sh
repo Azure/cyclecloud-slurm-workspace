@@ -7,8 +7,8 @@ HELP=0
 while (( "$#" )); do
     case "$1" in
         -rg|--ccw-resource-group)
-            CCW_RESOURCE_GROUP=$1
-            shift 1
+            CCW_RESOURCE_GROUP=$2
+            shift 2
             ;;
         --help)
             HELP=1
