@@ -11,7 +11,7 @@
     },
     "fqdn": {
       "type": "string",
-      "defaultValue": "OPEN_ONDEMAND_VM_IP.PLACEHOLDER"
+      "defaultValue": "OPEN_ONDEMAND_NIC_IP.PLACEHOLDER"
     },
     "cyclecloudVMIpAddress": {
       "type": "string",
@@ -93,6 +93,7 @@
       "properties": {
         "displayName": "[parameters('appName')]",
         "uniqueName": "[variables('appUniqueName')]",
+        "serviceManagementReference": "0a914b56-486a-4979-b994-7b85132f8f0f",
         "web": {
           "implicitGrantSettings": {
             "enableAccessTokenIssuance": false,
@@ -171,6 +172,7 @@
       "properties": {
         "uniqueName": "[variables('appUniqueName')]",
         "displayName": "[parameters('appName')]",
+        "serviceManagementReference": "0a914b56-486a-4979-b994-7b85132f8f0f",
         "api": {
           "oauth2PermissionScopes": [
             {
