@@ -36,7 +36,7 @@ param ood types.oodConfig_t = { type: 'disabled' }
 param monitoring types.monitoring_t = { type: 'disabled' }
 
 param infrastructureOnly bool = false
-param insidersBuild bool = true
+param insidersBuild bool = false
 
 // build.sh will override this, but for development please set this yourself as a parameter
 param branch string = 'main'
