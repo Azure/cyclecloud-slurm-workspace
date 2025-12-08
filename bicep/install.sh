@@ -260,7 +260,7 @@ echo Restarting cyclecloud so that new records take effect
 cycle_server stop
 cycle_server start --wait
 # this will block until CC responds
-curl -k https://localhost
+timeout 30s bash -c 'until (curl -k https://localhost); do sleep 5; done'
 
 cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" --verify-ssl=false --name=$SLURM_CLUSTER_NAME
 echo "CC CLI initialize successful"
@@ -316,11 +316,13 @@ cycle_server run_action 'Run:Application.Timer' -eq 'Name' 'plugin.azure.monitor
 
 # Wait for Azure.MachineType to be populated
 while [ $(/opt/cycle_server/./cycle_server execute --format json "
-                        SELECT Name, M.Name as MachineType FROM Cloud.Node
+                        SELECT Name, M.Name as MachineType, CM.Name as CMName FROM Cloud.Node
                         OUTER JOIN Azure.MachineType M
                         ON  MachineType === M.Name &&
                             Region === M.Location
-                        WHERE (ClusterName == "OpenOnDemand" || ClusterName == \"$SLURM_CLUSTER_NAME\")" | jq -r ".[] | select(.MachineType == null).Name" | wc -l) != 0 ]; do
+                        OUTER JOIN Cloud.MachineType CM
+                        ON  MachineType === CM.Name
+                        WHERE (ClusterName == "OpenOnDemand" || ClusterName == \"$SLURM_CLUSTER_NAME\")"  | jq -r ".[] | select(.MachineType == null or .CMName == null).Name" | wc -l) != 0 ]; do
     echo "Waiting for Azure.MachineType to be populated..."
     sleep 10
 done
