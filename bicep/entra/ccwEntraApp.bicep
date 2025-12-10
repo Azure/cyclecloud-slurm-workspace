@@ -165,7 +165,7 @@ resource updateApplication 'Microsoft.Graph/applications@v1.0' = {
     oauth2PermissionScopes: [
       {
         adminConsentDescription: 'Azure CycleCloud Workspace for Slurm with Entra ID authentication'
-        adminConsentDisplayName: 'Azure CycleCloud can access the user profile and use it to log into the web application on their behalf.'
+        adminConsentDisplayName: 'CycleCloud can access the user profile & use it to log into the web application.'
         id: ccUserAccessGuid
         isEnabled: true
         //lang: null
