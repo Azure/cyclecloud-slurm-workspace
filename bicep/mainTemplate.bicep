@@ -11,6 +11,7 @@ param storedKey types.storedKey_t = {id: 'foo', location: 'foo', name:'foo'}
 @maxLength(64)
 param ccVMName string
 param ccVMSize string
+param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud-preview:cyclecloud8-gen2:8.8.020251209'
 param resourceGroup string
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t = { type: 'disabled' }
@@ -76,6 +77,7 @@ module makeCCWresources 'ccw.bicep' = {
     storedKey: storedKey
     ccVMName: ccVMName
     ccVMSize: ccVMSize
+    cyclecloudBaseImage: cyclecloudBaseImage
     resourceGroup: resourceGroup
     databaseAdminPassword: databaseAdminPassword
     databaseConfig: databaseConfig
