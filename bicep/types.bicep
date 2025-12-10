@@ -303,6 +303,7 @@ type monitoring_disabled_t = {
 type monitoring_enabled_t = {
   type: 'enabled'
   ingestionEndpoint: string
+  dcrId: string
 }
 
 @export()
