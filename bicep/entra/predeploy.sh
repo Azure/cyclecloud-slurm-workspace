@@ -1,4 +1,5 @@
 #!/bin/bash 
+set -e
 
 LOCATION=<>
 ENTRA_MI_RESOURCE_GROUP=<>
