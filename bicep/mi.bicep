@@ -4,6 +4,8 @@ import {tags_t} from './types.bicep'
 param name string
 param location string
 param storageAccountName string
+param monitoringEnabled bool 
+param dcrId string 
 param tags tags_t
 
 //create managed identity for VMSSs
@@ -19,6 +21,15 @@ module ccwMIRoleAssignments './miRoleAssignments.bicep' = {
     principalId: managedIdentity.properties.principalId
     roles: ['Storage Blob Data Reader']
     storageAccountName: storageAccountName
+  }
+}
+
+module ccwMIMonitoringRoleAssignment './miMonitoringRoleAssignments.bicep' = if (monitoringEnabled) {
+  name: 'ccwMonitoringRoleForLockerManagedIdentity'
+  scope : resourceGroup(split(dcrId, '/')[4])
+  params: {
+    principalId: managedIdentity.properties.principalId
+    dcrId: dcrId
   }
 }
 

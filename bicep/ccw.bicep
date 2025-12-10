@@ -164,6 +164,8 @@ module ccwManagedIdentity 'mi.bicep' = if (!infrastructureOnly) {
     name: miName
     location: location
     storageAccountName: ccwStorage.outputs.storageAccountName
+    monitoringEnabled: monitoring.type == 'enabled'
+    dcrId: monitoring.?dcrId ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
     tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
   }
 }

@@ -2400,6 +2400,22 @@
                   ]
                 },
                 "visible": "[steps('advancedSettings').monitoringSection.monitoringEnabled]"
+              },
+              {
+                "name": "dataCollectionRule",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Data collection rules",
+                "toolTip": "Resource ID of the data collection rule for the Azure Monitor workspace instance",
+                "constraints": {
+                  "required": true,
+                  "validations": [
+                    {
+                      "regex": "^/subscriptions/[0-9a-fA-F-]{36}/resourceGroups/[A-Za-z0-9_-]+/providers/Microsoft\\.Insights/dataCollectionRules/[A-Za-z0-9_-]+$",
+                      "message": "Must be a valid data collection rule resource ID"
+                    }
+                  ]
+                },
+                "visible": "[steps('advancedSettings').monitoringSection.monitoringEnabled]"
               }
             ],
             "visible": true
@@ -2539,7 +2555,8 @@
       },
       "monitoring": {
         "type": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,'enabled','disabled')]",
-        "ingestionEndpoint": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,steps('advancedSettings').monitoringSection.monitoringIngestionEndpoint,basics('nullValue'))]"
+        "ingestionEndpoint": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,steps('advancedSettings').monitoringSection.monitoringIngestionEndpoint,basics('nullValue'))]",
+        "dcrId": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,steps('advancedSettings').monitoringSection.dataCollectionRule,basics('nullValue'))]"
       },
       "tags": "[steps('tags').tagsByResource]"
     }
