@@ -293,23 +293,24 @@ cp slurm_params.json "${SLURM_PARAMS_COPY}"
 chown "${CYCLECLOUD_USERNAME}:${CYCLECLOUD_USERNAME}" "${SLURM_PARAMS_COPY}"
 
 cyclecloud create_cluster slurm_template_${SLURM_PROJ_VERSION} $SLURM_CLUSTER_NAME -p slurm_params.json
-echo "CC create_cluster successful"
+echo "CC create_cluster for Slurm successful"
 
+# When we add OOD as an icon to CycleCloud, only parameter creation and create_cluster calls should
+# remain. The fetch / upload / import_template calls should be removed. 
+OOD_PROJECT_VERSION=$(jq -r .ood.value.version ccwOutputs.json)
+ood_url="https://github.com/Azure/cyclecloud-open-ondemand/releases/${OOD_PROJECT_VERSION}"
+echo fetching OOD project from $ood_url
+cyclecloud project fetch $ood_url ood
+cd ood
+cyclecloud project upload azure-storage
+ood_template_name=OpenOnDemand_${OOD_PROJECT_VERSION}
+cyclecloud import_template -c OpenOnDemand -f templates/OpenOnDemand.txt $ood_template_name --force
+echo "Open OnDemand template import successful"
+cd ..
 if [ $INCLUDE_OOD == true ]; then
-    # When we add OOD as an icon to CycleCloud, only parameter creation and create_cluster calls should
-    # remain. The fetch / upload / import_template calls should be removed.
-    (python3 create_cc_param.py ood) > ood_params.json 
-
-    OOD_PROJECT_VERSION=$(jq -r .ood.value.version ccwOutputs.json)
-    ood_url="https://github.com/Azure/cyclecloud-open-ondemand/releases/${OOD_PROJECT_VERSION}"
-    echo fetching OOD project from $ood_url
-    cyclecloud project fetch $ood_url ood
-    cd ood
-    cyclecloud project upload azure-storage
-    ood_template_name=OpenOnDemand_${OOD_PROJECT_VERSION}
-    cyclecloud import_template -c OpenOnDemand -f templates/OpenOnDemand.txt $ood_template_name --force
-    cd ..
+    (python3 create_cc_param.py ood) > ood_params.json
     cyclecloud create_cluster $ood_template_name OpenOnDemand -p ood_params.json
+    echo "CC create_cluster for OpenOnDemand successful "
 fi
 # ensure machine types are loaded ASAP
 cycle_server run_action 'Run:Application.Timer' -eq 'Name' 'plugin.azure.monitor_reference'
@@ -345,7 +346,7 @@ if [ $INCLUDE_OOD == true ]; then
     START_OOD_CLUSTER=$(jq -r .ood.value.startCluster ccwOutputs.json)
     if [ "$START_OOD_CLUSTER" == "true" ]; then
         cyclecloud start_cluster OpenOnDemand
-        echo "CC start_cluster for OpenOnDemand successful"
+        echo "CC start_cluster for Open OnDemand successful"
     fi
     OOD_CLUSTER_DIR="${ADMIN_USER_HOME_DIR}/OpenOnDemand"
     mkdir -p "${OOD_CLUSTER_DIR}"
