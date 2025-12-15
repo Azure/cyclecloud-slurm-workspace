@@ -2112,11 +2112,11 @@
                 "type": "Microsoft.Common.TextBox",
                 "label": "User domain",
                 "defaultValue": "contoso.com",
-                "toolTip": "Domain of user email addresses",
+                "toolTip": "Domain of user email addresses or the LUA expression [%w%.%-]+ for all domains of the email addresses provided by the OIDC token",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?!-)[A-Za-z0-9-]+(?<!-)(\\.[A-Za-z0-9-]+(?<!-))*\\.[A-Za-z]{2,}$",
-                  "validationMessage": "Enter a valid domain name"
+                  "regex": "^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$|^\\[%w%\\.%-\\]\\+$",
+                  "validationMessage": "Enter either a single valid domain name or the LUA expression [%w%.%-]+ to use all domains of the email addresses provided by the OIDC token"
                 },
                 "visible": "[steps('ood').OODSection.deployOOD]"
               },
