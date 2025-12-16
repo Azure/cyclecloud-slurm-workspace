@@ -98,9 +98,9 @@ def set_slurm_params(params, dbPassword, outputs):
         params['AdditionalNFSAddress'] = outputs['filerInfoFinal']['value']['additional']['ipAddress']
     
     # Monitoring
-    params['configuration_monitoring_enabled'] = outputs['monitoring']['enabled']
-    params['configuration_identity_client_id'] = outputs['monitoring']['managedIdentityClientId'] if outputs['monitoring']['enabled'] else None
-    params['configuration_ingestion_endpoint'] = outputs['monitoring']['ingestionEndpoint'] if outputs['monitoring']['enabled'] else None
+    params['configuration_monitoring_enabled'] = outputs['monitoring']['value']['enabled']
+    params['configuration_identity_client_id'] = outputs['monitoring']['value']['managedIdentityClientId'] if params['configuration_monitoring_enabled'] else None
+    params['configuration_ingestion_endpoint'] = outputs['monitoring']['value']['ingestionEndpoint'] if params['configuration_monitoring_enabled'] else None
 
 
 def set_ood_params(params, outputs):

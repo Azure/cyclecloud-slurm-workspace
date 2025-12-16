@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -eo pipefail +o histexpand
 # this is not set if you run this manually
 export PATH=$PATH:/usr/local/bin
 ccw_root="/opt/ccw"
@@ -359,6 +359,79 @@ if [ $INCLUDE_OOD == true ]; then
     chown -R "${CYCLECLOUD_USERNAME}:${CYCLECLOUD_USERNAME}" "${OOD_CLUSTER_DIR}"
     rm -f ood_params.json
     echo "Deleted OOD input parameters file" 
+fi
+
+ENABLE_ENTRA_AUTH=false
+if [ $(jq -r .entraIdInfo.value.type ccwOutputs.json) == 'enabled'  ]; then
+    ENABLE_ENTRA_AUTH=true
+fi
+
+if [ $ENABLE_ENTRA_AUTH == true ]; then
+    echo "Configuring Entra ID authentication for CycleCloud"
+    ENTRA_TENANT_ID=$(jq -r .entraIdInfo.value.tenantId ccwOutputs.json)
+    ENTRA_CLIENT_ID=$(jq -r .entraIdInfo.value.clientId ccwOutputs.json)
+    ENTRA_OBJECT_ID=$(jq -r .cyclecloudPrincipalId.value ccwOutputs.json)
+    ENTRA_AUTH_ENDPOINT=$(jq -r .entraIdInfo.value.loginEndpoint ccwOutputs.json)
+    # Note to future dev: These indentations are with tab characters, not spaces.
+    # Pressing the tab key in VSCode will insert four spaces unless you change the settings.
+    # This is needed for the file to be properly parsed.
+	cat > /tmp/entra_auth.txt <<-EOF
+	Category = "Authorization"
+	AdType = "Application.Setting"
+	Description = "The tenant ID to use for Entra ID authentication"
+	Label = "Tenant ID"
+	Value = "${ENTRA_TENANT_ID}"
+	Name = "authentication.entra.tenantid"
+	ParameterType = "String"
+
+	Category = "Authorization"
+	AdType = "Application.Setting"
+	Description = "The client ID (application ID) to use for Entra ID authentication"
+	Label = "Client ID"
+	Value = "${ENTRA_CLIENT_ID}"
+	Name = "authentication.entra.clientid"
+	ParameterType = "String"
+
+	Category = "Authorization"
+	AdType = "Application.Setting"
+	Description = "The Entra ID authentication endpoint to use, including the protocol (Example: '${ENTRA_AUTH_ENDPOINT%.*}.com')."
+	Label = "Endpoint"
+	Value = "${ENTRA_AUTH_ENDPOINT}"
+	Name = "authentication.entra.endpoint"
+	ParameterType = "String"
+
+	Category = "Authorization"
+	AdType = "Application.Setting"
+	Description = "If set to true, use Entra ID for authentication"
+	Value = true
+	Name = "authentication.entra.enabled"
+	ParameterType = "Boolean"
+
+	Authentication = "internal"
+	EntraTID = "${ENTRA_TENANT_ID}"
+	UID = 19000
+	EntraOID = "${ENTRA_OBJECT_ID}"
+	Superuser = true
+	NodeAccessDisabled = true
+	AdType = "AuthenticatedUser"
+	Roles = {"Administrator","User","Cluster Creator"}
+	NodeUserName = "cc-vm-mi"
+	ServiceAccount = true
+	Name = "cc-vm-mi"
+	ForcePasswordReset = false
+	EOF
+
+    chown cycle_server:cycle_server /tmp/entra_auth.txt # unsure if this is necessary
+    chmod 664 /tmp/entra_auth.txt # unsure if this is necessary
+    mv /tmp/entra_auth.txt /opt/cycle_server/config/data/entra_auth.txt
+    echo Waiting for Entra records to be imported
+    timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt 2> /dev/null); do sleep 10; done'
+    echo "Entra ID authentication records imported"
+
+    # initializing CycleCloud CLI with Entra ID auth
+    echo "Initializing CycleCloud CLI with Entra ID authentication"
+    sudo -i -u ${CYCLECLOUD_USERNAME} bash -c "/usr/local/bin/cyclecloud initialize --batch --identity --object_id=${ENTRA_OBJECT_ID} --url=https://localhost --verify-ssl=false --loglevel=debug --force"
+    echo "CycleCloud CLI initialization with Entra ID successful"
 fi
 
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)

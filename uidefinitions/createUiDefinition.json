@@ -364,6 +364,54 @@
         "visible": "[equals(basics('autogeneratePasswordsAndKeys'),'stored')]"
       },
       {
+        "name": "enableEntra",
+        "type": "Microsoft.Common.CheckBox",
+        "label": "Enable Microsoft Entra ID SSO",
+        "toolTip": "Enable single sign-on (SSO) with Microsoft Entra ID",
+        "defaultValue": false,
+        "constraints": {
+          "required": false
+        }
+      },
+      {
+        "name": "entraManagedIdentity",
+        "type": "Microsoft.Solutions.ResourceSelector",
+        "label": "Managed Identity",
+        "toolTip": "Select the user-assigned managed identity created for the federated credentials associated with the application registration",
+        "resourceType": "Microsoft.ManagedIdentity/userAssignedIdentities",
+        "constraints": {
+          "required": true,
+          "validationMessage": "Please select a managed identity."
+        },
+        "visible": "[basics('enableEntra')]"
+      },
+      {
+        "name": "tenantId",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Tenant ID",
+        "defaultValue": "",
+        "toolTip": "Tenant ID of the Entra ID application registration",
+        "constraints": {
+          "required": true,
+          "regex": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$",
+          "validationMessage": "Enter a valid tenant ID"
+        },
+        "visible": "[basics('enableEntra')]"
+      },
+      {
+        "name": "clientId",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Application (client) ID",
+        "defaultValue": "",
+        "toolTip": "Application or client ID of the Entra ID application registration",
+        "constraints": {
+          "required": true,
+          "regex": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$",
+          "validationMessage": "Enter a valid client ID"
+        },
+        "visible": "[basics('enableEntra')]"
+      },
+      {
         "name": "nullValue",
         "type": "Microsoft.Common.CheckBox",
         "label": "Null Value",
@@ -1992,6 +2040,15 @@
                 }
               },
               {
+                "name": "oodEntraInfo",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[not(basics('enableEntra'))]",
+                "options": {
+                  "icon": "Error",
+                  "text": "Open OnDemand requires the use of Microsoft Entra ID for single sign-on (SSO) to Azure CycleCloud. Configuration for this setting can be found on the Basics menu with links to official documentation."
+                }
+              },
+              {
                 "name": "deployOOD",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Deploy Open OnDemand",
@@ -2000,12 +2057,12 @@
                 "constraints": {
                   "required": false
                 },
-                "visible": true
+                "visible": "[basics('enableEntra')]"
               },
               {
                 "name": "oodLoginNodeInfo",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(steps('ood').OODSection.deployOOD,equals(int(steps('scheduler').loginNodesSection.initialNodes),0))]",
+                "visible": "[and(steps('ood').OODSection.deployOOD,equals(int(steps('scheduler').loginNodesSection.initialNodes),0),basics('enableEntra'))]",
                 "options": {
                   "icon": "Warning",
                   "text": "Open OnDemand requires a minimum of one login node for use as a proxy between Azure CycleCloud and the Open OnDemand web server. Please review selections made under the Slurm Settings menu."
@@ -2014,7 +2071,7 @@
               {
                 "name": "oodFilesystemInfo",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(steps('ood').OODSection.deployOOD,not(equals(steps('filesystem').shared.filertype,'anf')))]",
+                "visible": "[and(steps('ood').OODSection.deployOOD,not(equals(steps('filesystem').shared.filertype,'anf')),basics('enableEntra'))]",
                 "options": {
                   "icon": "Info",
                   "text": "Open OnDemand is best-deployed with Azure NetApp Files as the file-system for the /shared and /home directories."
@@ -2057,7 +2114,7 @@
                   ]
                 },
                 "osPlatform": "Linux",
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]"
               },
               {
                 "name": "ImageName",
@@ -2083,7 +2140,7 @@
                   "required": true,
                   "validationMessage": "Image Name is required."
                 },
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]"
               },
               {
                 "name": "customImageInfoBox",
@@ -2118,7 +2175,7 @@
                   "regex": "^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$|^\\[%w%\\.%-\\]\\+$",
                   "validationMessage": "Enter either a single valid domain name or the LUA expression [%w%.%-]+ to use all domains of the email addresses provided by the OIDC token"
                 },
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]"
               },
               {
                 "name": "fqdn",
@@ -2131,13 +2188,13 @@
                   "regex": "^(?!-)[A-Za-z0-9-]+(?<!-)(\\.[A-Za-z0-9-]+(?<!-))*\\.[A-Za-z]{2,}$",
                   "validationMessage": "Enter a valid FQDN or leave blank"
                 },
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]"
               },
               {
                 "name": "registerEntraIDApp",
-                "type": "Microsoft.Common.OptionsGroup",
+                "type": "Microsoft.Common.DropDown",
                 "label": "Microsoft Entra ID Application Registration",
-                "defaultValue": "Automatically register an Entra ID Application",
+                "defaultValue": "Use existing Entra ID Application registration",
                 "toolTip": "Register a Microsoft Entra ID Application for Open OnDemand authentication using OpenID Connect",
                 "constraints": {
                   "allowedValues": [
@@ -2156,37 +2213,20 @@
                   ],
                   "required": true
                 },
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": false
               },
               {
-                "name": "managedIdentity",
-                "type": "Microsoft.Solutions.ResourceSelector",
-                "label": "Managed Identity",
-                "toolTip": "Select the user-assigned managed identity created for the federated credentials",
-                "resourceType": "Microsoft.ManagedIdentity/userAssignedIdentities",
-                "constraints": {
-                  "required": true,
-                  "validationMessage": "Please select a managed identity."
-                },
-                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
-              },
-              {
-                "name": "clientId",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Application (client) ID",
-                "defaultValue": "",
-                "toolTip": "Application or client ID of the Entra ID Application in the Azure AD tenant",
-                "constraints": {
-                  "required": true,
-                  "regex": "^(\\w{8}(-\\w{4}){3}-\\w{12}?)$",
-                  "validationMessage": "Enter a valid application (client) ID"
-                },
-                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
+                "name": "ccEntraIdInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]",
+                "options": {
+                  "text": "The Open OnDemand cluster will use the Entra ID Application Registration indicated in the Basics menu."
+                }
               },
               {
                 "name": "startClusterInfo",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),steps('ood').OODSection.startCluster)]",
+                "visible": "[and(not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),steps('ood').OODSection.startCluster,basics('enableEntra'))]",
                 "options": {
                   "text": "Postponing the start of Open OnDemand allows for additional configuration through the CycleCloud portal or with a custom template. Click on this box to view the official Azure CycleCloud documentation in a new browser tab.",
                   "uri": "https://learn.microsoft.com/azure/cyclecloud/?view=cyclecloud-8"
@@ -2210,7 +2250,7 @@
                 "constraints": {
                   "required": false
                 },
-                "visible": "[and(steps('ood').OODSection.deployOOD,not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')))]"
+                "visible": "[and(steps('ood').OODSection.deployOOD,not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),basics('enableEntra'))]"
               }
             ],
             "visible": true
@@ -2457,6 +2497,12 @@
       "ccVMName": "[basics('CycleCloudVmName')]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
       "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
+      "entraIdInfo": {
+        "type": "[if(basics('enableEntra'),'enabled','disabled')]",
+        "tenantId": "[if(basics('enableEntra'),basics('tenantId'),basics('nullValue'))]",
+        "clientId": "[if(basics('enableEntra'),basics('clientId'),basics('nullValue'))]",
+        "managedIdentityId": "[if(basics('enableEntra'),basics('entraManagedIdentity').id,basics('nullValue'))]"
+      },
       "sharedFilesystem": {
         "type": "[concat(if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs'),'-',steps('filesystem').shared.newexisting)]",
         "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),int(steps('filesystem').shared.nfscapacity),basics('nullValue'))]",
@@ -2543,15 +2589,16 @@
         "availabilityZone": "[if(and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,not(contains(steps('advancedSettings').availabilityzone.gpuZone,'NA'))),parse(concat('[\"',steps('advancedSettings').availabilityzone.gpuZone,'\"]')),basics('nullValue'))]"
       },
       "ood": {
-        "type": "[if(steps('ood').OODSection.deployOOD,'enabled','disabled')]",
-        "startCluster": "[if(steps('ood').OODSection.deployOOD,if(not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),steps('ood').OODSection.startCluster,false),basics('nullValue'))]",
-        "sku": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.vmsize,basics('nullValue'))]",
-        "osImage": "[if(steps('ood').OODSection.deployOOD,if(equals(steps('ood').OODSection.ImageName,'custom'),steps('ood').OODSection.customImageName,steps('ood').OODSection.ImageName),basics('nullValue'))]",
-        "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",
+        "type": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),'enabled','disabled')]",
+        "startCluster": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),if(not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),steps('ood').OODSection.startCluster,false),basics('nullValue'))]",
+        "sku": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),steps('ood').OODSection.vmsize,basics('nullValue'))]",
+        "osImage": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),if(equals(steps('ood').OODSection.ImageName,'custom'),steps('ood').OODSection.customImageName,steps('ood').OODSection.ImageName),basics('nullValue'))]",
+        "userDomain": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),steps('ood').OODSection.userDomain,basics('nullValue'))]",
         "fqdn": "[if(not(equals(steps('ood').OODSection.fqdn,'')),steps('ood').OODSection.fqdn,basics('nullValue'))]",
-        "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,equals(steps('ood').OODSection.registerEntraIDApp,'autoregister'),basics('nullValue'))]",
-        "appId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.clientId,basics('nullValue'))]",
-        "appManagedIdentityId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.managedIdentity.id,basics('nullValue'))]"
+        "registerEntraIDApp": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),equals(steps('ood').OODSection.registerEntraIDApp,'autoregister'),basics('nullValue'))]",
+        "appTenantId": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),basics('tenantId'),basics('nullValue'))]",
+        "appId": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),basics('clientId'),basics('nullValue'))]",
+        "appManagedIdentityId": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),basics('entraManagedIdentity').id,basics('nullValue'))]"
       },
       "monitoring": {
         "type": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,'enabled','disabled')]",
