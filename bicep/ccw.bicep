@@ -16,6 +16,7 @@ param adminSshPublicKey string
 param storedKey types.storedKey_t
 param ccVMName string
 param ccVMSize string
+param cyclecloudBaseImage string
 param resourceGroup string
 param entraIdInfo types.entra_t
 param sharedFilesystem types.sharedFilesystem_t
@@ -112,8 +113,6 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
     subnetId: subnets.bastion.id
   }
 }
-
-param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.7.320250909'
 
 module ccwVM './vm.bicep' = if (!infrastructureOnly) {
   name: 'ccwVM-cyclecloud'
