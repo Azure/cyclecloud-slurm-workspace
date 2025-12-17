@@ -60,7 +60,7 @@ var superUserRoleId = guid(resourceGroup().id, 'superuser')
 resource ccwEntraApp 'Microsoft.Graph/applications@v1.0' = {
   displayName: appName
   uniqueName: appUniqueName
-  serviceManagementReference: serviceManagementReference
+  serviceManagementReference: !empty(serviceManagementReference) ? serviceManagementReference : null
 
   resource myMsiFic 'federatedIdentityCredentials@v1.0' = {
     name: '${ccwEntraApp.uniqueName}/msiAsFic'
@@ -159,7 +159,7 @@ var clientAppId = ccwEntraApp.appId
 resource updateApplication 'Microsoft.Graph/applications@v1.0' = {
   uniqueName: appUniqueName
   displayName: appName
-  serviceManagementReference: serviceManagementReference
+  serviceManagementReference: !empty(serviceManagementReference) ? serviceManagementReference : null
 
   // begin API Permissions Section
   api: {
