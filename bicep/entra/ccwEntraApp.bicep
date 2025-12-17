@@ -148,6 +148,28 @@ resource ccwEntraApp 'Microsoft.Graph/applications@v1.0' = {
 			isEnabled: true
 			value: 'User'
 		}
+		{
+			allowedMemberTypes: [
+				'User'
+				'Application'
+			]
+			description: 'Log in to all nodes as regular user'
+			displayName: 'Global.Node.User'
+			id: guid(resourceGroup().id, 'Global.Node.User')
+			isEnabled: true
+			value: 'Global.Node.User'
+		}
+		{
+			allowedMemberTypes: [
+				'User'
+				'Application'
+			]
+			description: 'Log in to all nodes as administrator'
+			displayName: 'Global.Node.Admin'
+			id: guid(resourceGroup().id, 'Global.Node.Admin')
+			isEnabled: true
+			value: 'Global.Node.Admin'
+		}
   ]
   // end App Roles section
 }
