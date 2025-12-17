@@ -10,6 +10,7 @@ param appName string
 param umiName string
 param fqdn string = 'OPEN_ONDEMAND_NIC_IP.PLACEHOLDER'
 param cyclecloudVMIpAddress string = 'CYCLECLOUD_VM_IP.PLACEHOLDER'
+param serviceManagementReference string = ''
 
 var ccUserAccessGuid string = guid(resourceGroup().id, 'user_access')
 
@@ -58,7 +59,8 @@ var appUniqueName = guid(subscription().id, resourceGroup().id, appName) // Need
 var superUserRoleId = guid(resourceGroup().id, 'superuser')
 resource ccwEntraApp 'Microsoft.Graph/applications@v1.0' = {
   displayName: appName
-  uniqueName: appUniqueName 
+  uniqueName: appUniqueName
+  serviceManagementReference: serviceManagementReference
 
   resource myMsiFic 'federatedIdentityCredentials@v1.0' = {
     name: '${ccwEntraApp.uniqueName}/msiAsFic'
@@ -157,6 +159,7 @@ var clientAppId = ccwEntraApp.appId
 resource updateApplication 'Microsoft.Graph/applications@v1.0' = {
   uniqueName: appUniqueName
   displayName: appName
+  serviceManagementReference: serviceManagementReference
 
   // begin API Permissions Section
   api: {
