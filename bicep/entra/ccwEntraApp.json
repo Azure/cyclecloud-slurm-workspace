@@ -16,6 +16,10 @@
     "cyclecloudVMIpAddress": {
       "type": "string",
       "defaultValue": "CYCLECLOUD_VM_IP.PLACEHOLDER"
+    },
+    "serviceManagementReference": {
+      "type": "string",
+      "defaultValue": ""
     }
   },
   "variables": {
@@ -93,6 +97,7 @@
       "properties": {
         "displayName": "[parameters('appName')]",
         "uniqueName": "[variables('appUniqueName')]",
+        "serviceManagementReference": "[if(not(empty(parameters('serviceManagementReference'))), parameters('serviceManagementReference'), null())]",
         "web": {
           "implicitGrantSettings": {
             "enableAccessTokenIssuance": false,
@@ -193,6 +198,7 @@
       "properties": {
         "uniqueName": "[variables('appUniqueName')]",
         "displayName": "[parameters('appName')]",
+        "serviceManagementReference": "[if(not(empty(parameters('serviceManagementReference'))), parameters('serviceManagementReference'), null())]",
         "api": {
           "oauth2PermissionScopes": [
             {

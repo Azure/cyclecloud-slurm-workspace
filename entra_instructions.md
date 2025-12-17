@@ -15,12 +15,13 @@ LATEST_RELEASE=$(curl -sSL -H 'Accept: application/vnd.github+json' "https://api
 wget "https://raw.githubusercontent.com/Azure/cyclecloud-slurm-workspace/refs/tags/${LATEST_RELEASE}/util/entra_predeploy.sh"
 ```
 
-Replace the values for ```LOCATION```,```ENTRA_MI_RESOURCE_GROUP```, ```MI_NAME```, and ```APP_NAME``` in the downloaded script, including the characters ```<``` and ```>``` with your preferred text editor.
+Replace the values for ```LOCATION```,```ENTRA_MI_RESOURCE_GROUP```, ```MI_NAME```, ```APP_NAME``` and ```SERVICE_MANAGEMENT_REFERENCE``` in the downloaded script, including the characters ```<``` and ```>``` with your preferred text editor.
 
 - ```LOCATION``` is the Azure region in which to create the managed identity resource and its resource group.
 - ```ENTRA_MI_RESOURCE_GROUP``` is the name of the resource group containing the managed identity resource. 
 - ```MI_NAME``` is the desired name of the managed identity resource. It may not contain spaces.
 - ```APP_NAME``` is the designed name of the Microsoft Entra ID application registration. 
+- ```SERVICE_MANAGEMENT_REFERENCE``` is an optional value that may be used to help identify the application registration in your organization's list of Entra ID applications. It may be left blank.
 
 Finally, run the script: 
 
