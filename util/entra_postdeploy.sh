@@ -32,9 +32,10 @@ done
 if [ -z "$CCW_RESOURCE_GROUP" ] ; then
     echo "Please ensure that --ccw-resource-group is provided" >&2
     HELP=1
+    exit 1
 fi
 
-if [ $HELP == 1 ]; then
+if [ $HELP = 1 ]; then
     echo "Usage: entra_postdeploy.sh --ccw-resource-group <resource-group>" 1>&2
     exit 1
 fi
@@ -42,16 +43,18 @@ fi
 CCW_DEPLOYMENT_NAME='pid-d5d2708b-a4ef-42c0-a89b-b8bd6dd6d29b-partnercenter'
 CCW_VM_DEPLOYMENT_NAME='ccwVM-cyclecloud'
 
-CCW_VM_PRIVATE_IP=$(az deployment group show --name $CCW_VM_DEPLOYMENT_NAME --resource-group $CCW_RESOURCE_GROUP --query properties.outputs.privateIp.value -o tsv)
-ENTRA_APP_CLIENT_ID=$(az deployment group show --name $CCW_DEPLOYMENT_NAME --resource-group $CCW_RESOURCE_GROUP --query properties.outputs.entraInfo.value.clientId -o tsv)
+CCW_VM_PRIVATE_IP=$(az deployment group show --name $CCW_VM_DEPLOYMENT_NAME --resource-group $CCW_RESOURCE_GROUP --query properties.outputs.privateIp.value -o tsv | tr -d '\n' | tr -d '\r')
+ENTRA_APP_CLIENT_ID=$(az deployment group show --name $CCW_DEPLOYMENT_NAME --resource-group $CCW_RESOURCE_GROUP --query properties.outputs.entraIdInfo.value.clientId -o tsv | tr -d '\n' | tr -d '\r')
 
 # 1. Get existing URIs (or empty array if none)
 EXISTING_SPA_URIS=$(az ad app show --id "$ENTRA_APP_CLIENT_ID" --query "spa.redirectUris" -o json)
-[ "$EXISTING_SPA_URIS" = "null" ] && EXISTING_SPA_URIS="[]"
+[ "$EXISTING_SPA_URIS" = "" ] && EXISTING_SPA_URIS="[]"
 # 2. Append new URIs
 UPDATED_SPA_URI_LIST=$(echo "$EXISTING_SPA_URIS" | jq --arg ip "$CCW_VM_PRIVATE_IP" '. + ["https://\($ip)/home","https://\($ip)/login"]')
 # 3. Update the app
 az ad app update --id "$ENTRA_APP_CLIENT_ID" --set "spa={\"redirectUris\": $UPDATED_SPA_URI_LIST}"
+
+echo "Updated Entra ID Application (Client ID: $ENTRA_APP_CLIENT_ID) with CycleCloud VM private IP redirect URIs."
 
 # TODO The below is the same thing as above, so make the steps into functions?
 # Remember, OOD URI query is web.redirectUris rather than spa.redirectUris
@@ -68,4 +71,6 @@ if [ "$DEPLOY_OOD_TYPE" = "enabled" ]; then
     UPDATED_WEB_URI_LIST=$(echo "$EXISTING_WEB_URIS" | jq --arg ip "$OOD_VM_PRIVATE_IP" '. + ["https://\($ip)/oidc"]')
     # 3. Update the app
     az ad app update --id "$ENTRA_APP_CLIENT_ID" --set "web={\"redirectUris\": $UPDATED_WEB_URI_LIST}"
+
+    echo "Updated Entra ID Application (Client ID: $ENTRA_APP_CLIENT_ID) with Open OnDemand VM private IP redirect URIs."
 fi
