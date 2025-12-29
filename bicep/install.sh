@@ -260,7 +260,7 @@ echo Restarting cyclecloud so that new records take effect
 cycle_server stop
 cycle_server start --wait
 # this will block until CC responds
-timeout 30s bash -c 'until (curl -k https://localhost); do sleep 5; done'
+timeout 360s bash -c 'until (curl -k https://localhost); do sleep 5; done'
 
 cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" --verify-ssl=false --name=$SLURM_CLUSTER_NAME
 echo "CC CLI initialize successful"
