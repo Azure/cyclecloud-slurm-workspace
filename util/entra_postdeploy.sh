@@ -50,7 +50,7 @@ ENTRA_APP_CLIENT_ID=$(az deployment group show --name $CCW_DEPLOYMENT_NAME --res
 EXISTING_SPA_URIS=$(az ad app show --id "$ENTRA_APP_CLIENT_ID" --query "spa.redirectUris" -o json)
 [ "$EXISTING_SPA_URIS" = "" ] && EXISTING_SPA_URIS="[]"
 # 2. Append new URIs
-UPDATED_SPA_URI_LIST=$(echo "$EXISTING_SPA_URIS" | jq --arg ip "$CCW_VM_PRIVATE_IP" '. + ["https://\($ip)/home","https://\($ip)/login"]')
+UPDATED_SPA_URI_LIST=$(echo "$EXISTING_SPA_URIS" | jq --arg ip "$CCW_VM_PRIVATE_IP" '. + ["https://\($ip)/home","https://\($ip)/login"] | unique')
 # 3. Update the app
 az ad app update --id "$ENTRA_APP_CLIENT_ID" --set "spa={\"redirectUris\": $UPDATED_SPA_URI_LIST}"
 
@@ -59,16 +59,16 @@ echo "Updated Entra ID Application (Client ID: $ENTRA_APP_CLIENT_ID) with CycleC
 # TODO The below is the same thing as above, so make the steps into functions?
 # Remember, OOD URI query is web.redirectUris rather than spa.redirectUris
 # Idea: function takes in arrays of [private IP, uri type] and conditionally applies suffixes e.g. /home /login /oidc
-DEPLOY_OOD_TYPE=$(az deployment group show --name $CCW_DEPLOYMENT_NAME --resource-group $CCW_RESOURCE_GROUP --query properties.outputs.ood.value.type -o tsv)
+DEPLOY_OOD_TYPE=$(az deployment group show --name $CCW_DEPLOYMENT_NAME --resource-group $CCW_RESOURCE_GROUP --query properties.outputs.ood.value.type -o tsv | tr -d '\n' | tr -d '\r')
 if [ "$DEPLOY_OOD_TYPE" = "enabled" ]; then
     OOD_DEPLOYMENT_NAME='ccwOpenOnDemandNIC'
-    OOD_VM_PRIVATE_IP=$(az deployment group show --name $OOD_DEPLOYMENT_NAME --resource-group $CCW_RESOURCE_GROUP --query properties.outputs.privateIp.value -o tsv)
+    OOD_VM_PRIVATE_IP=$(az deployment group show --name $OOD_DEPLOYMENT_NAME --resource-group $CCW_RESOURCE_GROUP --query properties.outputs.privateIp.value -o tsv | tr -d '\n' | tr -d '\r')
 
     # 1. Get existing URIs (or empty array if none)
     EXISTING_WEB_URIS=$(az ad app show --id "$ENTRA_APP_CLIENT_ID" --query "web.redirectUris" -o json)
     [ "$EXISTING_WEB_URIS" = "null" ] && EXISTING_WEB_URIS="[]"
     # 2. Append new URIs
-    UPDATED_WEB_URI_LIST=$(echo "$EXISTING_WEB_URIS" | jq --arg ip "$OOD_VM_PRIVATE_IP" '. + ["https://\($ip)/oidc"]')
+    UPDATED_WEB_URI_LIST=$(echo "$EXISTING_WEB_URIS" | jq --arg ip "$OOD_VM_PRIVATE_IP" '. + ["https://\($ip)/oidc"] | unique')
     # 3. Update the app
     az ad app update --id "$ENTRA_APP_CLIENT_ID" --set "web={\"redirectUris\": $UPDATED_WEB_URI_LIST}"
 
