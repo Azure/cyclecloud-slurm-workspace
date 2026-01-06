@@ -57,6 +57,7 @@ resource ccwEntraManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentiti
 // The application is listed under the "App registrations" in the Azure Portal
 var appUniqueName = guid(subscription().id, resourceGroup().id, appName) // Need to be unique inside the tenant because recreating with the same name will fail if the app is manually deleted
 var superUserRoleId = guid(resourceGroup().id, 'superuser')
+var globalNodeAdminRoleId = guid(resourceGroup().id, 'Global.Node.Admin')
 resource ccwEntraApp 'Microsoft.Graph/applications@v1.0' = {
   displayName: appName
   uniqueName: appUniqueName
@@ -168,7 +169,7 @@ resource ccwEntraApp 'Microsoft.Graph/applications@v1.0' = {
 			]
 			description: 'Log in to all nodes as administrator'
 			displayName: 'Global.Node.Admin'
-			id: guid(resourceGroup().id, 'Global.Node.Admin')
+			id: globalNodeAdminRoleId
 			isEnabled: true
 			value: 'Global.Node.Admin'
 		}
@@ -242,6 +243,13 @@ resource servicePrincipal 'Microsoft.Graph/servicePrincipals@v1.0' = {
 // assign "Super User" app role to user who ran the deployment
 resource superUserAssignment 'Microsoft.Graph/appRoleAssignedTo@v1.0' = {
   appRoleId: superUserRoleId
+  resourceId: servicePrincipal.id
+  principalId: deployer().objectId
+}
+
+// assign "Global.Node.Admin" app role to user who ran the deployment
+resource globalNodeAdminAssignment 'Microsoft.Graph/appRoleAssignedTo@v1.0' = {
+  appRoleId: globalNodeAdminRoleId
   resourceId: servicePrincipal.id
   principalId: deployer().objectId
 }

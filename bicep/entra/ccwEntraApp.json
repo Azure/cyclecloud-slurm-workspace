@@ -51,7 +51,8 @@
       "User.Read"
     ],
     "appUniqueName": "[guid(subscription().id, resourceGroup().id, parameters('appName'))]",
-    "superUserRoleId": "[guid(resourceGroup().id, 'superuser')]"
+    "superUserRoleId": "[guid(resourceGroup().id, 'superuser')]",
+    "globalNodeAdminRoleId": "[guid(resourceGroup().id, 'Global.Node.Admin')]"
   },
   "imports": {
     "microsoftGraphV1": {
@@ -185,7 +186,7 @@
             ],
             "description": "Log in to all nodes as administrator",
             "displayName": "Global.Node.Admin",
-            "id": "[guid(resourceGroup().id, 'Global.Node.Admin')]",
+            "id": "[variables('globalNodeAdminRoleId')]",
             "isEnabled": true,
             "value": "Global.Node.Admin"
           }
@@ -262,6 +263,18 @@
       "type": "Microsoft.Graph/appRoleAssignedTo@v1.0",
       "properties": {
         "appRoleId": "[variables('superUserRoleId')]",
+        "resourceId": "[reference('servicePrincipal').id]",
+        "principalId": "[deployer().objectId]"
+      },
+      "dependsOn": [
+        "servicePrincipal"
+      ]
+    },
+    "globalNodeAdminAssignment": {
+      "import": "microsoftGraphV1",
+      "type": "Microsoft.Graph/appRoleAssignedTo@v1.0",
+      "properties": {
+        "appRoleId": "[variables('globalNodeAdminRoleId')]",
         "resourceId": "[reference('servicePrincipal').id]",
         "principalId": "[deployer().objectId]"
       },
