@@ -44,6 +44,72 @@ var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netd
 
 func getTags(resource_type string, tags types.resource_tags_t) types.tags_t => tags[?resource_type] ?? {}
 
+// Managed identity for SKU validation
+resource skuValidationIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (!infrastructureOnly) {
+  name: 'ccw-sku-validation-identity'
+  location: location
+  tags: getTags('Managed Identity', tags)
+}
+
+// Role assignment module scoped to subscription for the managed identity to read compute resources  
+module skuValidationRoleAssignment 'skuValidationRoleAssignment.bicep' = if (!infrastructureOnly) {
+  name: 'sku-validation-role-assignment'
+  scope: subscription()
+  params: {
+    principalId: skuValidationIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Deployment script to validate VM SKUs
+resource skuValidationScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = if (!infrastructureOnly) {
+  name: 'ccw-validate-vm-skus'
+  location: location
+  kind: 'AzureCLI'
+  tags: getTags('Deployment Script', tags)
+  properties: {
+    azCliVersion: '2.30.0'
+    retentionInterval: 'PT1H'
+    timeout: 'PT30M'
+    scriptContent: loadTextContent('./validate-skus.sh')
+    environmentVariables: [
+      {
+        name: 'LOCATION'
+        value: location
+      }
+      {
+        name: 'SCHEDULER_SKU'
+        value: schedulerNode.sku
+      }
+      {
+        name: 'LOGIN_SKU'
+        value: loginNodes.sku
+      }
+      {
+        name: 'HTC_SKU'
+        value: htc.sku
+      }
+      {
+        name: 'HPC_SKU'
+        value: hpc.sku
+      }
+      {
+        name: 'GPU_SKU'
+        value: gpu.sku
+      }
+    ]
+  }
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${skuValidationIdentity.id}': {}
+    }
+  }
+  dependsOn: [
+    skuValidationRoleAssignment
+  ]
+}
+
 var useEnteredKey = adminSshPublicKey != ''
 module ccwPublicKey './publicKey.bicep' = if (!useEnteredKey && !infrastructureOnly) {
   name: 'ccwPublicKey'
