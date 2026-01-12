@@ -77,7 +77,7 @@ if command -v apt; then
     #apt install -y 
 else
     dnf clean all
-    dnf makecache
+    retry_command "dnf makecache" 5 60
     retry_command "yum update -y --exclude=cyclecloud*" 5 60
     retry_command "yum install -y jq"
 fi
