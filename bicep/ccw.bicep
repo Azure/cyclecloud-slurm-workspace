@@ -287,7 +287,7 @@ module oodApp 'entra/ccwEntraApp.bicep' = if (registerOODApp) {
   params: {
     umiName: oodManagedIdentityName
     appName: oodAppName
-    fqdn: oodNIC.outputs.privateIp
+    // fqdn: oodNIC.outputs.privateIp
   }
 }
 

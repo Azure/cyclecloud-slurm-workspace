@@ -9,14 +9,6 @@
     "umiName": {
       "type": "string"
     },
-    "fqdn": {
-      "type": "string",
-      "defaultValue": "OPEN_ONDEMAND_NIC_IP.PLACEHOLDER"
-    },
-    "cyclecloudVMIpAddress": {
-      "type": "string",
-      "defaultValue": "CYCLECLOUD_VM_IP.PLACEHOLDER"
-    },
     "serviceManagementReference": {
       "type": "string",
       "defaultValue": ""
@@ -103,19 +95,7 @@
           "implicitGrantSettings": {
             "enableAccessTokenIssuance": false,
             "enableIdTokenIssuance": true
-          },
-          "redirectUriSettings": [
-            {
-              "index": 0,
-              "uri": "[uri(format('https://{0}', parameters('fqdn')), '/oidc')]"
-            }
-          ]
-        },
-        "spa": {
-          "redirectUris": [
-            "[uri(format('https://{0}', parameters('cyclecloudVMIpAddress')), '/login')]",
-            "[uri(format('https://{0}', parameters('cyclecloudVMIpAddress')), '/home')]"
-          ]
+          }
         },
         "publicClient": {
           "redirectUris": [
