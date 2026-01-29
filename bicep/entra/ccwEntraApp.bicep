@@ -8,8 +8,6 @@ targetScope = 'resourceGroup'
 
 param appName string
 param umiName string
-param fqdn string = 'OPEN_ONDEMAND_NIC_IP.PLACEHOLDER'
-param cyclecloudVMIpAddress string = 'CYCLECLOUD_VM_IP.PLACEHOLDER'
 param serviceManagementReference string = ''
 
 var ccUserAccessGuid string = guid(resourceGroup().id, 'user_access')
@@ -79,21 +77,8 @@ resource ccwEntraApp 'Microsoft.Graph/applications@v1.0' = {
       enableAccessTokenIssuance: false
       enableIdTokenIssuance: true
     }
-    redirectUriSettings: [
-      {
-        index: 0
-        uri: uri('https://${fqdn}','/oidc')
-      }
-    ]
   }
 
-  // single-page application settings
-  spa: {
-    redirectUris: [
-      uri('https://${cyclecloudVMIpAddress}','/login')
-      uri('https://${cyclecloudVMIpAddress}','/home')
-    ]
-  }
 
   publicClient: {
     redirectUris:[
