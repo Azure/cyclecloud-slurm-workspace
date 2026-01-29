@@ -90,7 +90,7 @@
         "constraints": {
           "validations": [
             {
-              "regex": "^(?!.*\\.$)[a-zA-Z0-9_().-À-ÖØ-öø-ſ]?[a-zA-Z0-9_().-À-ÖØ-öø-ſ]{0,88}$",
+              "regex": "^(?!.*\\/)(?!.*\\.$)[a-zA-Z0-9_().-À-ÖØ-öø-ſ]?[a-zA-Z0-9_().-À-ÖØ-öø-ſ]{1,88}$",
               "message": "Resource group names may only include alphanumeric, underscore, parentheses, hyphens, and periods (except at end)."
             }
           ],
@@ -2172,7 +2172,7 @@
                 "toolTip": "Domain of user email addresses or the LUA expression [%w%.%-]+ for all domains of the email addresses provided by the OIDC token",
                 "constraints": {
                   "required": true,
-                  "regex": "^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.[a-zA-Z]{2,}$|^\\[%w%\\.%-\\]\\+$",
+                  "regex": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\\.[A-Za-z]{2,}$|^\\[%w%\\.%-\\]\\+$",
                   "validationMessage": "Enter either a single valid domain name or the LUA expression [%w%.%-]+ to use all domains of the email addresses provided by the OIDC token"
                 },
                 "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]"
