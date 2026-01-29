@@ -50,7 +50,7 @@ ENTRA_APP_CLIENT_ID=$(az deployment group show --name $CCW_DEPLOYMENT_NAME --res
 EXISTING_SPA_URIS=$(az ad app show --id "$ENTRA_APP_CLIENT_ID" --query "spa.redirectUris" -o json)
 [ "$EXISTING_SPA_URIS" = "" ] && EXISTING_SPA_URIS="[]"
 # 2. Append new URIs
-UPDATED_SPA_URI_LIST=$(echo "$EXISTING_SPA_URIS" | jq --arg ip "$CCW_VM_PRIVATE_IP" '. + ["https://\($ip)/home","https://\($ip)/login"] | unique')
+UPDATED_SPA_URI_LIST=$(echo "$EXISTING_SPA_URIS" | jq --arg ip "$CCW_VM_PRIVATE_IP" '. + ["https://\($ip)/home","https://\($ip)/sso"] | unique')
 # 3. Update the app
 az ad app update --id "$ENTRA_APP_CLIENT_ID" --set "spa={\"redirectUris\": $UPDATED_SPA_URI_LIST}"
 
