@@ -2180,13 +2180,13 @@
               {
                 "name": "fqdn",
                 "type": "Microsoft.Common.TextBox",
-                "label": "FQDN",
+                "label": "FQDN or IP",
                 "defaultValue": "",
-                "toolTip": "FQDN for the Open OnDemand web server",
+                "toolTip": "FQDN or IP of the Open OnDemand web server",
                 "constraints": {
                   "required": false,
-                  "regex": "^(?!-)[A-Za-z0-9-]+(?<!-)(\\.[A-Za-z0-9-]+(?<!-))*\\.[A-Za-z]{2,}$",
-                  "validationMessage": "Enter a valid FQDN or leave blank"
+                  "regex": "^(?:(?!-)[A-Za-z0-9-]+(?<!-)(\\.[A-Za-z0-9-]+(?<!-))*\\.[A-Za-z]{2,}|(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})$",
+                  "validationMessage": "Enter a valid FQDN, IPv4 address, or leave blank"
                 },
                 "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]"
               },
