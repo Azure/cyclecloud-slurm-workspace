@@ -1426,9 +1426,9 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "25.05.2",
-                      "description": "Version 25.05.2",
-                      "value": "25.05.2"
+                      "label": "25.05.5",
+                      "description": "Version 25.05.5",
+                      "value": "25.05.5"
                     }
                   ],
                   "required": true
