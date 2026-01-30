@@ -1358,7 +1358,7 @@
                 "name": "ImageName",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
+                "defaultValue": "Ubuntu 24.04",
                 "toolTip": "Select the image to use for the Login Nodes",
                 "constraints": {
                   "allowedValues": [
@@ -1603,7 +1603,7 @@
                 "name": "ImageName",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
+                "defaultValue": "Ubuntu 24.04",
                 "toolTip": "Select the image to use for the Login Nodes",
                 "constraints": {
                   "allowedValues": [
@@ -1744,7 +1744,7 @@
                 "name": "ImageName",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
+                "defaultValue": "Ubuntu 24.04",
                 "toolTip": "Select the image to use for the HTC partition",
                 "constraints": {
                   "allowedValues": [
@@ -1848,7 +1848,7 @@
                 "name": "ImageName",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
+                "defaultValue": "Ubuntu 24.04",
                 "toolTip": "Select the image to use for the HPC partition",
                 "constraints": {
                   "allowedValues": [
@@ -1955,7 +1955,7 @@
                 "name": "ImageName",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
+                "defaultValue": "Ubuntu 24.04",
                 "toolTip": "Select the image to use for the GPU partition",
                 "constraints": {
                   "allowedValues": [
@@ -2120,7 +2120,7 @@
                 "name": "ImageName",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
+                "defaultValue": "Ubuntu 24.04",
                 "toolTip": "Select the image to use for the OOD virtual machine",
                 "constraints": {
                   "allowedValues": [
