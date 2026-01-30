@@ -26,7 +26,7 @@
     "configuration_slurm_ha_enabled": false,
     "configuration_slurm_launch_parameters": null,
     "configuration_slurm_shutdown_policy": "Terminate",
-    "configuration_slurm_version": "23.11.10-2",
+    "configuration_slurm_version": "25.05.5",
     "Credentials": "azure",
     "DefineNodesAvailabilityZone": false,
     "DynamicClusterInitSpecs": null,
