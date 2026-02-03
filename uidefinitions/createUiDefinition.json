@@ -5,7 +5,7 @@
   "parameters": {
     "config": {
       "basics": {
-        "description": "Version **2025.12.01**: [Release Notes](https://learn.microsoft.com/azure/cyclecloud/release-notes/ccws/release-notes)",
+        "description": "Version **2026.02.01**: [Release Notes](https://learn.microsoft.com/azure/cyclecloud/release-notes/ccws/release-notes)",
         "resourceGroup": {
           "visible": false
         },
