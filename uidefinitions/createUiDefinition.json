@@ -2133,6 +2133,14 @@
                       "value": "cycle.image.ubuntu22"
                     },
                     {
+                      "label": "Alma Linux 8",
+                      "value": "almalinux8"
+                    },
+                    {
+                      "label": "Alma Linux 9",
+                      "value": "almalinux9"
+                    },
+                    {
                       "label": "Custom image",
                       "value": "custom"
                     }
