@@ -11,7 +11,7 @@ param storedKey types.storedKey_t = {id: 'foo', location: 'foo', name:'foo'}
 @maxLength(64)
 param ccVMName string
 param ccVMSize string
-param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.8.120251212'
+param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.8.220260218'
 param resourceGroup string
 param entraIdInfo types.entra_t = { type: 'disabled' }
 param sharedFilesystem types.sharedFilesystem_t
