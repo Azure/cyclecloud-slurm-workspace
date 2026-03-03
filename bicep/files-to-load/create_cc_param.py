@@ -125,6 +125,8 @@ def set_ood_params(params, outputs):
     params['ood_entra_tenant_id'] = outputs['ood']['value'].get('tenantId')
     params['ood_nic'] = outputs['ood']['value'].get('nic')
 
+    params['NodeTags'] = slurm_params['NodeTags']
+
 class ClusterInitSpec:
     def __init__(self, project: str, version: str, spec: str, targets: typing.List[str]):
         self.project = project
