@@ -500,22 +500,26 @@
                 "name": "anftier",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Service Level",
-                "defaultValue": "Premium",
+                "defaultValue": "Premium (64 MiB/s per TiB)",
                 "multiselect": false,
-                "toolTip": "Service level for the Azure NetApp Files volume",
+                "toolTip": "Service level for the Azure NetApp Files volume with max. throughput",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Standard",
+                      "label": "Standard (16 MiB/s per TiB)",
                       "value": "Standard"
                     },
                     {
-                      "label": "Premium",
+                      "label": "Premium (64 MiB/s per TiB)",
                       "value": "Premium"
                     },
                     {
-                      "label": "Ultra",
+                      "label": "Ultra (128 MiB/s per TiB)",
                       "value": "Ultra"
+                    },
+                    {
+                      "label": "Flexible (custom throughput)",
+                      "value": "Flexible"
                     }
                   ],
                   "required": true
@@ -535,6 +539,21 @@
                   "validationMessage": "Please enter an integer between 1 and 1000"
                 },
                 "visible": "[and(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.newexisting,'new'))]"
+              },
+              {
+                "name": "anfFlexThroughput",
+                "type": "Microsoft.Common.Slider",
+                "min": 128,
+                "max": "[mul(mul(5,128),int(steps('filesystem').shared.anfcapacity))]",
+                "label": "Maximum Throughput",
+                "subLabel": "Mi/s",
+                "defaultValue": 24,
+                "showStepMarkers": false,
+                "toolTip": "Maximum throughput of the Flexible Azure NetApp Files volume",
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[and(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.anftier,'Flexible'))]"
               },
               {
                 "name": "nfscapacity",
@@ -692,22 +711,26 @@
                 "name": "anftier",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Service Level",
-                "defaultValue": "Premium",
+                "defaultValue": "Premium (64 MiB/s per TiB)",
                 "multiselect": false,
-                "toolTip": "Service level for the Azure NetApp Files volume",
+                "toolTip": "Service level for the Azure NetApp Files volume with max. throughput",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Standard",
+                      "label": "Standard (16 MiB/s per TiB)",
                       "value": "Standard"
                     },
                     {
-                      "label": "Premium",
+                      "label": "Premium (64 MiB/s per TiB)",
                       "value": "Premium"
                     },
                     {
-                      "label": "Ultra",
+                      "label": "Ultra (128 MiB/s per TiB)",
                       "value": "Ultra"
+                    },
+                    {
+                      "label": "Flexible (custom throughput)",
+                      "value": "Flexible"
                     }
                   ],
                   "required": true
@@ -729,32 +752,43 @@
                 "visible": "[and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'))]"
               },
               {
+                "name": "anfFlexThroughput",
+                "type": "Microsoft.Common.Slider",
+                "min": 128,
+                "max": "[mul(mul(5,128),int(steps('filesystem').additional.anfcapacity))]",
+                "label": "Maximum Throughput",
+                "subLabel": "Mi/s",
+                "defaultValue": 24,
+                "showStepMarkers": false,
+                "toolTip": "Maximum throughput of the Flexible Azure NetApp Files volume",
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('filesystem').additional.anftier,'Flexible'))]"
+              },
+              {
                 "name": "lustretier",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Lustre Tier",
-                "defaultValue": "AMLFS-Durable-Premium-500",
+                "defaultValue": "AMLFS-Durable-Premium-500 (500 MB/s per TB)",
                 "multiselect": false,
                 "toolTip": "Select the Azure Manage Lustre SKU to use",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "AMLFS-Durable-Premium-40",
-                      "description": "40 MB/s/TB, 48TB size increment",
+                      "label": "AMLFS-Durable-Premium-40 (40 MB/s per TB)",
                       "value": "AMLFS-Durable-Premium-40"
                     },
                     {
-                      "label": "AMLFS-Durable-Premium-125",
-                      "description": "125 MB/s/TB, 16TB size increment",
+                      "label": "AMLFS-Durable-Premium-125 (125 MB/s per TB)",
                       "value": "AMLFS-Durable-Premium-125"
                     },
                     {
-                      "label": "AMLFS-Durable-Premium-250",
-                      "description": "250 MB/s/TB, 8TB size increment",
+                      "label": "AMLFS-Durable-Premium-250 (250 MB/s per TB)",
                       "value": "AMLFS-Durable-Premium-250"
                     },
                     {
-                      "label": "AMLFS-Durable-Premium-500",
-                      "description": "500 MB/s/TB, 4TB size increment",
+                      "label": "AMLFS-Durable-Premium-500 (500 MB/s per TB)",
                       "value": "AMLFS-Durable-Premium-500"
                     }
                   ],
@@ -2516,6 +2550,7 @@
         "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),int(steps('filesystem').shared.nfscapacity),basics('nullValue'))]",
         "anfServiceTier": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').shared.filertype,'anf'),int(steps('filesystem').shared.anfcapacity),basics('nullValue'))]",
+        "anfFlexThroughputMiBps": "[if(and(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.anftier,'Flexible')),int(steps('filesystem').shared.anfFlexThroughput),basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,basics('nullValue'))]",
         "exportPath": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,basics('nullValue'))]",
         "mountOptions": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.mountOptions,basics('nullValue'))]",
@@ -2525,6 +2560,7 @@
         "type": "[if(steps('filesystem').additionalCheck.checkbox,concat(steps('filesystem').additional.filertype,'-',steps('filesystem').additional.newexisting),'disabled')]",
         "anfServiceTier": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').additional.filertype,'anf'),int(steps('filesystem').additional.anfcapacity),basics('nullValue'))]",
+        "anfFlexThroughputMiBps": "[if(and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.anftier,'Flexible')),int(steps('filesystem').additional.anfFlexThroughput),basics('nullValue'))]",
         "lustreTier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,basics('nullValue'))]",
         "lustreCapacityInTib": "[if(equals(steps('filesystem').additional.filertype,'aml'),int(steps('filesystem').additional.azurelustrecapacity),basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').additional.newexisting,'existing'),if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.ipAddressAml,steps('filesystem').additional.ipAddressNfs),basics('nullValue'))]",
