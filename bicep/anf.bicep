@@ -4,11 +4,12 @@ import {tags_t, availabilityZone_t} from './types.bicep'
 param name string
 param location string
 param tags tags_t
-param availabilityZone availabilityZone_t[]
+param availabilityZone availabilityZone_t[] = []
 param resourcePostfix string = uniqueString(resourceGroup().id)
 param subnetId string
 param serviceLevel string
 param sizeTiB int
+param throughputMibps int = 0
 param defaultMountOptions string
 param infrastructureOnly bool = false
 var capacity = sizeTiB * 1024 * 1024 * 1024 * 1024
@@ -17,24 +18,27 @@ resource anfAccount 'Microsoft.NetApp/netAppAccounts@2024-07-01' existing = if(!
   name: 'hpcanfaccount-${take(resourcePostfix,10)}'
 }
 
-resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2024-07-01' = if(!infrastructureOnly){
+resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2025-06-01' = if(!infrastructureOnly){
   name: '${name}-anf-pool'
   location: location
   tags: tags
   parent: anfAccount
-  properties: {
+  properties: union({
     serviceLevel: serviceLevel
     size: capacity
-  }
+  }, serviceLevel == 'Flexible' ? {
+    customThroughputMibps: throughputMibps
+    qosType: 'Manual'
+  } : {})
 }
 
-resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2024-07-01' = if(!infrastructureOnly){
+resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2025-06-01' = if(!infrastructureOnly){
   name: '${name}-anf-volume'
   location: location
   tags: tags
   parent: anfPool
   zones: length(availabilityZone) == 0 ? null : availabilityZone
-  properties: {
+  properties: union({
     unixPermissions: '0755'
     creationToken: '${name}-path'
     serviceLevel: serviceLevel
@@ -65,7 +69,9 @@ resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2024-0
         }
       ]
     }
-  }
+  }, serviceLevel == 'Flexible' ? {
+    throughputMibps: throughputMibps
+  } : {})
 }
 
 
