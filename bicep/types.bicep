@@ -32,6 +32,7 @@ type shared_anf_new_t = {
   type: 'anf-new'
   anfServiceTier: string
   anfCapacityInTiB: int
+  anfFlexThroughputMiBps: int?
   availabilityZone:  availabilityZone_t[]?
 }
 
