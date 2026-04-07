@@ -14,8 +14,9 @@ on:
       - 'bicep/**'
       - 'uidefinitions/**'
       - '.github/**'
-      - './build.sh'
+      - 'build.sh'
       - 'util/**'
+      - 'tests/**'
   workflow_dispatch:
 
 defaults:
