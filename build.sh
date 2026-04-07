@@ -37,8 +37,12 @@ UI_DEFINITION=${GIT_ROOT}/uidefinitions/createUiDefinition.json
 
 build_dir="${GIT_ROOT}/build"
 
-PYTHONPATH=util/ python3 util/build.py build --branch $BRANCH --build-dir "$build_dir" --ui-definition "$UI_DEFINITION" 
-
+PYTHONPATH=util/ python3 util/build.py build --branch $BRANCH --build-dir "$build_dir" --ui-definition "$UI_DEFINITION"
+rm -rf .buildvenv
+python3 -m venv .buildvenv
+source .buildvenv/bin/activate
+pip install pytest
+pytest tests/
 # Check if base 64-encoded utility files used by install.sh are the same as the prior commit
 git diff --exit-code bicep/files-to-load/encoded
 
