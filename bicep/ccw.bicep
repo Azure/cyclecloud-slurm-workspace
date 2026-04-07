@@ -82,26 +82,19 @@ module ccwNetwork './network-new.bicep' = if (create_new_vnet) {
 var subnets = create_new_vnet
   ? ccwNetwork.outputs.subnetsCCW
   : {
-      cyclecloud: { id: join([network.?id, 'subnets', network.?cyclecloudSubnet], '/') }
-      compute: { id: join([network.?id, 'subnets', network.?computeSubnet], '/') }
-      home: { id: join([network.?id, 'subnets', network.?sharedFilerSubnet ?? 'null'], '/') }
-      additional: { id: join([network.?id, 'subnets', network.?additionalFilerSubnet ?? 'null'], '/') }
+      cyclecloud: join([network.?id, 'subnets', network.?cyclecloudSubnet], '/') 
+      compute: join([network.?id, 'subnets', network.?computeSubnet], '/') 
+      home: join([network.?id, 'subnets', network.?sharedFilerSubnet ?? 'null'], '/') 
+      additional: join([network.?id, 'subnets', network.?additionalFilerSubnet ?? 'null'], '/') 
     }
 
-output vnet types.networkOutput_t = union(
-  create_new_vnet
-    ? ccwNetwork.outputs.vnetCCW
-    : {
-        id: network.?id ?? ''
-        name: network.?name
-        rg: split(network.?id ?? '////', '/')[4]
-      },
-  {
-    type: network.type
-    computeSubnetName: network.?computeSubnet ?? 'ccw-compute-subnet'
-    computeSubnetId: subnets.compute.id
-  }
-)
+var existingNetworkId = network.?id ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
+
+output vnet types.networkOutput_t = {
+  type: network.type
+  id: create_new_vnet ? ccwNetwork.outputs.vnetCCWId : existingNetworkId
+  computeSubnetId: subnets.compute
+}
 
 var deploy_bastion = network.?bastion ?? false
 module ccwBastion './bastion.bicep' = if (deploy_bastion) {
@@ -110,7 +103,7 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
   params: {
     location: location
     tags: getTags('Microsoft.Network/bastionHosts', tags)
-    subnetId: subnets.bastion.id
+    subnetId: subnets.?bastion ?? ''
   }
 }
 
@@ -136,7 +129,7 @@ module ccwVM './vm.bicep' = if (!infrastructureOnly) {
             version: split(cyclecloudBaseImage, ':')[3]
           }
     }
-    subnetId: subnets.cyclecloud.id
+    subnetId: subnets.cyclecloud
     adminUser: adminUsername
     adminPassword: adminPassword
     databaseAdminPassword: databaseAdminPassword
@@ -193,7 +186,7 @@ module ccwStorage './storage.bicep' = {
     location: location
     tags: getTags('Microsoft.Storage/storageAccounts', tags)
     saName: 'ccwstorage${uniqueString(az.resourceGroup().id)}'
-    subnetId: subnets.cyclecloud.id 
+    subnetId: subnets.cyclecloud
     storagePrivateDnsZone: storagePrivateDnsZone
   }
 }
@@ -209,7 +202,7 @@ module mySQLccw './mysql.bicep' = if (create_database) {
     Name: db_name
     adminUser: adminUsername
     adminPassword: databaseAdminPassword
-    subnetId: subnets.database.id
+    subnetId: subnets.?database ?? ''
   }
 }
 
@@ -219,7 +212,7 @@ module ccwAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
     location: location
     tags: getTags('Microsoft.StorageCache/amlFileSystems', tags)
     name: 'ccw-lustre'
-    subnetId: subnets.?additional.id ?? ''
+    subnetId: subnets.?additional ?? ''
     sku: additionalFilesystem.?lustreTier
     capacity: additionalFilesystem.?lustreCapacityInTib
     availabilityZone:  additionalFilesystem.?availabilityZone ?? []
@@ -244,7 +237,7 @@ module ccwANF 'anf.bicep' = [
       location: location
       tags: getTags('Microsoft.NetApp/netAppAccounts', tags)
       name: filer.key
-      subnetId: subnets[filer.key].id
+      subnetId: subnets[filer.key]
       serviceLevel: filer.value.anfServiceTier
       sizeTiB: filer.value.anfCapacityInTiB
       throughputMibps: filer.value.?anfFlexThroughputMiBps ?? 0
@@ -271,7 +264,7 @@ module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
     location: location
     name: 'ood-${uniqueString(az.resourceGroup().id)}'
     networkInterfacesTags: getTags('Microsoft.Network/networkInterfaces', tags)
-    subnetId: subnets.compute.id
+    subnetId: subnets.compute
   }
 }
 
