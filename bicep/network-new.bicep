@@ -284,7 +284,7 @@ var peeredVnetId = network.?vnetToPeer.?id ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff
 var peeredVnetName = split(peeredVnetId,'/')[8] 
 var peeredVnetResourceGroup = split(peeredVnetId,'/')[4]
 
-resource ccwCommonNsg 'Microsoft.Network/networkSecurityGroups@2023-11-01' = {
+resource ccwCommonNsg 'Microsoft.Network/networkSecurityGroups@2025-05-01' = {
   name: 'nsg-ccw-common'
   location: location
   tags: nsgTags
@@ -293,7 +293,7 @@ resource ccwCommonNsg 'Microsoft.Network/networkSecurityGroups@2023-11-01' = {
   }
 }
 
-resource ccwVirtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
+resource ccwVirtualNetwork 'Microsoft.Network/virtualNetworks@2025-05-01' = {
   name: vnet.name
   location: location
   tags: tags
@@ -373,7 +373,7 @@ resource ccwDatabase 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' e
 
 var privateEndpointName = 'ccw-mysql-pe'
 
-resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-11-01' = if (create_private_endpoint) {
+resource privateEndpoint 'Microsoft.Network/privateEndpoints@2025-05-01' = if (create_private_endpoint) {
   name: privateEndpointName
   location: location
   properties: {
