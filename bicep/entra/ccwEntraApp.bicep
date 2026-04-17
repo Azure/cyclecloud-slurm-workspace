@@ -46,7 +46,7 @@ resource msGraphSP 'Microsoft.Graph/servicePrincipals@v1.0' existing = {
 var graphScopes = msGraphSP.oauth2PermissionScopes
 
 // Retrieve the user assigned managed identity assigned to the OOD VM
-resource ccwEntraManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
+resource ccwEntraManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = {
   name: umiName
 }
 
@@ -215,10 +215,6 @@ resource updateApplication 'Microsoft.Graph/applications@v1.0' = {
     'api://${clientAppId}'
   ]
   // end Expose an API section
-
-  dependsOn: [
-    ccwEntraApp
-  ]
 }
 
 resource servicePrincipal 'Microsoft.Graph/servicePrincipals@v1.0' = {

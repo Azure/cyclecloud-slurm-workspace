@@ -18,7 +18,7 @@ resource anfAccount 'Microsoft.NetApp/netAppAccounts@2024-07-01' existing = if(!
   name: 'hpcanfaccount-${take(resourcePostfix,10)}'
 }
 
-resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2025-06-01' = if(!infrastructureOnly){
+resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2025-12-01' = if(!infrastructureOnly){
   name: '${name}-anf-pool'
   location: location
   tags: tags
@@ -32,7 +32,7 @@ resource anfPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2025-06-01' = if
   } : {})
 }
 
-resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2025-06-01' = if(!infrastructureOnly){
+resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2025-12-01' = if(!infrastructureOnly){
   name: '${name}-anf-volume'
   location: location
   tags: tags
@@ -76,6 +76,6 @@ resource anfVolume 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2025-0
 
 
 // Require fs_module outputs
-output ipAddress string = infrastructureOnly ? '' :anfVolume.properties.mountTargets[0].ipAddress
+output ipAddress string = infrastructureOnly ? '' :anfVolume!.properties.mountTargets[0].ipAddress
 output exportPath string = '/${name}-path'
 output mountOptions string = defaultMountOptions

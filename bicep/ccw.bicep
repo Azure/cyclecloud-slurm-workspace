@@ -51,7 +51,7 @@ module ccwPublicKey './publicKey.bicep' = if (!useEnteredKey && !infrastructureO
     storedKey: storedKey
   }
 }
-var publicKey = infrastructureOnly ? '' : (useEnteredKey ? adminSshPublicKey : ccwPublicKey.outputs.publicKey)
+var publicKey = infrastructureOnly ? '' : (useEnteredKey ? adminSshPublicKey : ccwPublicKey!.outputs.publicKey)
 
 var createNatGateway = network.?createNatGateway ?? false
 module natgateway './natgateway.bicep' = if (createNatGateway) {
@@ -62,7 +62,7 @@ module natgateway './natgateway.bicep' = if (createNatGateway) {
     name: 'ccw-nat-gateway'
   }
 }
-var natGateawayId = createNatGateway ? natgateway.outputs.NATGatewayId : ''
+var natGateawayId = createNatGateway ? natgateway!.outputs.NATGatewayId : ''
 
 var create_new_vnet = network.type == 'new'
 module ccwNetwork './network-new.bicep' = if (create_new_vnet) {
@@ -80,7 +80,7 @@ module ccwNetwork './network-new.bicep' = if (create_new_vnet) {
 }
 
 var subnets = create_new_vnet
-  ? ccwNetwork.outputs.subnetsCCW
+  ? ccwNetwork!.outputs.subnetsCCW
   : {
       cyclecloud: join([network.?id, 'subnets', network.?cyclecloudSubnet], '/') 
       compute: join([network.?id, 'subnets', network.?computeSubnet], '/') 
@@ -92,7 +92,7 @@ var existingNetworkId = network.?id ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/b
 
 output vnet types.networkOutput_t = {
   type: network.type
-  id: create_new_vnet ? ccwNetwork.outputs.vnetCCWId : existingNetworkId
+  id: create_new_vnet ? ccwNetwork!.outputs.vnetCCWId : existingNetworkId
   computeSubnetId: subnets.compute
 }
 
@@ -145,9 +145,6 @@ module ccwVM './vm.bicep' = if (!infrastructureOnly) {
       }
     ]
   }
-  dependsOn: [
-    ccwNetwork
-  ]
 }
 
 var miName = 'ccwLockerManagedIdentity'
@@ -156,7 +153,7 @@ module ccwManagedIdentity 'mi.bicep' = if (!infrastructureOnly) {
   params: {
     name: miName
     location: location
-    storageAccountName: ccwStorage.outputs.storageAccountName
+    storageAccountName: ccwStorage!.outputs.storageAccountName
     monitoringEnabled: monitoring.type == 'enabled'
     dcrId: monitoring.?dcrId ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
     tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
@@ -173,11 +170,8 @@ module ccwRoleAssignments './vmRoleAssignments.bicep' = if (!infrastructureOnly)
       'Storage Blob Data Contributor'
       'Monitoring Metrics Publisher'
     ]
-    principalId: ccwVM.outputs.principalId
+    principalId: ccwVM!.outputs.principalId
   }
-  dependsOn: [
-    ccwVM
-  ]
 }
 
 module ccwStorage './storage.bicep' = {
@@ -218,9 +212,6 @@ module ccwAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
     availabilityZone:  additionalFilesystem.?availabilityZone ?? []
     infrastructureOnly: infrastructureOnly
   }
-  dependsOn: [
-    ccwNetwork
-  ]
 }
 
 module ccwANFAccount 'anf-account.bicep' = if((sharedFilesystem.type == 'anf-new' || additionalFilesystem.type == 'anf-new') && !infrastructureOnly) {
@@ -246,7 +237,6 @@ module ccwANF 'anf.bicep' = [
       infrastructureOnly: infrastructureOnly
     }
     dependsOn: [
-      ccwNetwork
       ccwANFAccount
     ]
   }
@@ -270,7 +260,7 @@ module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
 
 // create a user assigned managed identity to be assigned to the OOD VM
 var oodManagedIdentityName = 'ccwOpenOnDemandManagedIdentity'
-resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (createOODMI) {
+resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = if (createOODMI) {
   name: oodManagedIdentityName
   location: location
 }
@@ -289,31 +279,31 @@ output filerInfoFinal types.filerInfo_t = {
   home: {
     type: sharedFilesystem.type
     nfsCapacityInGb: sharedFilesystem.?nfsCapacityInGb ?? -1
-    ipAddress: sharedFilesystem.type == 'anf-new' ? ccwANF[1].outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
-    exportPath: sharedFilesystem.type == 'anf-new' ? ccwANF[1].outputs.exportPath : sharedFilesystem.?exportPath ?? ''
+    ipAddress: sharedFilesystem.type == 'anf-new' ? ccwANF[1]!.outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
+    exportPath: sharedFilesystem.type == 'anf-new' ? ccwANF[1]!.outputs.exportPath : sharedFilesystem.?exportPath ?? ''
     mountOptions: sharedFilesystem.type == 'anf-new'
-      ? ccwANF[1].outputs.mountOptions
+      ? ccwANF[1]!.outputs.mountOptions
       : sharedFilesystem.?mountOptions ?? ''
     mountPath: '/shared'
   }
   additional: {
     type: additionalFilesystem.type
     ipAddress: additionalFilesystem.type == 'anf-new'
-      ? ccwANF[0].outputs.ipAddress
-      : additionalFilesystem.type == 'aml-new' ? ccwAMLFS.outputs.ipAddress : additionalFilesystem.?ipAddress ?? ''
+      ? ccwANF[0]!.outputs.ipAddress
+      : additionalFilesystem.type == 'aml-new' ? ccwAMLFS!.outputs.ipAddress : additionalFilesystem.?ipAddress ?? ''
     exportPath: additionalFilesystem.type == 'anf-new'
-      ? ccwANF[0].outputs.exportPath
+      ? ccwANF[0]!.outputs.exportPath
       :additionalFilesystem.?exportPath ?? ''
     mountOptions: additionalFilesystem.type == 'anf-new'
-      ? ccwANF[0].outputs.mountOptions
-      : additionalFilesystem.type == 'aml-new' ? ccwAMLFS.outputs.mountOptions : additionalFilesystem.?mountOptions ?? ''
+      ? ccwANF[0]!.outputs.mountOptions
+      : additionalFilesystem.type == 'aml-new' ? ccwAMLFS!.outputs.mountOptions : additionalFilesystem.?mountOptions ?? ''
     mountPath: additionalFilesystem.?mountPath ?? ''
   }
 }
 
-output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM.outputs.principalId
+output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM!.outputs.principalId
 
-output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity.outputs.managedIdentityId
+output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity!.outputs.managedIdentityId
 
 // Automatically inject the ccw cluster init spec
 
@@ -368,7 +358,7 @@ output tenantId string = subscription().tenantId
 // output databaseFQDN string = create_database ? mySQLccw.outputs.fqdn : ''
 output databaseInfo types.databaseOutput_t = databaseConfig.type != 'disabled' ?{
   databaseUser: databaseConfig.?databaseUser
-  url: databaseConfig.type == 'fqdn' ? databaseConfig.?fqdn : databaseConfig.type == 'privateIp' ? databaseConfig.?privateIp : ccwNetwork.outputs.?databaseFQDN 
+  url: databaseConfig.type == 'fqdn' ? databaseConfig.?fqdn : databaseConfig.type == 'privateIp' ? databaseConfig.?privateIp : ccwNetwork!.outputs.?databaseFQDN 
 } : {}
 output azureEnvironment string = envNameToCloudMap[environment().name]
 output nodeArrayTags types.tags_t = tags[?'Node Array'] ?? {}
@@ -393,7 +383,7 @@ output ood object = union(ood, {
 output oodManualRegistration object = {
   appName: oodAppName
   umiName: oodManagedIdentityName
-  fqdn: deployOOD ? oodNIC.outputs.privateIp : ''
+  fqdn: deployOOD ? oodNIC!.outputs.privateIp : ''
 }
 
 output monitoring object = {

@@ -284,7 +284,7 @@ var peeredVnetId = network.?vnetToPeer.?id ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff
 var peeredVnetName = split(peeredVnetId,'/')[8] 
 var peeredVnetResourceGroup = split(peeredVnetId,'/')[4]
 
-resource ccwCommonNsg 'Microsoft.Network/networkSecurityGroups@2025-05-01' = {
+resource ccwCommonNsg 'Microsoft.Network/networkSecurityGroups@2025-01-01' = {
   name: 'nsg-ccw-common'
   location: location
   tags: nsgTags
@@ -293,7 +293,7 @@ resource ccwCommonNsg 'Microsoft.Network/networkSecurityGroups@2025-05-01' = {
   }
 }
 
-resource ccwVirtualNetwork 'Microsoft.Network/virtualNetworks@2025-05-01' = {
+resource ccwVirtualNetwork 'Microsoft.Network/virtualNetworks@2025-01-01' = {
   name: vnet.name
   location: location
   tags: tags
@@ -325,7 +325,7 @@ resource ccwVirtualNetwork 'Microsoft.Network/virtualNetworks@2025-05-01' = {
   }
 }
 
-resource ccw_to_peer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-11-01' = if (peeringEnabled) {
+resource ccw_to_peer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2025-01-01' = if (peeringEnabled) {
   name: '${ccwVirtualNetwork.name}-to-${peeredVnetName}-${uniqueString(resourceGroup().id)}'
   parent: ccwVirtualNetwork
   properties: {
@@ -366,14 +366,14 @@ var subnets = union(
   createDatabase ? { database: subnetDatabaseId } : {}
 )
 
-resource ccwDatabase 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' existing = if (create_private_endpoint && databaseConfig.type != 'disabled') {
+resource ccwDatabase 'Microsoft.DBforMySQL/flexibleServers@2024-12-30' existing = if (create_private_endpoint && databaseConfig.type != 'disabled') {
   name: databaseConfig.?dbInfo.?name ?? 'disabled'
   scope: resourceGroup(split(databaseConfig.?dbInfo.?id ?? '////','/')[4])
 }
 
 var privateEndpointName = 'ccw-mysql-pe'
 
-resource privateEndpoint 'Microsoft.Network/privateEndpoints@2025-05-01' = if (create_private_endpoint) {
+resource privateEndpoint 'Microsoft.Network/privateEndpoints@2025-01-01' = if (create_private_endpoint) {
   name: privateEndpointName
   location: location
   properties: {
@@ -395,4 +395,4 @@ resource privateEndpoint 'Microsoft.Network/privateEndpoints@2025-05-01' = if (c
 output nsgCCWId string = ccwCommonNsg.id
 output vnetCCWId string = ccwVirtualNetwork.id
 output subnetsCCW types.subnets_t = subnets
-output databaseFQDN string = create_private_endpoint ? privateEndpoint.properties.customDnsConfigs[0].ipAddresses[0] : ''
+output databaseFQDN string = create_private_endpoint ? privateEndpoint!.properties.customDnsConfigs[0].ipAddresses[0] : ''
