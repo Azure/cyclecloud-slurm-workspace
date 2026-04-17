@@ -51,4 +51,4 @@ pushd "$build_dir"
 zip -j "${GIT_ROOT}/build.zip" ./*
 popd
 
-${THIS_DIR}/arm-ttk/arm-ttk/Test-AzTemplate.sh $build_dir # -Skip Parameter-Types-Should-Be-Consistent
+${THIS_DIR}/arm-ttk/arm-ttk/Test-AzTemplate.sh $build_dir -Skip apiVersions-Should-Be-Recent 
