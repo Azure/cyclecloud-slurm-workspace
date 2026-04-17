@@ -262,7 +262,8 @@ cycle_server start --wait
 # this will block until CC responds
 timeout 360s bash -c 'until (curl -k https://localhost); do sleep 5; done'
 
-cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" --verify-ssl=false --name=$SLURM_CLUSTER_NAME
+cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" --verify-ssl=false --name=$SLURM_CLUSTER_NAME --force
+sudo -i -u ${CYCLECLOUD_USERNAME} bash -c "/usr/local/bin/cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password='${CYCLECLOUD_PASSWORD}' --verify-ssl=false --name=$SLURM_CLUSTER_NAME --force"
 echo "CC CLI initialize successful"
 
 # Ensure CC properly initializes
@@ -430,6 +431,7 @@ if [ $ENABLE_ENTRA_AUTH == true ]; then
 
     # initializing CycleCloud CLI with Entra ID auth
     echo "Initializing CycleCloud CLI with Entra ID authentication"
+    cyclecloud initialize --batch --identity --object_id=${ENTRA_OBJECT_ID} --url=https://localhost --verify-ssl=false --loglevel=debug --force
     sudo -i -u ${CYCLECLOUD_USERNAME} bash -c "/usr/local/bin/cyclecloud initialize --batch --identity --object_id=${ENTRA_OBJECT_ID} --url=https://localhost --verify-ssl=false --loglevel=debug --force"
     echo "CycleCloud CLI initialization with Entra ID successful"
 fi
