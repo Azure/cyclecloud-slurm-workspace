@@ -48,7 +48,7 @@ param oodProjectVersion string = '1.1.4'
 //Internal developer use only: set true use custom CycleCloud release build 
 param manualInstall bool = false
 
-resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
+resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2025-03-01' = {
   name: resourceGroup
   location: location
   tags: tags[?'Resource group'] ?? {}

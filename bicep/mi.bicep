@@ -9,7 +9,7 @@ param dcrId string
 param tags tags_t
 
 //create managed identity for VMSSs
-resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: name
   location: location
   tags: tags

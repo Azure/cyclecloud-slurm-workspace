@@ -19,7 +19,7 @@ param serverEdition string = 'Burstable'
 param skuName string = 'Standard_B2ms'
 
 // Create a MySQL Flexible Server
-resource server 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' = {
+resource server 'Microsoft.DBforMySQL/flexibleServers@2024-12-30' = {
   location: location
   tags: tags
   name: Name

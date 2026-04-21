@@ -19,7 +19,7 @@ param vmSize string
 param dataDisks array
 param osDiskSize int = 0 //TODO: add to UI
 
-resource nic 'Microsoft.Network/networkInterfaces@2023-11-01' = {
+resource nic 'Microsoft.Network/networkInterfaces@2025-05-01' = {
   name: '${name}-nic'
   location: location
   tags: networkInterfacesTags
@@ -39,7 +39,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2023-11-01' = {
   }
 }
 
-resource virtualMachine 'Microsoft.Compute/virtualMachines@2024-03-01' = {
+resource virtualMachine 'Microsoft.Compute/virtualMachines@2025-04-01' = {
   name: name
   location: location
   tags: tags
@@ -114,7 +114,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2024-03-01' = {
   }
 }
 
-resource cse 'Microsoft.Compute/virtualMachines/extensions@2024-03-01' = {
+resource cse 'Microsoft.Compute/virtualMachines/extensions@2025-04-01' = {
   name: '${name}-customScriptExtension'
   location: location
   parent: virtualMachine

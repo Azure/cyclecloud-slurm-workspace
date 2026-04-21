@@ -12,7 +12,7 @@ var privateDnsZoneResourceGroup = split(privateDnsZoneId, '/')[4]
 var createVnetLink = storagePrivateDnsZone.type == 'existing' ? storagePrivateDnsZone.vnetLink : storagePrivateDnsZone.type == 'new'
 var vnetLinkScope = contains(storagePrivateDnsZone,'id') ? split(privateDnsZoneId, '/')[4] : az.resourceGroup().name
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' = {
   name: saName
   location: location
   tags: tags
@@ -34,7 +34,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
 
 var storageBlobPrivateEndpointName = 'ccwstorage-blob-pe'
 
-resource storageBlobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' = {
+resource storageBlobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2025-05-01' = {
   name: storageBlobPrivateEndpointName
   location: location
   tags: tags
@@ -83,12 +83,12 @@ module blobPrivateDnsZoneVnetLink 'storage-vnetLink.bicep' = if (createVnetLink)
   params: {
     storageAccountId: storageAccount.id
     subnetId: subnetId
-    blobPrivateDnsZoneName: storagePrivateDnsZone.type == 'existing' ? blobPrivateDnsZone.name : newBlobPrivateDnsZone.outputs.blobPrivateDnsZoneName //force dependency
+    blobPrivateDnsZoneName: storagePrivateDnsZone.type == 'existing' ? blobPrivateDnsZone.name : newBlobPrivateDnsZone!.outputs.blobPrivateDnsZoneName //force dependency
     tags: tags
   }
 }
 
-resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = if (storagePrivateDnsZone.type != 'none') {
+resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2025-05-01' = if (storagePrivateDnsZone.type != 'none') {
   parent: storageBlobPrivateEndpoint
   name: 'default'
   properties:{
@@ -96,7 +96,7 @@ resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGr
       {
         name: blobPrivateDnsZoneName
         properties:{
-          privateDnsZoneId: storagePrivateDnsZone.type == 'existing' ? blobPrivateDnsZone.id : newBlobPrivateDnsZone.outputs.blobPrivateDnsZoneId
+          privateDnsZoneId: storagePrivateDnsZone.type == 'existing' ? blobPrivateDnsZone.id : newBlobPrivateDnsZone!.outputs.blobPrivateDnsZoneId
         }
       }
     ]
