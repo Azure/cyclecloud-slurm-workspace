@@ -5,11 +5,9 @@ param address string = network.?addressSpace
 param location string
 param tags types.tags_t
 param nsgTags types.tags_t
-param sharedFilesystem types.sharedFilesystem_t
-param additionalFilesystem types.additionalFilesystem_t 
-var create_anf = contains(network, 'netappSubnet')
-var create_lustre = contains(network, 'lustreSubnet')
-var deployBastion = contains(network, 'bastion')
+param createNetApp bool 
+param createLustre bool 
+var deployBastion = network.bastion
 var createDatabase = false //update once MySQL capacity is available
 param natGatewayId string 
 param databaseConfig types.databaseConfig_t
@@ -102,7 +100,7 @@ var vnet  = {
         delegations: []
       }
     },
-    create_anf ? {
+    createNetApp ? {
       netapp: {
         name: network.?netappSubnet ?? 'ccw-anf-subnet'
         cidr: subnet_cidr.netapp
@@ -113,7 +111,7 @@ var vnet  = {
         ]
       }
     } : {},
-    create_lustre ? {
+    createLustre ? {
       lustre: {
         name: network.?lustreSubnet ?? 'ccw-lustre-subnet'
         cidr: subnet_cidr.lustre
@@ -224,8 +222,8 @@ var nsg_rules = {
 var nsgRules = items(union(
   nsg_rules.default,
   deployBastion ? nsg_rules.bastion : {},
-  create_anf ? nsg_rules.anf : {},
-  create_lustre ? nsg_rules.lustre : {},
+  createNetApp ? nsg_rules.anf : {},
+  createLustre ? nsg_rules.lustre : {},
   createDatabase ? nsg_rules.mysql : {}))
 var servicePorts = {
   All: ['0-65535']
@@ -345,15 +343,15 @@ module peer_to_ccw './network-peering.bicep' = if (peeringEnabled) {
 
 var subnetCyclecloudId = join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.cyclecloud.name], '/') 
 var subnetComputeId = join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.compute.name], '/')
-var subnetNetAppId = create_anf ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.netapp.name], '/') : ''
-var subnetLustreId = create_lustre ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.lustre.name], '/') : ''
+var subnetNetAppId = createNetApp ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.netapp.name], '/') : ''
+var subnetLustreId = createLustre ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.lustre.name], '/') : ''
 var subnetBastionId = deployBastion ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.bastion.name], '/') : ''
 var subnetDatabaseId = createDatabase ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.database.name], '/') : ''
 var subnets = union(
   { cyclecloud: subnetCyclecloudId },
   { compute: subnetComputeId },
-  create_anf ? { netapp: subnetNetAppId } : {},
-  create_lustre ? { lustre: subnetLustreId } : {},
+  createNetApp ? { netapp: subnetNetAppId } : {},
+  createLustre ? { lustre: subnetLustreId } : {},
   deployBastion ? { bastion: subnetBastionId } : {},
   createDatabase ? { database: subnetDatabaseId } : {}
 )

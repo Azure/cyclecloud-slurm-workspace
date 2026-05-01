@@ -19,6 +19,7 @@ param ccVMSize string
 param cyclecloudBaseImage string
 param resourceGroup string
 param entraIdInfo types.entra_t
+param schedFilesystem types.schedFilesystem_t
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t 
 param network types.vnet_t 
@@ -65,6 +66,8 @@ module natgateway './natgateway.bicep' = if (createNatGateway) {
 var natGateawayId = createNatGateway ? natgateway!.outputs.NATGatewayId : ''
 
 var create_new_vnet = network.type == 'new'
+var createNetApp = schedFilesystem.type == 'anf-new' || sharedFilesystem.type == 'anf-new' || additionalFilesystem.type == 'anf-new' && !infrastructureOnly
+var createLustre = additionalFilesystem.type == 'aml-new' && !infrastructureOnly
 module ccwNetwork './network-new.bicep' = if (create_new_vnet) {
   name: 'ccwNetwork'
   params: {
@@ -73,8 +76,8 @@ module ccwNetwork './network-new.bicep' = if (create_new_vnet) {
     nsgTags: getTags('Microsoft.Network/networkSecurityGroups', tags)
     network: network
     natGatewayId: natGateawayId
-    sharedFilesystem: sharedFilesystem
-    additionalFilesystem: additionalFilesystem
+    createNetApp: createNetApp
+    createLustre: createLustre
     databaseConfig: databaseConfig
   }
 }
@@ -200,13 +203,13 @@ module mySQLccw './mysql.bicep' = if (create_database) {
   }
 }
 
-module ccwAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
+module ccwAMLFS 'amlfs.bicep' = if (createLustre) {
   name: 'ccwAMLFS-additional'
   params: {
     location: location
     tags: getTags('Microsoft.StorageCache/amlFileSystems', tags)
     name: 'ccw-lustre'
-    subnetId: subnets.?additional ?? ''
+    subnetId: subnets.?lustre ?? ''
     sku: additionalFilesystem.?lustreTier
     capacity: additionalFilesystem.?lustreCapacityInTib
     availabilityZone:  additionalFilesystem.?availabilityZone ?? []
@@ -214,22 +217,23 @@ module ccwAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
   }
 }
 
-module ccwANFAccount 'anf-account.bicep' = if((sharedFilesystem.type == 'anf-new' || additionalFilesystem.type == 'anf-new') && !infrastructureOnly) {
+module ccwANFAccount 'anf-account.bicep' = if(createNetApp) {
   name: 'ccwANFAccount'
   params: {
     location: location
   }
 }
 
+var netAppFilers = union(schedFilesystem.type == 'anf-new' ? {sched: schedFilesystem} : {}, sharedFilesystem.type == 'anf-new' ? {home: sharedFilesystem} : {}, additionalFilesystem.type == 'anf-new' ? {additional: additionalFilesystem} : {})
 module ccwANF 'anf.bicep' = [
-  for filer in items({ home: sharedFilesystem, additional: additionalFilesystem }): if (filer.value.type == 'anf-new') {
+  for filer in items(netAppFilers): if (createNetApp) {
     name: 'ccwANF-${filer.key}'
     params: {
       location: location
       tags: getTags('Microsoft.NetApp/netAppAccounts', tags)
       name: filer.key
-      subnetId: subnets[filer.key]
-      serviceLevel: filer.value.anfServiceTier
+      subnetId: subnets.?netapp ?? ''
+      serviceLevel: filer.value.anfServiceLevel
       sizeTiB: filer.value.anfCapacityInTiB
       throughputMibps: filer.value.?anfFlexThroughputMiBps ?? 0
       defaultMountOptions: anfDefaultMountOptions
@@ -276,13 +280,23 @@ module oodApp 'entra/ccwEntraApp.bicep' = if (registerOODApp) {
 }
 
 output filerInfoFinal types.filerInfo_t = {
+  sched: {
+    type: schedFilesystem.type
+    nfsCapacityInGb: schedFilesystem.?nfsCapacityInGb ?? -1
+    ipAddress: schedFilesystem.type == 'anf-new' ? ccwANF[0]!.outputs.ipAddress : schedFilesystem.?ipAddress ?? ''
+    exportPath: schedFilesystem.type == 'anf-new' ? ccwANF[0]!.outputs.exportPath : schedFilesystem.?exportPath ?? ''
+    mountOptions: schedFilesystem.type == 'anf-new'
+      ? ccwANF[0]!.outputs.mountOptions
+      : schedFilesystem.?mountOptions ?? ''
+    mountPath: '/sched'
+  }
   home: {
     type: sharedFilesystem.type
     nfsCapacityInGb: sharedFilesystem.?nfsCapacityInGb ?? -1
-    ipAddress: sharedFilesystem.type == 'anf-new' ? ccwANF[1]!.outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
-    exportPath: sharedFilesystem.type == 'anf-new' ? ccwANF[1]!.outputs.exportPath : sharedFilesystem.?exportPath ?? ''
+    ipAddress: sharedFilesystem.type == 'anf-new' ? ccwANF[0]!.outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
+    exportPath: sharedFilesystem.type == 'anf-new' ? ccwANF[0]!.outputs.exportPath : sharedFilesystem.?exportPath ?? ''
     mountOptions: sharedFilesystem.type == 'anf-new'
-      ? ccwANF[1]!.outputs.mountOptions
+      ? ccwANF[0]!.outputs.mountOptions
       : sharedFilesystem.?mountOptions ?? ''
     mountPath: '/shared'
   }
