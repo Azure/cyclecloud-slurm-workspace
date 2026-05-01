@@ -30,7 +30,7 @@ type sched_nfs_existing_t = {
 
 type sched_anf_new_t = {
   type: 'anf-new'
-  anfServiceTier: string
+  anfServiceLevel: string
   anfCapacityInTiB: int
   anfFlexThroughputMiBps: int?
   availabilityZone:  availabilityZone_t[]?
@@ -54,7 +54,7 @@ type shared_nfs_existing_t = {
 
 type shared_anf_new_t = {
   type: 'anf-new'
-  anfServiceTier: string
+  anfServiceLevel: string
   anfCapacityInTiB: int
   anfFlexThroughputMiBps: int?
   availabilityZone:  availabilityZone_t[]?
@@ -66,7 +66,7 @@ type sharedFilesystem_t = shared_nfs_new_t | shared_nfs_existing_t | shared_anf_
 
 type additional_anf_new_t = {
   type: 'anf-new'
-  anfServiceTier: string
+  anfServiceLevel: string
   anfCapacityInTiB: int
   mountPath: string
   availabilityZone: availabilityZone_t[]?
@@ -105,6 +105,14 @@ type additionalFilesystem_t = additional_anf_new_t | additional_nfs_existing_t |
 
 @export()
 type filerInfo_t = {
+  sched: {
+    type: string
+    nfsCapacityInGb: int
+    ipAddress: string
+    exportPath: string
+    mountOptions: string
+    mountPath: string
+  }
   home: {
     type: string
     nfsCapacityInGb: int
