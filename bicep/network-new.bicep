@@ -164,8 +164,8 @@ var nsg_rules = {
     // CycleCloud
     AllowCycleClientComputeIn: ['460', 'Inbound', 'Allow', 'Tcp', 'CycleCloud', 'subnet', 'compute', 'subnet', 'cyclecloud']
 
-    // Deny all remaining traffic
-    DenyVnetInbound: ['3100', 'Inbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
+    // Allow all traffic from any peered virtual networks including VPN
+    AllowVnetInbound: ['3100', 'Inbound', 'Allow', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
 
     //
     // OUTBOUND RULES
@@ -181,9 +181,9 @@ var nsg_rules = {
     // All communications inside compute subnet
     AllowAllComputeComputeOut: ['540', 'Outbound', 'Allow', 'Tcp', 'All', 'subnet', 'compute', 'subnet', 'compute']
 
-    // Deny all remaining traffic and allow Internet access
+    // Allow traffic to any peered virtual networks including VPN and allow Internet access
     AllowInternetOutBound: ['3000', 'Outbound', 'Allow', 'Tcp', 'All', 'tag', 'VirtualNetwork', 'tag', 'Internet']
-    DenyVnetOutbound: ['3100', 'Outbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
+    AllowVnetOutbound: ['3100', 'Outbound', 'Allow', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
   }
   // TODO : Need to be validated
   mysql: {
