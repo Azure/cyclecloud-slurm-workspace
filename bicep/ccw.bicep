@@ -284,7 +284,7 @@ output filerInfoFinal types.filerInfo_t = {
     type: schedFilesystem.type
     nfsCapacityInGb: schedFilesystem.?nfsCapacityInGb ?? -1
     ipAddress: schedFilesystem.type == 'anf-new' ? ccwANF[0]!.outputs.ipAddress : schedFilesystem.?ipAddress ?? ''
-    exportPath: schedFilesystem.type == 'anf-new' ? ccwANF[0]!.outputs.exportPath : schedFilesystem.?exportPath ?? ''
+    exportPath: schedFilesystem.type == 'anf-new' ? '/sched-path' : schedFilesystem.?exportPath ?? ''
     mountOptions: schedFilesystem.type == 'anf-new'
       ? ccwANF[0]!.outputs.mountOptions
       : schedFilesystem.?mountOptions ?? ''
@@ -294,7 +294,7 @@ output filerInfoFinal types.filerInfo_t = {
     type: sharedFilesystem.type
     nfsCapacityInGb: sharedFilesystem.?nfsCapacityInGb ?? -1
     ipAddress: sharedFilesystem.type == 'anf-new' ? ccwANF[0]!.outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
-    exportPath: sharedFilesystem.type == 'anf-new' ? ccwANF[0]!.outputs.exportPath : sharedFilesystem.?exportPath ?? ''
+    exportPath: sharedFilesystem.type == 'anf-new' ? '/home-path' : sharedFilesystem.?exportPath ?? ''
     mountOptions: sharedFilesystem.type == 'anf-new'
       ? ccwANF[0]!.outputs.mountOptions
       : sharedFilesystem.?mountOptions ?? ''
@@ -306,7 +306,7 @@ output filerInfoFinal types.filerInfo_t = {
       ? ccwANF[0]!.outputs.ipAddress
       : additionalFilesystem.type == 'aml-new' ? ccwAMLFS!.outputs.ipAddress : additionalFilesystem.?ipAddress ?? ''
     exportPath: additionalFilesystem.type == 'anf-new'
-      ? ccwANF[0]!.outputs.exportPath
+      ? '/additional-path'
       :additionalFilesystem.?exportPath ?? ''
     mountOptions: additionalFilesystem.type == 'anf-new'
       ? ccwANF[0]!.outputs.mountOptions
