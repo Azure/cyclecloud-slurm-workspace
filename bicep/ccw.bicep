@@ -225,7 +225,7 @@ module ccwANFAccount 'anf-account.bicep' = if(createNetApp) {
 }
 
 module ccwANF 'anf.bicep' = [
-  for filer in items({ sched: schedFilesystem, home: sharedFilesystem, additional: additionalFilesystem }): if (createNetApp) {
+  for filer in items({ sched: schedFilesystem, home: sharedFilesystem, additional: additionalFilesystem }): if (filer.value.type == 'anf-new' && !infrastructureOnly) {
     name: 'ccwANF-${filer.key}'
     params: {
       location: location
