@@ -66,7 +66,7 @@ module natgateway './natgateway.bicep' = if (createNatGateway) {
 var natGateawayId = createNatGateway ? natgateway!.outputs.NATGatewayId : ''
 
 var create_new_vnet = network.type == 'new'
-var createNetApp = schedFilesystem.type == 'anf-new' || sharedFilesystem.type == 'anf-new' || additionalFilesystem.type == 'anf-new' && !infrastructureOnly
+var createNetApp = (schedFilesystem.type == 'anf-new' || sharedFilesystem.type == 'anf-new' || additionalFilesystem.type == 'anf-new') && !infrastructureOnly
 var createLustre = additionalFilesystem.type == 'aml-new' && !infrastructureOnly
 module ccwNetwork './network-new.bicep' = if (create_new_vnet) {
   name: 'ccwNetwork'
@@ -224,9 +224,8 @@ module ccwANFAccount 'anf-account.bicep' = if(createNetApp) {
   }
 }
 
-var netAppFilers = union(schedFilesystem.type == 'anf-new' ? {sched: schedFilesystem} : {}, sharedFilesystem.type == 'anf-new' ? {home: sharedFilesystem} : {}, additionalFilesystem.type == 'anf-new' ? {additional: additionalFilesystem} : {})
 module ccwANF 'anf.bicep' = [
-  for filer in items(netAppFilers): if (createNetApp) {
+  for filer in items({ sched: schedFilesystem, home: sharedFilesystem, additional: additionalFilesystem }): if (createNetApp) {
     name: 'ccwANF-${filer.key}'
     params: {
       location: location
@@ -283,20 +282,20 @@ output filerInfoFinal types.filerInfo_t = {
   sched: {
     type: schedFilesystem.type
     nfsCapacityInGb: schedFilesystem.?nfsCapacityInGb ?? -1
-    ipAddress: schedFilesystem.type == 'anf-new' ? ccwANF[0]!.outputs.ipAddress : schedFilesystem.?ipAddress ?? ''
-    exportPath: schedFilesystem.type == 'anf-new' ? '/sched-path' : schedFilesystem.?exportPath ?? ''
+    ipAddress: schedFilesystem.type == 'anf-new' ? ccwANF[2]!.outputs.ipAddress : schedFilesystem.?ipAddress ?? ''
+    exportPath: schedFilesystem.type == 'anf-new' ? ccwANF[2]!.outputs.exportPath : schedFilesystem.?exportPath ?? ''
     mountOptions: schedFilesystem.type == 'anf-new'
-      ? ccwANF[0]!.outputs.mountOptions
+      ? ccwANF[2]!.outputs.mountOptions
       : schedFilesystem.?mountOptions ?? ''
     mountPath: '/sched'
   }
   home: {
     type: sharedFilesystem.type
     nfsCapacityInGb: sharedFilesystem.?nfsCapacityInGb ?? -1
-    ipAddress: sharedFilesystem.type == 'anf-new' ? ccwANF[0]!.outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
-    exportPath: sharedFilesystem.type == 'anf-new' ? '/home-path' : sharedFilesystem.?exportPath ?? ''
+    ipAddress: sharedFilesystem.type == 'anf-new' ? ccwANF[1]!.outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
+    exportPath: sharedFilesystem.type == 'anf-new' ? ccwANF[1]!.outputs.exportPath : sharedFilesystem.?exportPath ?? ''
     mountOptions: sharedFilesystem.type == 'anf-new'
-      ? ccwANF[0]!.outputs.mountOptions
+      ? ccwANF[1]!.outputs.mountOptions
       : sharedFilesystem.?mountOptions ?? ''
     mountPath: '/shared'
   }
@@ -306,7 +305,7 @@ output filerInfoFinal types.filerInfo_t = {
       ? ccwANF[0]!.outputs.ipAddress
       : additionalFilesystem.type == 'aml-new' ? ccwAMLFS!.outputs.ipAddress : additionalFilesystem.?ipAddress ?? ''
     exportPath: additionalFilesystem.type == 'anf-new'
-      ? '/additional-path'
+      ? ccwANF[0]!.outputs.exportPath
       :additionalFilesystem.?exportPath ?? ''
     mountOptions: additionalFilesystem.type == 'anf-new'
       ? ccwANF[0]!.outputs.mountOptions
