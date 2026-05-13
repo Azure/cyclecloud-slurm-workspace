@@ -440,7 +440,7 @@
                 "type": "Microsoft.Common.TextBlock",
                 "visible": true,
                 "options": {
-                  "text": "HELP TEXT GOES HERE"
+                  "text": "The directory /sched is a network attached mount and exists in all nodes of the cluster. It is managed by the scheduler."
                 }
               },
               {
