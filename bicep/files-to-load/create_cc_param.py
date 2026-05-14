@@ -75,6 +75,17 @@ def set_slurm_params(params, dbPassword, outputs):
     params['NodeTags'] = outputs['nodeArrayTags']['value']
 
     #Network Attached Storage
+    params['UseBuiltinSched'] = outputs['filerInfoFinal']['value']['sched']['type'] == 'nfs-new' 
+    if params['UseBuiltinSched']:
+        params['SchedFilesystemSize'] = outputs['filerInfoFinal']['value']['sched']['nfsCapacityInGb']
+    else:
+        params['NFSSchedType'] = 'nfs' if outputs['filerInfoFinal']['value']['sched']['type'] in ['nfs-existing','anf-new'] else 'lustre'
+        # We no longer need to handle these differently based on the fs type, as each
+        # fs module's common outputs map to these.
+        params['NFSSchedExportPath'] = outputs['filerInfoFinal']['value']['sched']['exportPath']
+        params['NFSSchedMountOptions'] = outputs['filerInfoFinal']['value']['sched']['mountOptions']
+        params['NFSSchedAddress'] = outputs['filerInfoFinal']['value']['sched']['ipAddress']
+
     params['UseBuiltinShared'] = outputs['filerInfoFinal']['value']['home']['type'] == 'nfs-new' 
     if params['UseBuiltinShared']:
         params['FilesystemSize'] = outputs['filerInfoFinal']['value']['home']['nfsCapacityInGb']

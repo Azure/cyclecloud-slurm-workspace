@@ -16,6 +16,30 @@ type entra_enabled_t = {
 @export()
 type entra_t = entra_disabled_t | entra_enabled_t
 
+type sched_nfs_new_t = {
+  type: 'nfs-new'
+  nfsCapacityInGb: int
+}
+
+type sched_nfs_existing_t = {
+  type: 'nfs-existing'
+  ipAddress: string
+  exportPath: string
+  mountOptions: string?
+}
+
+type sched_anf_new_t = {
+  type: 'anf-new'
+  anfServiceLevel: string
+  anfCapacityInTiB: int
+  anfFlexThroughputMiBps: int?
+  availabilityZone:  availabilityZone_t[]?
+}
+
+@discriminator('type')
+@export()
+type schedFilesystem_t = sched_nfs_new_t | sched_nfs_existing_t | sched_anf_new_t
+
 type shared_nfs_new_t = {
   type: 'nfs-new'
   nfsCapacityInGb: int
@@ -30,7 +54,7 @@ type shared_nfs_existing_t = {
 
 type shared_anf_new_t = {
   type: 'anf-new'
-  anfServiceTier: string
+  anfServiceLevel: string
   anfCapacityInTiB: int
   anfFlexThroughputMiBps: int?
   availabilityZone:  availabilityZone_t[]?
@@ -42,7 +66,7 @@ type sharedFilesystem_t = shared_nfs_new_t | shared_nfs_existing_t | shared_anf_
 
 type additional_anf_new_t = {
   type: 'anf-new'
-  anfServiceTier: string
+  anfServiceLevel: string
   anfCapacityInTiB: int
   mountPath: string
   availabilityZone: availabilityZone_t[]?
@@ -81,6 +105,14 @@ type additionalFilesystem_t = additional_anf_new_t | additional_nfs_existing_t |
 
 @export()
 type filerInfo_t = {
+  sched: {
+    type: string
+    nfsCapacityInGb: int
+    ipAddress: string
+    exportPath: string
+    mountOptions: string
+    mountPath: string
+  }
   home: {
     type: string
     nfsCapacityInGb: int
@@ -113,8 +145,8 @@ type vnet_autocreate_t = {
   addressSpace: string
   cyclecloudSubnet: string?
   computeSubnet: string?
-  sharedFilerSubnet: string?
-  additionalFilerSubnet: string?
+  netappSubnet: string?
+  lustreSubnet: string?
   bastion: bool?
   createNatGateway: bool?
   vnetToPeer: peered_vnet_t?
@@ -127,8 +159,8 @@ type vnet_existing_t = {
   id: string
   cyclecloudSubnet: string
   computeSubnet: string
-  sharedFilerSubnet: string?
-  additionalFilerSubnet: string?
+  netappSubnet: string?
+  lustreSubnet: string?
   storagePrivateDnsZoneId: string?
   vnetLink: bool?
 }
@@ -166,8 +198,8 @@ type networkOutput_t = {
 type subnets_t = {
   cyclecloud: string
   compute: string
-  home: string?
-  additional: string?
+  netapp: string?
+  lustre: string?
   bastion: string?
   database: string?
 }

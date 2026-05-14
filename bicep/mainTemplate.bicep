@@ -14,6 +14,7 @@ param ccVMSize string
 param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.8.320260312'
 param resourceGroup string
 param entraIdInfo types.entra_t = { type: 'disabled' }
+param schedFilesystem types.schedFilesystem_t
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t = { type: 'disabled' }
 param network types.vnet_t
@@ -65,6 +66,7 @@ module makeCCWresources 'ccw.bicep' = {
     adminPassword: adminPassword
     adminSshPublicKey: adminSshPublicKey
     entraIdInfo: entraIdInfo
+    schedFilesystem: schedFilesystem
     sharedFilesystem: sharedFilesystem
     additionalFilesystem: additionalFilesystem
     network: network

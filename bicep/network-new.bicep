@@ -5,13 +5,9 @@ param address string = network.?addressSpace
 param location string
 param tags types.tags_t
 param nsgTags types.tags_t
-param sharedFilesystem types.sharedFilesystem_t
-param additionalFilesystem types.additionalFilesystem_t 
-var filerTypes = [sharedFilesystem.type, additionalFilesystem.type]
-var create_anf = contains(filerTypes, 'anf-new')
-var create_anf_subnet = create_anf ? (sharedFilesystem.type == 'anf-new' ? network.?sharedFilerSubnet : network.?additionalFilerSubnet) : null
-var create_lustre = additionalFilesystem.type == 'aml-new'
-var deployBastion = network.?bastion ?? false
+param createNetApp bool 
+param createLustre bool 
+var deployBastion = network.bastion
 var createDatabase = false //update once MySQL capacity is available
 param natGatewayId string 
 param databaseConfig types.databaseConfig_t
@@ -104,9 +100,9 @@ var vnet  = {
         delegations: []
       }
     },
-    create_anf ? {
+    createNetApp ? {
       netapp: {
-        name: create_anf_subnet ?? 'ccw-anf-subnet'
+        name: network.?netappSubnet ?? 'ccw-anf-subnet'
         cidr: subnet_cidr.netapp
         nat_gateway : false
         service_endpoints: []
@@ -115,9 +111,9 @@ var vnet  = {
         ]
       }
     } : {},
-    create_lustre ? {
+    createLustre ? {
       lustre: {
-        name: network.?additionalFilerSubnet ?? 'ccw-lustre-subnet'
+        name: network.?lustreSubnet ?? 'ccw-lustre-subnet'
         cidr: subnet_cidr.lustre
         nat_gateway : false
         service_endpoints: []
@@ -226,8 +222,8 @@ var nsg_rules = {
 var nsgRules = items(union(
   nsg_rules.default,
   deployBastion ? nsg_rules.bastion : {},
-  create_anf ? nsg_rules.anf : {},
-  create_lustre ? nsg_rules.lustre : {},
+  createNetApp ? nsg_rules.anf : {},
+  createLustre ? nsg_rules.lustre : {},
   createDatabase ? nsg_rules.mysql : {}))
 var servicePorts = {
   All: ['0-65535']
@@ -347,17 +343,15 @@ module peer_to_ccw './network-peering.bicep' = if (peeringEnabled) {
 
 var subnetCyclecloudId = join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.cyclecloud.name], '/') 
 var subnetComputeId = join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.compute.name], '/')
-var subnetNetAppId = create_anf ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.netapp.name], '/') : ''
-var subnetLustreId = create_lustre ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.lustre.name], '/') : ''
+var subnetNetAppId = createNetApp ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.netapp.name], '/') : ''
+var subnetLustreId = createLustre ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.lustre.name], '/') : ''
 var subnetBastionId = deployBastion ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.bastion.name], '/') : ''
 var subnetDatabaseId = createDatabase ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.database.name], '/') : ''
-var homeFiler = sharedFilesystem.type == 'anf-new' ? { home: subnetNetAppId } : {}
-var additionalFiler = contains(['aml-new','anf-new'],additionalFilesystem.type) ? (additionalFilesystem.type == 'anf-new' ? { additional: subnetNetAppId } : { additional: subnetLustreId }) : {}
 var subnets = union(
   { cyclecloud: subnetCyclecloudId },
   { compute: subnetComputeId },
-  homeFiler,
-  additionalFiler,
+  createNetApp ? { netapp: subnetNetAppId } : {},
+  createLustre ? { lustre: subnetLustreId } : {},
   deployBastion ? { bastion: subnetBastionId } : {},
   createDatabase ? { database: subnetDatabaseId } : {}
 )

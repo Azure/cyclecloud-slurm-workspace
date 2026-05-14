@@ -431,6 +431,191 @@
         "bladeTitle": "Filesystem Settings",
         "elements": [
           {
+            "name": "sched",
+            "type": "Microsoft.Common.Section",
+            "label": "File-system mount /sched",
+            "elements": [
+              {
+                "name": "schedInfo",
+                "type": "Microsoft.Common.TextBlock",
+                "visible": true,
+                "options": {
+                  "text": "The directory /sched is a network attached mount and exists in all nodes of the cluster. It is managed by the scheduler."
+                }
+              },
+              {
+                "name": "newexisting",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Create new file-system",
+                "defaultValue": "Create new",
+                "toolTip": "Create new file-system type or use existing for /sched directory",
+                "multiselect": false,
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Create new",
+                      "value": "new"
+                    },
+                    {
+                      "label": "Use existing external NFS",
+                      "value": "existing"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": true
+              },
+              {
+                "name": "filertype",
+                "type": "Microsoft.Common.DropDown",
+                "label": "File-system Type",
+                "defaultValue": "[if(equals(steps('filesystem').sched.newexisting,'new'),'Builtin NFS','External NFS')]",
+                "toolTip": "Filer type for the /sched directory",
+                "multiselect": false,
+                "constraints": {
+                  "allowedValues": "[parse(concat('[{\"label\":\"', 'Builtin NFS','\",\"value\":\"nfs\"}',if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),',',''),if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),'{\"label\":\"Azure NetApp Files\",\"value\":\"anf\"}',''),']'))]",
+                  "required": true
+                },
+                "visible": "[equals(steps('filesystem').sched.newexisting,'new')]"
+              },
+              {
+                "name": "anfInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('filesystem').sched.filertype,'anf')]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "NetApp Resource Provider must be registered for your subscription."
+                }
+              },
+              {
+                "name": "anfInfoBoxSlurmHA",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": false,
+                "options": {
+                  "icon": "Warning",
+                  "text": "Slurm High Availability will be unavailable in Slurm Settings with this choice of file-system."
+                }
+              },
+              {
+                "name": "anftier",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Service Level",
+                "defaultValue": "Premium (64 MiB/s per TiB)",
+                "multiselect": false,
+                "toolTip": "Service level for the Azure NetApp Files volume with max. throughput",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Standard (16 MiB/s per TiB)",
+                      "value": "Standard"
+                    },
+                    {
+                      "label": "Premium (64 MiB/s per TiB)",
+                      "value": "Premium"
+                    },
+                    {
+                      "label": "Ultra (128 MiB/s per TiB)",
+                      "value": "Ultra"
+                    },
+                    {
+                      "label": "Flexible (custom throughput)",
+                      "value": "Flexible"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": "[and(equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.newexisting,'new'))]"
+              },
+              {
+                "name": "anfcapacity",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Capacity",
+                "toolTip": "Capacity of the Azure NetApp Files volume",
+                "subLabel": "TiB",
+                "defaultValue": "4",
+                "constraints": {
+                  "required": true,
+                  "regex": "^(?:[1-9]\\d{0,2}|1000)$",
+                  "validationMessage": "Please enter an integer between 1 and 1000"
+                },
+                "visible": "[and(equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.newexisting,'new'))]"
+              },
+              {
+                "name": "anfFlexThroughput",
+                "type": "Microsoft.Common.Slider",
+                "min": 128,
+                "max": "[mul(mul(5,128),int(steps('filesystem').sched.anfcapacity))]",
+                "label": "Maximum Throughput",
+                "subLabel": "Mi/s",
+                "defaultValue": 24,
+                "showStepMarkers": false,
+                "toolTip": "Maximum throughput of the Flexible Azure NetApp Files volume",
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[and(equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.newexisting,'new'),equals(steps('filesystem').sched.anftier,'Flexible'))]"
+              },
+              {
+                "name": "nfscapacity",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Capacity",
+                "toolTip": "Capacity of the NFS volume",
+                "subLabel": "GB",
+                "defaultValue": "30",
+                "constraints": {
+                  "required": true,
+                  "regex": "^([1-9]\\d{1,3}|10[01]\\d{2}|102[0-3]\\d|10240)$",
+                  "validationMessage": "Please enter an integer between 10 and 10240"
+                },
+                "visible": "[and(equals(steps('filesystem').sched.newexisting,'new'),equals(steps('filesystem').sched.filertype,'nfs'))]"
+              },
+              {
+                "name": "ipAddress",
+                "type": "Microsoft.Common.TextBox",
+                "label": "IP Address",
+                "toolTip": "IP address of the filer mount",
+                "defaultValue": "",
+                "constraints": {
+                  "required": true,
+                  "validations": [
+                    {
+                      "regex": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$",
+                      "message": "Invalid IP address"
+                    }
+                  ]
+                },
+                "visible": "[equals(steps('filesystem').sched.newexisting,'existing')]"
+              },
+              {
+                "name": "exportPath",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Export path",
+                "defaultValue": "/sched",
+                "toolTip": "Export path for the primary filer",
+                "constraints": {
+                  "required": true,
+                  "regex": "^\/(?:[\\w-.]+\/)*[\\w-.]+$",
+                  "validationMessage": "Must be an absolute path"
+                },
+                "visible": "[equals(steps('filesystem').sched.newexisting,'existing')]"
+              },
+              {
+                "name": "mountOptions",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Mount options",
+                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev",
+                "toolTip": "Mount options for the primary filer",
+                "constraints": {
+                  "required": false,
+                  "regex": "^.+$",
+                  "validationMessage": "Please enter a mount option"
+                },
+                "visible": "[equals(steps('filesystem').sched.newexisting,'existing')]"
+              }
+            ],
+            "visible": true
+          },
+          {
             "name": "shared",
             "type": "Microsoft.Common.Section",
             "label": "Primary file-system mount (for /shared and /home)",
@@ -1073,9 +1258,9 @@
                 "visible": "[equals(steps('networking').newexisting,'existing')]"
               },
               {
-                "name": "anfInfoBox1",
+                "name": "anfInfoBox",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'), equals(0,length(first(map(filter(steps('networking').networkSettings.subNetProvidersApi.value, (item) => equals(item.name, steps('networking').networkSettings.filersubnet1)), (item) => filter(item.properties.delegations, (item) => equals(item.properties.serviceName, 'Microsoft.Netapp/volumes')))))))]",
+                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'), equals(0,length(first(map(filter(steps('networking').networkSettings.subNetProvidersApi.value, (item) => equals(item.name, steps('networking').networkSettings.netappSubnet)), (item) => filter(item.properties.delegations, (item) => equals(item.properties.serviceName, 'Microsoft.Netapp/volumes')))))))]",
                 "options": {
                   "icon": "Warning",
                   "text": "The subnet selected below is missing the Microsoft.NetApp/volumes delegation required to use Azure NetApp Files.\nIt must have this delegation for the deployment to succeed.\n\nClick on this box to view the relevant official documentation in a new browser tab.",
@@ -1083,25 +1268,15 @@
                 }
               },
               {
-                "name": "filersubnet1",
+                "name": "netappSubnet",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Primary file-system subnet",
-                "toolTip": "Select subnet for primary file-system",
+                "label": "Azure NetApp Files subnet",
+                "toolTip": "Select subnet for new instance(s) of Azure NetApp Files",
                 "constraints": {
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' (',if(contains(item.properties,'addressPrefix'),item.properties.addressPrefix,first(item.properties.addressPrefixes)), ')', '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
-                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'))]"
-              },
-              {
-                "name": "anfInfoBox2",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.filertype,'anf'), equals(0,length(first(map(filter(steps('networking').networkSettings.subNetProvidersApi.value, (item) => equals(item.name, steps('networking').networkSettings.filersubnet2)), (item) => filter(item.properties.delegations, (item) => equals(item.properties.serviceName, 'Microsoft.Netapp/volumes')))))))]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "The subnet selected below is missing the Microsoft.NetApp/volumes delegation required to use Azure NetApp Files.\nIt must have this delegation for the deployment to succeed.\n\nClick on this box to view the relevant official documentation in a new browser tab.",
-                  "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
-                }
+                "visible": "[and(or(equals(steps('filesystem').sched.filertype, 'anf'),equals(steps('filesystem').shared.filertype, 'anf'),equals(steps('filesystem').additional.filertype, 'anf')), equals(steps('networking').newexisting,'existing'))]"
               },
               {
                 "name": "lustreInfoBoxExisting",
@@ -1113,10 +1288,10 @@
                 }
               },
               {
-                "name": "filersubnet2",
+                "name": "lustreSubnet",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Additional file-system subnet",
-                "toolTip": "Select subnet for additional file-system",
+                "label": "Azure Manged Lustre subnet",
+                "toolTip": "Select subnet for new instance of Azure Managed Lustre",
                 "constraints": {
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' (',if(contains(item.properties,'addressPrefix'),item.properties.addressPrefix,first(item.properties.addressPrefixes)), ')', '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
@@ -2384,6 +2559,18 @@
                 "visible": "[and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize)), contains(first(filter(steps('basics').locationInfoApi.value, (item) => equals(item.name, location()))), 'availabilityZoneMappings'))]"
               },
               {
+                "name": "schedNetAppAvailabilityZone",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Scheduler Azure NetApp Files",
+                "multiselect": false,
+                "toolTip": "Availability zone for the scheduler Azure NetApp Files volume",
+                "constraints": {
+                  "allowedValues": "[if(contains(steps('basics').anfAvailabilityZonesApi.properties, 'availabilityZoneMappings'), map(filter(parse('[\"1\",\"2\",\"3\"]'), (item) => contains(map(filter(steps('basics').anfAvailabilityZonesApi.properties.availabilityZoneMappings, (item) => item.isAvailable), (item) => item.availabilityZone),item)), (zone) => parse(concat('{\"label\":\"', 'Zone ',zone, '\",\"value\":\"', zone, '\"}'))), parse('[{\"label\":\"No Availability Zone Support\",\"value\":\"null\"}]'))]",
+                  "required": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.newexisting,'new'))]"
+                },
+                "visible": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.newexisting,'new'))]"
+              },
+              {
                 "name": "sharedNetAppAvailabilityZone",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Primary Azure NetApp Files",
@@ -2576,10 +2763,21 @@
         "clientId": "[if(basics('enableEntra'),basics('clientId'),basics('nullValue'))]",
         "managedIdentityId": "[if(basics('enableEntra'),basics('entraManagedIdentity').id,basics('nullValue'))]"
       },
+      "schedFilesystem": {
+        "type": "[concat(if(equals(steps('filesystem').sched.newexisting,'new'),steps('filesystem').sched.filertype,'nfs'),'-',steps('filesystem').sched.newexisting)]",
+        "nfsCapacityInGb": "[if(equals(steps('filesystem').sched.filertype,'nfs'),int(steps('filesystem').sched.nfscapacity),basics('nullValue'))]",
+        "anfServiceLevel": "[if(equals(steps('filesystem').sched.filertype,'anf'),steps('filesystem').sched.anftier,basics('nullValue'))]",
+        "anfCapacityInTiB": "[if(equals(steps('filesystem').sched.filertype,'anf'),int(steps('filesystem').sched.anfcapacity),basics('nullValue'))]",
+        "anfFlexThroughputMiBps": "[if(and(equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.anftier,'Flexible')),int(steps('filesystem').sched.anfFlexThroughput),basics('nullValue'))]",
+        "ipAddress": "[if(equals(steps('filesystem').sched.newexisting,'existing'),steps('filesystem').sched.ipAddress,basics('nullValue'))]",
+        "exportPath": "[if(equals(steps('filesystem').sched.newexisting,'existing'),steps('filesystem').sched.exportPath,basics('nullValue'))]",
+        "mountOptions": "[if(equals(steps('filesystem').sched.newexisting,'existing'),steps('filesystem').sched.mountOptions,basics('nullValue'))]",
+        "availabilityZone": "[if(and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').sched.newexisting,'new'),equals(steps('filesystem').sched.filertype,'anf')),parse(concat('[\"', steps('advancedSettings').availabilityzone.schedNetAppAvailabilityZone, '\"]')),basics('nullValue'))]"
+      },
       "sharedFilesystem": {
         "type": "[concat(if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs'),'-',steps('filesystem').shared.newexisting)]",
         "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),int(steps('filesystem').shared.nfscapacity),basics('nullValue'))]",
-        "anfServiceTier": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,basics('nullValue'))]",
+        "anfServiceLevel": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').shared.filertype,'anf'),int(steps('filesystem').shared.anfcapacity),basics('nullValue'))]",
         "anfFlexThroughputMiBps": "[if(and(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.anftier,'Flexible')),int(steps('filesystem').shared.anfFlexThroughput),basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,basics('nullValue'))]",
@@ -2589,7 +2787,7 @@
       },
       "additionalFilesystem": {
         "type": "[if(steps('filesystem').additionalCheck.checkbox,concat(steps('filesystem').additional.filertype,'-',steps('filesystem').additional.newexisting),'disabled')]",
-        "anfServiceTier": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,basics('nullValue'))]",
+        "anfServiceLevel": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').additional.filertype,'anf'),int(steps('filesystem').additional.anfcapacity),basics('nullValue'))]",
         "anfFlexThroughputMiBps": "[if(and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.anftier,'Flexible')),int(steps('filesystem').additional.anfFlexThroughput),basics('nullValue'))]",
         "lustreTier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,basics('nullValue'))]",
@@ -2607,8 +2805,8 @@
         "id": "[if(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.networkSelector.id,basics('nullValue'))]",
         "cyclecloudSubnet": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.ccsubnet)]",
         "computeSubnet": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.computesubnet)]",
-        "sharedFilerSubnet": "[if(equals(steps('filesystem').shared.filertype,'anf'),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.filersubnet1),basics('nullValue'))]",
-        "additionalFilerSubnet": "[if(and(steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new')),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.filersubnet2),basics('nullValue'))]",
+        "netappSubnet": "[if(or(equals(steps('filesystem').sched.filertype, 'anf'),equals(steps('filesystem').shared.filertype, 'anf'),equals(steps('filesystem').additional.filertype, 'anf')),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.netappSubnet),basics('nullValue'))]",
+        "lustreSubnet": "[if(and(steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new')),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.lustreSubnet),basics('nullValue'))]",
         "bastion": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.bastion,basics('nullValue'))]",
         "createNatGateway": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.natgateway,basics('nullValue'))]",
         "vnetToPeer": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,basics('nullValue'))]",
