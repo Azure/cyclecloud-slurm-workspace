@@ -37,7 +37,7 @@ UI_DEFINITION=${GIT_ROOT}/uidefinitions/createUiDefinition.json
 
 build_dir="${GIT_ROOT}/build"
 
-PYTHONPATH=util/ python3 util/build.py build --branch $BRANCH --build-dir "$build_dir" --ui-definition "$UI_DEFINITION"
+PYTHONPATH=util/ python3 util/build.py build --branch $BRANCH --build-dir "$build_dir" --ui-definition "$UI_DEFINITION" 2> >(grep -v BCP187 >&2)
 rm -rf .buildvenv
 python3 -m venv .buildvenv
 source .buildvenv/bin/activate
