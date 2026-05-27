@@ -2250,7 +2250,7 @@
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Deploy Open OnDemand",
                 "toolTip": "Deploy Open OnDemand alongside the Slurm cluster",
-                "defaultValue": true,
+                "defaultValue": false,
                 "constraints": {
                   "required": false
                 },
