@@ -374,19 +374,6 @@
         }
       },
       {
-        "name": "tenantId",
-        "type": "Microsoft.Common.TextBox",
-        "label": "Tenant ID",
-        "defaultValue": "",
-        "toolTip": "Tenant ID of the Entra ID application registration",
-        "constraints": {
-          "required": true,
-          "regex": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$",
-          "validationMessage": "Enter a valid tenant ID"
-        },
-        "visible": "[basics('enableEntra')]"
-      },
-      {
         "name": "clientId",
         "type": "Microsoft.Common.TextBox",
         "label": "Application (client) ID",
@@ -396,6 +383,19 @@
           "required": true,
           "regex": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$",
           "validationMessage": "Enter a valid client ID"
+        },
+        "visible": "[basics('enableEntra')]"
+      },
+      {
+        "name": "tenantId",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Tenant ID",
+        "defaultValue": "",
+        "toolTip": "Tenant ID of the Entra ID application registration",
+        "constraints": {
+          "required": true,
+          "regex": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$",
+          "validationMessage": "Enter a valid tenant ID"
         },
         "visible": "[basics('enableEntra')]"
       },
