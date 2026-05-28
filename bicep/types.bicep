@@ -9,7 +9,6 @@ type entra_enabled_t = {
   type: 'enabled'
   tenantId: string
   clientId: string
-  managedIdentityId: string
 }
 
 @discriminator('type')
