@@ -43,7 +43,7 @@ param insidersBuild bool = false
 // build.sh will override this, but for development please set this yourself as a parameter
 param branch string = 'main'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
-param projectVersion string = '2026.05.22'
+param projectVersion string = '2026.06.02'
 // Must be updated with each Open OnDemand release
 param oodProjectVersion string = '1.1.5'
 //Internal developer use only: set true use custom CycleCloud release build 
