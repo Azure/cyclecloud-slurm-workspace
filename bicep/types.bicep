@@ -321,7 +321,6 @@ type ood_enabled_t = {
   startCluster: bool
   sku: string
   osImage: string
-  userDomain: string
   fqdn: string?
   registerEntraIDApp: bool
   appId: string?
