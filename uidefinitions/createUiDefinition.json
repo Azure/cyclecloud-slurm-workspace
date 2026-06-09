@@ -2401,19 +2401,6 @@
                 "visible": "[equals(steps('ood').OODSection.ImageName,'custom')]"
               },
               {
-                "name": "userDomain",
-                "type": "Microsoft.Common.TextBox",
-                "label": "User domain",
-                "defaultValue": "contoso.com",
-                "toolTip": "Domain of user email addresses or the LUA expression [%w%.%-]+ for all domains of the email addresses provided by the OIDC token",
-                "constraints": {
-                  "required": true,
-                  "regex": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\\.[A-Za-z]{2,}$|^\\[%w%\\.%-\\]\\+$",
-                  "validationMessage": "Enter either a single valid domain name or the LUA expression [%w%.%-]+ to use all domains of the email addresses provided by the OIDC token"
-                },
-                "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]"
-              },
-              {
                 "name": "fqdn",
                 "type": "Microsoft.Common.TextBox",
                 "label": "FQDN or IP",
@@ -2864,7 +2851,6 @@
         "startCluster": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),if(not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),steps('ood').OODSection.startCluster,false),basics('nullValue'))]",
         "sku": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),steps('ood').OODSection.vmsize,basics('nullValue'))]",
         "osImage": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),if(equals(steps('ood').OODSection.ImageName,'custom'),steps('ood').OODSection.customImageName,steps('ood').OODSection.ImageName),basics('nullValue'))]",
-        "userDomain": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),steps('ood').OODSection.userDomain,basics('nullValue'))]",
         "fqdn": "[if(not(equals(steps('ood').OODSection.fqdn,'')),steps('ood').OODSection.fqdn,basics('nullValue'))]",
         "registerEntraIDApp": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),equals(steps('ood').OODSection.registerEntraIDApp,'autoregister'),basics('nullValue'))]",
         "appTenantId": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),basics('tenantId'),basics('nullValue'))]",
