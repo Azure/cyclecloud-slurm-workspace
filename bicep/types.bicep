@@ -338,8 +338,10 @@ type monitoring_disabled_t = {
 
 type monitoring_enabled_t = {
   type: 'enabled'
+  monitorWorkspaceId: string
   ingestionEndpoint: string
   dcrId: string
+  grafanaId: string
 }
 
 @export()

@@ -436,6 +436,24 @@ if [ $ENABLE_ENTRA_AUTH == true ]; then
     echo "CycleCloud CLI initialization with Entra ID successful"
 fi
 
+# add Slurm dashboards to Azure Managed Grafana
+if [ $(jq -r .monitoring.value.type ccwOutputs.json) == 'enabled' ]; then
+    GRAFANA_NAME=$(jq -r '.monitoring.value.grafanaName' ccwOutputs.json)
+    MONITORING_RESOURCE_GROUP=$(jq -r '.monitoring.value.grafanaResourceGroup' ccwOutputs.json)
+    MONITORING_PROJECT_VERSION=$(/opt/cycle_server/./cycle_server execute --format json 'select * from Cloud.Project where Name=="monitoring" order by Version desc limit 1' | jq -r '.[0].Version')
+    EXTRACTED_DIR="cyclecloud-monitoring-${MONITORING_PROJECT_VERSION}"
+    MONITORING_TARBALL="${EXTRACTED_DIR}.tar.gz"
+    curl --fail --location --silent --show-error -o "${MONITORING_TARBALL}" "https://github.com/Azure/cyclecloud-monitoring/archive/refs/tags/${MONITORING_PROJECT_VERSION}.tar.gz"
+    tar -xzf "${MONITORING_TARBALL}"
+    pushd "${EXTRACTED_DIR}/infra"
+    echo "Adding Slurm dashboards to Grafana instance ${GRAFANA_NAME} in resource group ${MONITORING_RESOURCE_GROUP}"
+    az config set extension.use_dynamic_install=yes_without_prompt
+    ./add_dashboards.sh "$MONITORING_RESOURCE_GROUP" "$GRAFANA_NAME" --slurm
+    popd
+    rm -rf "${EXTRACTED_DIR}"
+    rm -rf "${MONITORING_TARBALL}"
+fi
+
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)
 popd
 
