@@ -176,14 +176,25 @@ module ccwRoleAssignments './vmRoleAssignments.bicep' = if (!infrastructureOnly)
   }
 }
 
-var monitoringRoleAssignmentScope = monitoring.type == 'enabled' ? split(monitoring.monitorWorkspaceId, '/')[4] : resourceGroup
-module ccwMonitoringRoleAssignments './vmMonitoringRoleAssignments.bicep' = if (!infrastructureOnly) {
-  name: 'ccwRoleFor-${ccVMName}-${location}'
-  scope: az.resourceGroup(monitoringRoleAssignmentScope)
+var monitorWorkspaceRoleAssignmentScope = monitoring.type == 'enabled' ? split(monitoring.monitorWorkspaceId, '/')[4] : resourceGroup
+module ccwMonitorWorkspaceRoleAssignment './vmMonitoringRoleAssignments.bicep' = if (!infrastructureOnly) {
+  name: 'ccwMonitorWorkspaceRoleFor-${ccVMName}'
+  scope: az.resourceGroup(monitorWorkspaceRoleAssignmentScope)
+  params: {
+    roles: [
+      'Monitoring Metrics Publisher'
+    ]
+    principalId: ccwVM!.outputs.principalId
+  }
+}
+
+var managedGrafanaRoleAssignmentScope = monitoring.type == 'enabled' ? split(monitoring.grafanaId, '/')[4] : resourceGroup
+module ccwManagedGrafanaRoleAssignment './vmMonitoringRoleAssignments.bicep' = if (!infrastructureOnly) {
+  name: 'ccwManagedGrafanaRoleFor-${ccVMName}'
+  scope: az.resourceGroup(managedGrafanaRoleAssignmentScope)
   params: {
     roles: [
       'Grafana Admin'
-      'Monitoring Metrics Publisher'
     ]
     principalId: ccwVM!.outputs.principalId
   }
