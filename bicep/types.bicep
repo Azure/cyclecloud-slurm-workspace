@@ -134,8 +134,7 @@ type filerInfo_t = {
 
 type peered_vnet_t = {
   id: string
-  location: string
-  name: string
+  allowGatewayTransit: bool
 }
 
 type vnet_autocreate_t = {
