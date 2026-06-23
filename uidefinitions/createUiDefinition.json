@@ -1556,7 +1556,7 @@
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
                 "defaultValue": "Ubuntu 24.04",
-                "toolTip": "Select the image to use for the Login Nodes",
+                "toolTip": "Select the image to use for the scheduler node",
                 "constraints": {
                   "allowedValues": [
                     {
@@ -1784,7 +1784,7 @@
                 "name": "vmsize",
                 "type": "Microsoft.Compute.SizeSelector",
                 "label": "Size",
-                "toolTip": "Select a VM Size for the Login nodes",
+                "toolTip": "Select a VM Size for the login nodes",
                 "recommendedSizes": [
                   "Standard_F4s_v2"
                 ],
@@ -1801,7 +1801,7 @@
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
                 "defaultValue": "Ubuntu 24.04",
-                "toolTip": "Select the image to use for the Login Nodes",
+                "toolTip": "Select the image to use for the login nodes",
                 "constraints": {
                   "allowedValues": [
                     {
