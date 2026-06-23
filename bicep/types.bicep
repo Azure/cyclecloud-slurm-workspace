@@ -267,12 +267,19 @@ type partitions_t = {
   gpu: hpc_t //if any property becomes optional, create a *_output_t type
 }
 
-@export()
-type storedKey_t = {
-  id: string
-  location: string
-  name: string
+type publicKey_entered_t = {
+  type: 'entered'
+  value: string
 }
+
+type publicKey_stored_t = {
+  type: 'stored'
+  id: string
+}
+
+@export()
+@discriminator('type')
+type publicKey_t = publicKey_entered_t | publicKey_stored_t
 
 type db_none_t = {
   type: 'disabled'
