@@ -12,8 +12,7 @@ param oodProjectVersion string
 param adminUsername string
 @secure()
 param adminPassword string
-param adminSshPublicKey string
-param storedKey types.storedKey_t
+param key types.publicKey_t
 param ccVMName string
 param ccVMSize string
 param cyclecloudBaseImage string
@@ -45,14 +44,14 @@ var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netd
 
 func getTags(resource_type string, tags types.resource_tags_t) types.tags_t => tags[?resource_type] ?? {}
 
-var useEnteredKey = adminSshPublicKey != ''
-module ccwPublicKey './publicKey.bicep' = if (!useEnteredKey && !infrastructureOnly) {
+var useStoredKey = key.type == 'stored'
+module ccwPublicKey './publicKey.bicep' = if (!infrastructureOnly && useStoredKey) {
   name: 'ccwPublicKey'
   params: {
-    storedKey: storedKey
+    storedKeyId: key.?id ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
   }
 }
-var publicKey = infrastructureOnly ? '' : (useEnteredKey ? adminSshPublicKey : ccwPublicKey!.outputs.publicKey)
+var publicKey = infrastructureOnly ? '' : (useStoredKey ? ccwPublicKey!.outputs.publicKey : key.value)
 
 var createNatGateway = network.?createNatGateway ?? false
 module natgateway './natgateway.bicep' = if (createNatGateway) {
