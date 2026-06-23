@@ -51,7 +51,7 @@ module ccwPublicKey './publicKey.bicep' = if (!infrastructureOnly && useStoredKe
     storedKeyId: key.?id ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
   }
 }
-var publicKey = infrastructureOnly ? '' : (useStoredKey ? ccwPublicKey!.outputs.publicKey : key.value)
+var publicKey = infrastructureOnly ? '' : (useStoredKey ? ccwPublicKey!.outputs.publicKey : (key.?value ?? ''))
 
 var createNatGateway = network.?createNatGateway ?? false
 module natgateway './natgateway.bicep' = if (createNatGateway) {
