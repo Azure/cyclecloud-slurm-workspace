@@ -1680,7 +1680,7 @@
                 },
                 "toolTip": "Password for the Slurm accounting database admin user",
                 "constraints": {
-                  "required": "[not(equals(basics('publicKeySource'),1))]",
+                  "required": true,
                   "regex": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_\\-+=[\\]{}|\\\\:'\",.?`~\";]).{8,123}$",
                   "validationMessage": "Your password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character (@ # $ % ^ & * - _ ! + = [ ] { } | \\ : ' , . ? ` ~ \" ( ) ; )"
                 },
