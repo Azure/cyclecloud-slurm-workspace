@@ -323,7 +323,7 @@ resource ccw_to_peer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2
   properties: {
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: false
-    useRemoteGateways: network.?vnetToPeer.?allowGatewayTransit ?? false
+    useRemoteGateways: network.?vnetToPeer.allowGatewayTransit ?? false
     remoteVirtualNetwork: {
       id: peeredVnetId
     }
