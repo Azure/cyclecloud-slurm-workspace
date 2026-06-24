@@ -170,7 +170,30 @@ module ccwRoleAssignments './vmRoleAssignments.bicep' = if (!infrastructureOnly)
       'Contributor'
       'Storage Account Contributor'
       'Storage Blob Data Contributor'
+    ]
+    principalId: ccwVM!.outputs.principalId
+  }
+}
+
+var monitorWorkspaceRoleAssignmentScope = monitoring.type == 'enabled' ? split(monitoring.monitorWorkspaceId, '/')[4] : resourceGroup
+module ccwMonitorWorkspaceRoleAssignment './vmMonitoringRoleAssignments.bicep' = if (!infrastructureOnly) {
+  name: 'ccwMonitorWorkspaceRoleFor-${ccVMName}'
+  scope: az.resourceGroup(monitorWorkspaceRoleAssignmentScope)
+  params: {
+    roles: [
       'Monitoring Metrics Publisher'
+    ]
+    principalId: ccwVM!.outputs.principalId
+  }
+}
+
+var managedGrafanaRoleAssignmentScope = monitoring.type == 'enabled' ? split(monitoring.grafanaId, '/')[4] : resourceGroup
+module ccwManagedGrafanaRoleAssignment './vmMonitoringRoleAssignments.bicep' = if (!infrastructureOnly) {
+  name: 'ccwManagedGrafanaRoleFor-${ccVMName}'
+  scope: az.resourceGroup(managedGrafanaRoleAssignmentScope)
+  params: {
+    roles: [
+      'Grafana Admin'
     ]
     principalId: ccwVM!.outputs.principalId
   }
@@ -399,9 +422,11 @@ output oodManualRegistration object = {
 }
 
 output monitoring object = {
-  enabled: monitoring.type == 'enabled'
+  type: monitoring.type
   ingestionEndpoint: monitoring.type == 'enabled' ? monitoring.ingestionEndpoint : ''
   managedIdentityClientId: monitoring.type == 'enabled' ? ccwManagedIdentity!.outputs.managedIdentityClientId : ''
+  grafanaName: monitoring.type == 'enabled' ? split(monitoring.grafanaId, '/')[8] : ''
+  grafanaResourceGroup: monitoring.type == 'enabled' ? split(monitoring.grafanaId, '/')[4] : ''
 }
 
 output files object = {

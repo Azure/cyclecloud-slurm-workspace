@@ -2640,7 +2640,7 @@
               }
             ]
           },
-                    {
+          {
             "name": "monitoringSection",
             "type": "Microsoft.Common.Section",
             "label": "Monitoring",
@@ -2650,7 +2650,7 @@
                 "type": "Microsoft.Common.TextBlock",
                 "visible": true,
                 "options": {
-                  "text": "Optionally deploy monitoring agents & sidecars with an ingestion endpoint for data collection authorization."
+                  "text": "Optionally deploy monitoring agents & sidecars with an ingestion endpoint for data collection authorization. This solution will add the latest version of project dashboards to the Azure Managed Grafana instance selected below."
                 }
               },
               {
@@ -2673,39 +2673,46 @@
                 }
               },
               {
-                "name": "monitoringIngestionEndpoint",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Monitoring ingestion endpoint",
-                "toolTip": "Ingestion endpoint URL for Azure Monitor workspace",
+                "name": "monitorWorkspaceSelector",
+                "type": "Microsoft.Solutions.ResourceSelector",
+                "label": "Select Azure Monitor workspace",
+                "toolTip": "Select the Azure Monitor workspace instance to link for data collection",
+                "resourceType": "Microsoft.Monitor/accounts",
+                "options": {
+                  "filter": {
+                    "subscription": "onBasics"
+                  }
+                },
                 "constraints": {
-                  "required": true,
-                  "validations": [
-                    {
-                      "regex": "^https?:\\/\\/[^\\/]+\\.[^\\/]+\\.metrics\\.ingest\\.monitor\\.azure\\.(com|us)\\/dataCollectionRules\\/[^\\/]+\\/streams\\/Microsoft-PrometheusMetrics\\/api\\/v1\\/write\\?api-version=\\d{4}-\\d{2}-\\d{2}$",
-                      "message": "Must be a valid monitoring ingestion endpoint URL"
-                    }
-                  ]
+                  "required": true
                 },
                 "visible": "[steps('advancedSettings').monitoringSection.monitoringEnabled]"
               },
               {
-                "name": "dataCollectionRule",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Data collection rules",
-                "toolTip": "Resource ID of the data collection rule for the Azure Monitor workspace instance",
+                "name": "monitorWorkspaceArmApi",
+                "type": "Microsoft.Solutions.ArmApiControl",
+                "request": {
+                  "method": "GET",
+                  "path": "[concat(steps('advancedSettings').monitoringSection.monitorWorkspaceSelector.id,'?api-version=2025-10-03')]"
+                }
+              },
+              {
+                "name": "managedGrafanaSelector",
+                "type": "Microsoft.Solutions.ResourceSelector",
+                "label": "Select Azure Managed Grafana",
+                "toolTip": "Select the Azure Managed Grafana instance to which to add Slurm dashboards",
+                "resourceType": "Microsoft.Dashboard/grafana",
+                "options": {
+                  "filter": {
+                    "subscription": "onBasics"
+                  }
+                },
                 "constraints": {
-                  "required": true,
-                  "validations": [
-                    {
-                      "regex": "^/subscriptions/[0-9a-fA-F-]{36}/resourceGroups/[A-Za-z0-9_-]+/providers/Microsoft\\.Insights/dataCollectionRules/[A-Za-z0-9_-]+$",
-                      "message": "Must be a valid data collection rule resource ID"
-                    }
-                  ]
+                  "required": true
                 },
                 "visible": "[steps('advancedSettings').monitoringSection.monitoringEnabled]"
               }
-            ],
-            "visible": true
+            ]
           }
         ]
       },
@@ -2862,8 +2869,10 @@
       },
       "monitoring": {
         "type": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,'enabled','disabled')]",
-        "ingestionEndpoint": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,steps('advancedSettings').monitoringSection.monitoringIngestionEndpoint,basics('nullValue'))]",
-        "dcrId": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,steps('advancedSettings').monitoringSection.dataCollectionRule,basics('nullValue'))]"
+        "monitorWorkspaceId": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,steps('advancedSettings').monitoringSection.monitorWorkspaceSelector.id,basics('nullValue'))]",
+        "ingestionEndpoint": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,concat(steps('advancedSettings').monitoringSection.monitorWorkspaceArmApi.properties.defaultIngestionSettings.ingestionEndpoints.metrics,'/dataCollectionRules/',steps('advancedSettings').monitoringSection.monitorWorkspaceArmApi.properties.defaultIngestionSettings.dataCollectionRuleImmutableId,'/streams/Microsoft-PrometheusMetrics/api/v1/write?api-version=2023-04-24'),basics('nullValue'))]",
+        "dcrId": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,steps('advancedSettings').monitoringSection.monitorWorkspaceArmApi.properties.defaultIngestionSettings.dataCollectionRuleResourceId,basics('nullValue'))]",
+        "grafanaId": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,steps('advancedSettings').monitoringSection.managedGrafanaSelector.id,basics('nullValue'))]"
       },
       "tags": "[steps('tags').tagsByResource]"
     }
