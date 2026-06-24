@@ -485,7 +485,7 @@
                 }
               },
               {
-                "name": "anftier",
+                "name": "anfServiceLevel",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Service Level",
                 "defaultValue": "Premium (64 MiB/s per TiB)",
@@ -541,7 +541,7 @@
                 "constraints": {
                   "required": true
                 },
-                "visible": "[and(equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.newexisting,'new'),equals(steps('filesystem').sched.anftier,'Flexible'))]"
+                "visible": "[and(equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.newexisting,'new'),equals(steps('filesystem').sched.anfServiceLevel,'Flexible'))]"
               },
               {
                 "name": "nfscapacity",
@@ -670,7 +670,7 @@
                 }
               },
               {
-                "name": "anftier",
+                "name": "anfServiceLevel",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Service Level",
                 "defaultValue": "Premium (64 MiB/s per TiB)",
@@ -726,7 +726,7 @@
                 "constraints": {
                   "required": true
                 },
-                "visible": "[and(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.anftier,'Flexible'))]"
+                "visible": "[and(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.anfServiceLevel,'Flexible'))]"
               },
               {
                 "name": "nfscapacity",
@@ -881,7 +881,7 @@
                 }
               },
               {
-                "name": "anftier",
+                "name": "anfServiceLevel",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Service Level",
                 "defaultValue": "Premium (64 MiB/s per TiB)",
@@ -937,7 +937,7 @@
                 "constraints": {
                   "required": true
                 },
-                "visible": "[and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('filesystem').additional.anftier,'Flexible'))]"
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('filesystem').additional.anfServiceLevel,'Flexible'))]"
               },
               {
                 "name": "lustretier",
@@ -1556,7 +1556,7 @@
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
                 "defaultValue": "Ubuntu 24.04",
-                "toolTip": "Select the image to use for the Login Nodes",
+                "toolTip": "Select the image to use for the scheduler node",
                 "constraints": {
                   "allowedValues": [
                     {
@@ -1784,7 +1784,7 @@
                 "name": "vmsize",
                 "type": "Microsoft.Compute.SizeSelector",
                 "label": "Size",
-                "toolTip": "Select a VM Size for the Login nodes",
+                "toolTip": "Select a VM Size for the login nodes",
                 "recommendedSizes": [
                   "Standard_F4s_v2"
                 ],
@@ -1801,7 +1801,7 @@
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
                 "defaultValue": "Ubuntu 24.04",
-                "toolTip": "Select the image to use for the Login Nodes",
+                "toolTip": "Select the image to use for the login nodes",
                 "constraints": {
                   "allowedValues": [
                     {
@@ -2751,9 +2751,9 @@
       "schedFilesystem": {
         "type": "[concat(if(equals(steps('filesystem').sched.newexisting,'new'),steps('filesystem').sched.filertype,'nfs'),'-',steps('filesystem').sched.newexisting)]",
         "nfsCapacityInGb": "[if(equals(steps('filesystem').sched.filertype,'nfs'),int(steps('filesystem').sched.nfscapacity),basics('nullValue'))]",
-        "anfServiceLevel": "[if(equals(steps('filesystem').sched.filertype,'anf'),steps('filesystem').sched.anftier,basics('nullValue'))]",
+        "anfServiceLevel": "[if(equals(steps('filesystem').sched.filertype,'anf'),steps('filesystem').sched.anfServiceLevel,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').sched.filertype,'anf'),int(steps('filesystem').sched.anfcapacity),basics('nullValue'))]",
-        "anfFlexThroughputMiBps": "[if(and(equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.anftier,'Flexible')),int(steps('filesystem').sched.anfFlexThroughput),basics('nullValue'))]",
+        "anfFlexThroughputMiBps": "[if(and(equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.anfServiceLevel,'Flexible')),int(steps('filesystem').sched.anfFlexThroughput),basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').sched.newexisting,'existing'),steps('filesystem').sched.ipAddress,basics('nullValue'))]",
         "exportPath": "[if(equals(steps('filesystem').sched.newexisting,'existing'),steps('filesystem').sched.exportPath,basics('nullValue'))]",
         "mountOptions": "[if(equals(steps('filesystem').sched.newexisting,'existing'),steps('filesystem').sched.mountOptions,basics('nullValue'))]",
@@ -2762,9 +2762,9 @@
       "sharedFilesystem": {
         "type": "[concat(if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs'),'-',steps('filesystem').shared.newexisting)]",
         "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),int(steps('filesystem').shared.nfscapacity),basics('nullValue'))]",
-        "anfServiceLevel": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,basics('nullValue'))]",
+        "anfServiceLevel": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anfServiceLevel,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').shared.filertype,'anf'),int(steps('filesystem').shared.anfcapacity),basics('nullValue'))]",
-        "anfFlexThroughputMiBps": "[if(and(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.anftier,'Flexible')),int(steps('filesystem').shared.anfFlexThroughput),basics('nullValue'))]",
+        "anfFlexThroughputMiBps": "[if(and(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.anfServiceLevel,'Flexible')),int(steps('filesystem').shared.anfFlexThroughput),basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,basics('nullValue'))]",
         "exportPath": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,basics('nullValue'))]",
         "mountOptions": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.mountOptions,basics('nullValue'))]",
@@ -2772,9 +2772,9 @@
       },
       "additionalFilesystem": {
         "type": "[if(steps('filesystem').additionalCheck.checkbox,concat(steps('filesystem').additional.filertype,'-',steps('filesystem').additional.newexisting),'disabled')]",
-        "anfServiceLevel": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,basics('nullValue'))]",
+        "anfServiceLevel": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anfServiceLevel,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').additional.filertype,'anf'),int(steps('filesystem').additional.anfcapacity),basics('nullValue'))]",
-        "anfFlexThroughputMiBps": "[if(and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.anftier,'Flexible')),int(steps('filesystem').additional.anfFlexThroughput),basics('nullValue'))]",
+        "anfFlexThroughputMiBps": "[if(and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.anfServiceLevel,'Flexible')),int(steps('filesystem').additional.anfFlexThroughput),basics('nullValue'))]",
         "lustreTier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,basics('nullValue'))]",
         "lustreCapacityInTib": "[if(equals(steps('filesystem').additional.filertype,'aml'),int(steps('filesystem').additional.azurelustrecapacity),basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').additional.newexisting,'existing'),if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.ipAddressAml,steps('filesystem').additional.ipAddressNfs),basics('nullValue'))]",
