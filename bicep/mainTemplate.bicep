@@ -5,8 +5,7 @@ param location string
 param adminUsername string
 @secure()
 param adminPassword string
-param adminSshPublicKey string = '' 
-param storedKey types.storedKey_t = {id: 'foo', location: 'foo', name:'foo'}
+param key types.publicKey_t
 @minLength(1)
 @maxLength(64)
 param ccVMName string
@@ -64,7 +63,7 @@ module makeCCWresources 'ccw.bicep' = {
     insidersBuild: insidersBuild
     adminUsername: adminUsername
     adminPassword: adminPassword
-    adminSshPublicKey: adminSshPublicKey
+    key: key
     entraIdInfo: entraIdInfo
     schedFilesystem: schedFilesystem
     sharedFilesystem: sharedFilesystem
@@ -78,7 +77,6 @@ module makeCCWresources 'ccw.bicep' = {
     htc: htc
     hpc: hpc
     gpu: gpu
-    storedKey: storedKey
     ccVMName: ccVMName
     ccVMSize: ccVMSize
     cyclecloudBaseImage: cyclecloudBaseImage
