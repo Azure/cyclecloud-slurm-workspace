@@ -1618,14 +1618,14 @@
                 "name": "slurmVersion",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Slurm Version",
-                "defaultValue": "25.11.4",
+                "defaultValue": "25.11.5",
                 "toolTip": "Select the version of Slurm to use",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "25.11.4",
-                      "description": "Version 25.11.4",
-                      "value": "25.11.4"
+                      "label": "25.11.5",
+                      "description": "Version 25.11.5",
+                      "value": "25.11.5"
                     }
                   ],
                   "required": true
