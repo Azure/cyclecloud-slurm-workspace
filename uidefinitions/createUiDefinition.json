@@ -591,7 +591,7 @@
                 "name": "mountOptions",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Mount options",
-                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev",
+                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8",
                 "toolTip": "Mount options for the primary filer",
                 "constraints": {
                   "required": false,
@@ -776,7 +776,7 @@
                 "name": "mountOptions",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Mount options",
-                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev",
+                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8",
                 "toolTip": "Mount options for the primary filer",
                 "constraints": {
                   "required": false,
@@ -1049,7 +1049,7 @@
                 "name": "mountOptionsNfs",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Mount options",
-                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev",
+                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8",
                 "toolTip": "Mount options for the additional filer",
                 "constraints": {
                   "required": false,
