@@ -86,8 +86,8 @@ var subnets = create_new_vnet
   : {
       cyclecloud: join([network.?id, 'subnets', network.?cyclecloudSubnet], '/') 
       compute: join([network.?id, 'subnets', network.?computeSubnet], '/') 
-      home: join([network.?id, 'subnets', network.?sharedFilerSubnet ?? 'null'], '/') 
-      additional: join([network.?id, 'subnets', network.?additionalFilerSubnet ?? 'null'], '/') 
+      netapp: join([network.?id, 'subnets', network.?netappSubnet ?? 'null'], '/') 
+      lustre: join([network.?id, 'subnets', network.?lustreSubnet ?? 'null'], '/') 
     }
 
 var existingNetworkId = network.?id ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
