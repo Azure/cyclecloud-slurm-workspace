@@ -10,7 +10,7 @@ param key types.publicKey_t
 @maxLength(64)
 param ccVMName string
 param ccVMSize string
-param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.9.020260513'
+param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.9.120260630'
 param resourceGroup string
 param entraIdInfo types.entra_t = { type: 'disabled' }
 param schedFilesystem types.schedFilesystem_t
