@@ -103,7 +103,7 @@
         "type": "Microsoft.Common.TextBox",
         "label": "CycleCloud VM Name",
         "defaultValue": "ccw-cyclecloud-vm",
-        "toolTip": "Name for the CycleCloud VM",
+        "toolTip": "Name for the CycleCloud VM, must be unique per DNS zone",
         "constraints": {
           "required": true,
           "validations": [
@@ -1453,6 +1453,31 @@
             "label": "Cluster Configuration",
             "elements": [
               {
+                "name": "clusterName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Cluster name",
+                "defaultValue": "ccw",
+                "toolTip": "Cluster name must be unique per DNS zone",
+                "constraints": {
+                  "required": true,
+                  "validations": [
+                    {
+                      "regex": "^.{3,50}$",
+                      "message": "Cluster name must be at least 3 and no more than 50 characters long."
+                    },
+                    {
+                      "regex": "^[a-z0-9-]+$",
+                      "message": "Cluster name may only contain lowercase alphanumeric characters or -."
+                    },
+                    {
+                      "regex": "^[a-z0-9]{2}.*[a-z0-9]$",
+                      "message": "The first two and last characters of the cluster name must be lowercase alphanumeric."
+                    }
+                  ]
+                },
+                "visible": true
+              },
+              {
                 "name": "startClusterInfo",
                 "type": "Microsoft.Common.InfoBox",
                 "visible": "[steps('scheduler').clusterSettings.startCluster]",
@@ -1490,19 +1515,6 @@
                 "constraints": {
                   "required": false
                 }
-              },
-              {
-                "name": "clusterName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Cluster name",
-                "defaultValue": "ccw",
-                "toolTip": "Name of cluster in CycleCloud portal",
-                "constraints": {
-                  "required": true,
-                  "regex": "^[a-zA-Z0-9@_-]{3,}$",
-                  "validationMessage": "Cluster name must be at least 3 characters long. Characters must be alphanumeric, @, -, or _."
-                },
-                "visible": false
               }
             ],
             "visible": true
