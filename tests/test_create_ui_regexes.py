@@ -98,6 +98,65 @@ def test_vm_name_regex_rejects_invalid_names():
         assert not _vm_fullmatch(value), f"expected VM regexes to reject invalid name: {value!r}"
 
 
+def _load_cluster_name_regexes() -> list[str]:
+    """Return the list of cluster name regexes from createUiDefinition.json."""
+    path = Path(__file__).resolve().parent.parent / "uidefinitions" / "createUiDefinition.json"
+    with path.open() as f:
+        data = json.load(f)
+
+    for step in data.get("parameters", {}).get("steps", []):
+        if step.get("name") == "scheduler":
+            for element in step.get("elements", []):
+                if element.get("name") == "clusterSettings":
+                    for sub in element.get("elements", []):
+                        if isinstance(sub, dict) and sub.get("name") == "clusterName":
+                            return [
+                                v.get("regex")
+                                for v in sub.get("constraints", {}).get("validations", [])
+                                if v.get("regex")
+                            ]
+    raise KeyError("clusterName validation regexes not found in createUiDefinition.json")
+
+
+def _cluster_name_fullmatch(name: str) -> bool:
+    """Check a cluster name against all cluster name regexes."""
+    return all(re.fullmatch(regex, name) for regex in _load_cluster_name_regexes())
+
+
+def test_cluster_name_regex_allows_valid_names():
+    valid = [
+        "abc",
+        "cluster-1",
+        "123",
+        "ab-c",
+        "a1-cluster-9z",
+        "a" * 50,
+    ]
+    for value in valid:
+        assert _cluster_name_fullmatch(value), f"expected cluster name regexes to accept: {value!r}"
+
+
+def test_cluster_name_regex_rejects_invalid_names():
+    invalid = [
+        "",  # empty
+        "ab",  # too short (min 3)
+        "a",  # too short
+        "cluster_name",  # underscore not allowed
+        "cluster.name",  # period not allowed
+        "my cluster",  # space not allowed
+        "-cluster",  # leading dash not allowed
+        "cluster-",  # trailing dash not allowed
+        ".cluster",  # leading period not allowed
+        "cluster.",  # trailing period not allowed
+        "clus/ter",  # slash not allowed
+        "Cluster",  # uppercase not allowed
+        "a-b",  # second char is dash (first two must be alphanumeric)
+        "a" * 51,  # exceeds max length of 50
+    ]
+    for value in invalid:
+        assert not _cluster_name_fullmatch(value), f"expected cluster name regexes to reject: {value!r}"
+
+
 def _load_ood_fqdn_regex() -> str:
     """Return the OOD FQDN/IP regex from createUiDefinition.json."""
     path = Path(__file__).resolve().parent.parent / "uidefinitions" / "createUiDefinition.json"
