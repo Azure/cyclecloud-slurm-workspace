@@ -17,7 +17,8 @@ validate_slurm_version() {
     fi
 
     # Now make sure that our default Slurm version matches the latest cyclecloud-slurm release.
-    EXPECTED_SLURM_VERSION=$(curl -fsSL "https://raw.githubusercontent.com/Azure/cyclecloud-slurm/$SLURM_RELEASE_TAG/templates/slurm.txt" | awk '/parameter configuration_slurm_version/{in_param=1} in_param && /DefaultValue/{gsub(/"/, "", $3); print $3; exit}')
+    SLURM_TEMPLATE=$(curl -fsSL "https://raw.githubusercontent.com/Azure/cyclecloud-slurm/$SLURM_RELEASE_TAG/templates/slurm.txt")
+    EXPECTED_SLURM_VERSION=$(echo "$SLURM_TEMPLATE" | awk '/parameter configuration_slurm_version/{in_param=1} in_param && /DefaultValue/{gsub(/"/, "", $3); print $3; exit}')
     ACTUAL_SLURM_VERSION=$(jq -er 'first(.. | objects | select(.name? == "slurmVersion" and .type? == "Microsoft.Common.DropDown") | .defaultValue)' uidefinitions/createUiDefinition.json)
     if [ "$EXPECTED_SLURM_VERSION" != "$ACTUAL_SLURM_VERSION" ]; then
         echo "Expected Slurm version $EXPECTED_SLURM_VERSION from cyclecloud-slurm tag $SLURM_RELEASE_TAG does not match actual Slurm version $ACTUAL_SLURM_VERSION in createUiDefinition.json"
