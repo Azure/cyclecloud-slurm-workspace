@@ -26,7 +26,26 @@ validate_slurm_version() {
     grep -q "$EXPECTED_SLURM_VERSION" bicep/files-to-load/initial_params.json || (echo "Expected Slurm version $EXPECTED_SLURM_VERSION does not match actual Slurm version in bicep/files-to-load/initial_params.json"; exit 1)
 }
 
+validate_monitoring_version() {
+    # Make sure that cyclecloud-monitoring has set the latest release as GA.
+    LATEST_MONITORING_RELEASE_JSON=$(curl -fsSL https://api.github.com/repos/Azure/cyclecloud-monitoring/releases | jq -e '.[0]')
+    MONITORING_RELEASE_TAG=$(echo "$LATEST_MONITORING_RELEASE_JSON" | jq -er '.tag_name')
+    IS_PRERELEASE=$(echo "$LATEST_MONITORING_RELEASE_JSON" | jq -r '.prerelease')
+    IS_DRAFT=$(echo "$LATEST_MONITORING_RELEASE_JSON" | jq -r '.draft')
+    if [ "$IS_PRERELEASE" != "false" ] || [ "$IS_DRAFT" != "false" ]; then
+        echo "Latest cyclecloud-monitoring release is not GA. tag=$MONITORING_RELEASE_TAG prerelease=$IS_PRERELEASE draft=$IS_DRAFT"
+        exit 1
+    fi
+
+    ACTUAL_MONITORING_TAG=$(jq -er 'first(.. | objects | select(.name? == "monitoringInstructions") | .options.uri)' uidefinitions/createUiDefinition.json | sed -n 's|.*/blob/\([^/]*\)/.*|\1|p')
+    if [ "$MONITORING_RELEASE_TAG" != "$ACTUAL_MONITORING_TAG" ]; then
+        echo "Expected cyclecloud-monitoring tag $MONITORING_RELEASE_TAG does not match actual tag $ACTUAL_MONITORING_TAG in createUiDefinition.json"
+        exit 1
+    fi
+}
+
 validate_slurm_version
+validate_monitoring_version
 
 version=$1
 git fetch origin --tags --force
