@@ -2681,7 +2681,7 @@
                 "visible": "[steps('advancedSettings').monitoringSection.monitoringEnabled]",
                 "options": {
                   "text": "Review the linked document to learn how to create the monitoring infrastructure suitable for Azure CycleCloud.",
-                  "uri": "https://github.com/Azure/cyclecloud-monitoring/blob/1.0.4/README.md"
+                  "uri": "https://github.com/Azure/cyclecloud-monitoring/blob/1.0.8/README.md"
                 }
               },
               {
