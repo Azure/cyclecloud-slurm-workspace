@@ -89,6 +89,13 @@ def set_slurm_params(params, dbPassword, outputs):
     params['UseBuiltinShared'] = outputs['filerInfoFinal']['value']['home']['type'] == 'nfs-new' 
     if params['UseBuiltinShared']:
         params['FilesystemSize'] = outputs['filerInfoFinal']['value']['home']['nfsCapacityInGb']
+        # The built-in home filer is hosted on the scheduler node itself, rather
+        # than on a dedicated filer resource, so there is no ipAddress output to
+        # read here. Use the scheduler node's actual hostname instead (CycleCloud's
+        # default node naming convention is "<ClusterName>-<NodeName>"), so that
+        # consumers such as OOD (see set_ood_params) get an address that Azure's
+        # default VNet DNS actually resolves.
+        params['NFSAddress'] = f"{outputs['clusterName']['value']}-scheduler"
     else:
         params['NFSType'] = 'nfs' if outputs['filerInfoFinal']['value']['home']['type'] in ['nfs-existing','anf-new'] else 'lustre'
         # We no longer need to handle these differently based on the fs type, as each
@@ -115,7 +122,7 @@ def set_ood_params(params, outputs):
     slurm_params = get_json_dict('initial_params.json')
     # We want to essentially inherit certain settings from the slurm cluster.
     set_slurm_params(slurm_params, "", outputs)
-    params['NFSAddress'] = slurm_params.get('NFSAddress') or 'ccw-scheduler'
+    params['NFSAddress'] = slurm_params['NFSAddress']
     params['NFSSharedExportPath'] = slurm_params.get('NFSSharedExportPath') or '/shared'
     params['NFSSharedMountOptions'] = slurm_params.get('NFSSharedMountOptions')
     params['SubnetId'] = slurm_params["SubnetId"]
