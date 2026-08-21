@@ -19,7 +19,7 @@ param additionalFilesystem types.additionalFilesystem_t = { type: 'disabled' }
 param network types.vnet_t
 param storagePrivateDnsZone types.storagePrivateDnsZone_t
 param clusterInitSpecs types.cluster_init_param_t = []
-param slurmSettings types.slurmSettings_t = { startCluster: true, version: '23.11.7-1', healthCheckEnabled: false }
+param slurmSettings types.slurmSettings_t = { startCluster: true, version: '25.11.5', healthCheckEnabled: false }
 param schedulerNode types.scheduler_t
 param loginNodes types.login_t
 param htc types.htc_t
