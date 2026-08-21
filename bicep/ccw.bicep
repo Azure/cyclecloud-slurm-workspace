@@ -268,8 +268,18 @@ module ccwANF 'anf.bicep' = [
 ]
 
 var deployOOD = ood.type != 'disabled'
-// Temporary deprecation of automatic registration of Entra app registration
-var registerOODApp = false // ood.?registerEntraIDApp ?? false 
+// Automatic Entra ID app registration was previously force-disabled here.
+// Per entra_instructions.md, the actual operation blocked by Microsoft's
+// tightened Entra ID/Graph API update policies is patching the app's
+// redirect URIs to the VM's private IP after deployment -- a manual,
+// portal-only step required identically whether the app was registered
+// automatically (this module) or pre-created manually. Disabling this
+// flag did not avoid that blocked operation; it only removed the
+// independent, unaffected app/FIC/role-creation path. Restored so the
+// registerEntraIDApp parameter (honoured by direct Bicep/ARM/Terraform
+// consumers; the Marketplace UI toggle remains hidden pending further
+// validation) behaves as documented.
+var registerOODApp = ood.?registerEntraIDApp ?? false
 var createOODMI = deployOOD && ood.?appManagedIdentityId == null
 
 var oodNicName = 'ccwOpenOnDemandNIC'
