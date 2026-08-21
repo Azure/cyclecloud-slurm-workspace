@@ -25,6 +25,7 @@ validate_slurm_version() {
         exit 1
     fi
     grep -q "$EXPECTED_SLURM_VERSION" bicep/files-to-load/initial_params.json || (echo "Expected Slurm version $EXPECTED_SLURM_VERSION does not match actual Slurm version in bicep/files-to-load/initial_params.json"; exit 1)
+    grep -Eq "param slurmSettings .*version: '$EXPECTED_SLURM_VERSION'" bicep/mainTemplate.bicep || (echo "Expected Slurm version $EXPECTED_SLURM_VERSION does not match actual Slurm version in bicep/mainTemplate.bicep"; exit 1)
 }
 
 validate_monitoring_version() {
