@@ -22,7 +22,7 @@ param schedFilesystem types.schedFilesystem_t
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t 
 param network types.vnet_t 
-param storagePrivateDnsZone types.storagePrivateDnsZone_t
+param storagePrivateDnsZone types.privateDnsZone_t
 param clusterInitSpecs types.cluster_init_param_t
 param slurmSettings types.slurmSettings_t 
 param schedulerNode types.scheduler_t
@@ -205,8 +205,18 @@ module ccwStorage './storage.bicep' = {
     location: location
     tags: getTags('Microsoft.Storage/storageAccounts', tags)
     saName: 'ccwstorage${uniqueString(az.resourceGroup().id)}'
-    subnetId: subnets.cyclecloud
-    storagePrivateDnsZone: storagePrivateDnsZone
+  }
+}
+
+module ccwStoragePrivateEndpoint './privateEndpoint.bicep' = {
+  name: 'ccwStoragePrivateEndpoint'
+  params: {
+    location: location
+    tags: getTags('Microsoft.Storage/storageAccounts', tags)
+    resourceId: ccwStorage.outputs.storageAccountId
+    computeSubnetId: subnets.cyclecloud
+    privateDnsZone: storagePrivateDnsZone
+    groupId: 'blob'
   }
 }
 
