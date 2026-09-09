@@ -17,7 +17,7 @@ param schedFilesystem types.schedFilesystem_t
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t = { type: 'disabled' }
 param network types.vnet_t
-param storagePrivateDnsZone types.storagePrivateDnsZone_t
+param storagePrivateDnsZone types.privateDnsZone_t
 param clusterInitSpecs types.cluster_init_param_t = []
 param slurmSettings types.slurmSettings_t = { startCluster: true, version: '23.11.7-1', healthCheckEnabled: false }
 param schedulerNode types.scheduler_t
