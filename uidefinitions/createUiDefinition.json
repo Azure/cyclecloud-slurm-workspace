@@ -46,7 +46,7 @@
         "type": "Microsoft.Solutions.ArmApiControl",
         "request": {
           "method": "GET",
-          "path": "[concat(subscription().id,'/locations?api-version=2022-12-01')]"
+          "path": "[concat(subscription().id,'/locations?api-version=2022-12-01&$orderby=name')]"
         }
       },
       {
@@ -1661,13 +1661,97 @@
                 "visible": true
               },
               {
-                "name": "databaseInfoBox",
+                "name": "newexistingDb",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Create new database",
+                "defaultValue": "Create new MySQL Flexible Server",
+                "toolTip": "Create new database or use existing for Slurm job accounting",
+                "multiselect": false,
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Create new MySQL Flexible Server",
+                      "value": "new"
+                    },
+                    {
+                      "label": "Use existing MySQL Flexible Server",
+                      "value": "existing"
+                    },
+                    {
+                      "label": "Connect to existing MySQL database using hostname or IP",
+                      "value": "connection"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
+              },
+              {
+                "name": "dbRegionDropdown",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Region",
+                "defaultValue": "East US",
+                "toolTip": "The region where the MySQL Flexible Server will be created",
+                "constraints": {
+                  "allowedValues": "[map(filter(basics('locationInfoApi').value, (loc) => equals(loc.metadata.regionType,'Physical')), (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.name, '\"}')))]",
+                  "required": true
+                },
+                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new'))]"
+              },
+              {
+                "name": "mysqlCapabilitiesApi",
+                "type": "Microsoft.Solutions.ArmApiControl",
+                "request": {
+                  "method": "GET",
+                  "path": "[concat(subscription().id,'/providers/Microsoft.DBforMySQL/locations/',steps('scheduler').schedulerSection.dbRegionDropdown,'/capabilitySets/default?api-version=2024-12-30')]"
+                }
+              },
+              {
+                "name": "mysqlEditionsUnavailableInfoBox",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]",
+                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new'),empty(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions))]",
+                "options": {
+                  "icon": "Error",
+                  "text": "Azure MySQL Flexible Server is not available for the selected region. If it does not load, check that Microsoft.DBforMySQL is registered."
+                }
+              },
+              {
+                "name": "mysqlServerEdition",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Compute tier",
+                "defaultValue": "GeneralPurpose",
+                "toolTip": "Note that high availability and read replicas is supported for only General purpose and Memory optimized tiers",
+                "constraints": {
+                  "allowedValues": "[map(coalesce(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions, parse('[]')), (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.name, '\"}')))]",
+                  "required": true,
+                  "validations": [
+                    {
+                      "isValid": "[not(empty(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions))]",
+                      "message": "Azure MySQL Flexible Server is not available for the selected region."
+                    }
+                  ]
+                },
+                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new'),true)]"
+              },
+              {
+                "name": "mysqlServerSku",
+                "type": "Microsoft.Common.DropDown",
+                "label": "MySQL Flexible Server SKU",
+                "toolTip": "Compute SKU for the chosen compute tier in the selected deployment region",
+                "filter": true,
+                "constraints": {
+                  "allowedValues": "[if(empty(filter(coalesce(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions, parse('[]')), (item) => equals(item.name,steps('scheduler').schedulerSection.mysqlServerEdition))), parse('[]'), map(coalesce(first(filter(coalesce(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions, parse('[]')), (item) => equals(item.name,steps('scheduler').schedulerSection.mysqlServerEdition))).supportedSkus, parse('[]')), (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.name, '\"}'))))]",
+                  "required": true
+                },
+                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new'),not(empty(filter(coalesce(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions, parse('[]')), (item) => and(equals(item.name,steps('scheduler').schedulerSection.mysqlServerEdition),not(empty(item.supportedSkus)))))))]"
+              },
+              {
+                "name": "mysqlSkusUnavailableInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new'),not(empty(filter(coalesce(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions, parse('[]')), (item) => equals(item.name,steps('scheduler').schedulerSection.mysqlServerEdition)))),empty(filter(coalesce(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions, parse('[]')), (item) => and(equals(item.name,steps('scheduler').schedulerSection.mysqlServerEdition),not(empty(item.supportedSkus))))))]",
                 "options": {
                   "icon": "Warning",
-                  "text": "CycleCloud Workspace for Slurm currently only supports job accounting in existing MySQL instances. \nPlease visit the linked page to create a new MySQL instance prior to launching CycleCloud Workspace for Slurm.",
-                  "uri": "https://portal.azure.com/#create/Microsoft.MySQLServer"
+                  "text": "No supported SKUs are available for the selected MySQL Flexible Server edition. Select a different edition or region. You can still connect to an existing database."
                 }
               },
               {
@@ -1681,7 +1765,7 @@
                   "regex": "^[a-zA-Z][a-zA-Z0-9_]{5,19}$",
                   "validationMessage": "Enter a valid username"
                 },
-                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
+                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,if(equals(steps('scheduler').schedulerSection.newexistingDb,'new'),not(empty(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions)),true))]"
               },
               {
                 "name": "databaseAdminPassword",
@@ -1699,32 +1783,7 @@
                 "options": {
                   "hideConfirmation": false
                 },
-                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
-              },
-              {
-                "name": "dbConnection",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Connection options",
-                "defaultValue": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'Direct: FQDN',if(equals(steps('networking').newexisting,'new'),'Private Endpoint',''))]",
-                "toolTip": "Select method by which to connect to the existing MySQL database",
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'Direct: FQDN','')]",
-                      "value": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'fqdn','')]"
-                    },
-                    {
-                      "label": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'Direct: Private IP','')]",
-                      "value": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'privateIp','')]"
-                    },
-                    {
-                      "label": "[if(equals(steps('networking').newexisting,'new'),'Private Endpoint','')]",
-                      "value": "[if(equals(steps('networking').newexisting,'new'),'privateEndpoint','')]"
-                    }
-                  ],
-                  "required": true
-                },
-                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
+                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,if(equals(steps('scheduler').schedulerSection.newexistingDb,'new'),not(empty(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions)),true))]"
               },
               {
                 "name": "databaseURL",
@@ -1741,7 +1800,7 @@
                     }
                   ]
                 },
-                "visible": "[equals(steps('scheduler').schedulerSection.dbConnection,'fqdn')]"
+                "visible": "[equals(steps('scheduler').schedulerSection.newexistingDb,'connection')]"
               },
               {
                 "name": "databasePIP",
@@ -1758,13 +1817,13 @@
                     }
                   ]
                 },
-                "visible": "[equals(steps('scheduler').schedulerSection.dbConnection,'privateIp')]"
+                "visible": "[equals(steps('scheduler').schedulerSection.newexistingDb,'connection')]"
               },
               {
                 "name": "dbSelector",
                 "type": "Microsoft.Solutions.ResourceSelector",
                 "label": "Select MySQL Database",
-                "toolTip": "Select a MySQL Flexible Server in the Azure region selected in the Basics menu",
+                "toolTip": "Select a MySQL Flexible Server",
                 "resourceType": "Microsoft.DBforMySQL/flexibleServers",
                 "options": {
                   "filter": {
@@ -1775,7 +1834,7 @@
                   "required": true,
                   "validationMessage": "Please select a MySQL Flexible Server."
                 },
-                "visible": "[equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint')]"
+                "visible": "[equals(steps('scheduler').schedulerSection.newexistingDb,'existing')]"
               },
               {
                 "name": "useLoginNodes",
@@ -2825,11 +2884,11 @@
       },
       "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
       "databaseConfig": {
-        "type": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.dbConnection,'disabled')]",
+        "type": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.newexistingDb,'disabled')]",
         "databaseUser": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseUser,basics('nullValue'))]",
-        "fqdn": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'fqdn'),steps('scheduler').schedulerSection.databaseURL,basics('nullValue'))]",
-        "privateIp": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateIp'),steps('scheduler').schedulerSection.databasePIP,basics('nullValue'))]",
-        "dbInfo": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint'),steps('scheduler').schedulerSection.dbSelector,basics('nullValue'))]"
+        "fqdn": "[if(equals(steps('scheduler').schedulerSection.newexistingDb,'connection'),steps('scheduler').schedulerSection.databaseURL,basics('nullValue'))]",
+        "privateIp": "[if(equals(steps('scheduler').schedulerSection.newexistingDb,'connection'),steps('scheduler').schedulerSection.databasePIP,basics('nullValue'))]",
+        "dbId": "[if(equals(steps('scheduler').schedulerSection.newexistingDb,'existing'),steps('scheduler').schedulerSection.dbSelector.id,basics('nullValue'))]"
       },
       "clusterName": "[steps('scheduler').clusterSettings.clusterName]",
       "acceptMarketplaceTerms": "[steps('scheduler').clusterSettings.acceptMarketplaceTerms]",
