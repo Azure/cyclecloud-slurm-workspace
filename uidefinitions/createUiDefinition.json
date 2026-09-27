@@ -1670,11 +1670,11 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Create new MySQL Flexible Server",
+                      "label": "Create new MySQL Flexible Server (with private endpoint?)",
                       "value": "new"
                     },
                     {
-                      "label": "Use existing MySQL Flexible Server",
+                      "label": "Use existing MySQL Flexible Server (with private endpoint?)",
                       "value": "existing"
                     },
                     {
