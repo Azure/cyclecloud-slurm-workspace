@@ -284,33 +284,28 @@ type db_none_t = {
   type: 'disabled'
 }
 
-type db_fqdn_t = {
-  type: 'fqdn'
+type db_new_mysql_flex_t = {
+  type: 'new'
   databaseUser: string
-  fqdn: string
-}
-
-type db_privateIp_t = {
-  type: 'privateIp'
-  databaseUser: string
-  privateIp: string
-}
-
-type dbInfo_t = {
-  id: string
   location: string
-  name: string
+  sku: string
 }
 
-type db_privateEndpoint_t = {
-  type: 'privateEndpoint'
+type db_existing_mysql_flex_t = {
+  type: 'existing'
   databaseUser: string
-  dbInfo: dbInfo_t
+  id: string
+}
+
+type db_connection_t = {
+  type: 'connection'
+  databaseUser: string
+  ip: string
 }
 
 @export()
 @discriminator('type')
-type databaseConfig_t = db_none_t | db_fqdn_t | db_privateIp_t | db_privateEndpoint_t
+type database_t = db_none_t | db_new_mysql_flex_t | db_existing_mysql_flex_t | db_connection_t
 
 @export()
 type databaseOutput_t = {
