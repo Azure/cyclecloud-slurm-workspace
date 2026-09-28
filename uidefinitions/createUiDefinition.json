@@ -2972,7 +2972,7 @@
       "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
       "database": {
         "type": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.newexistingDb,'disabled')]",
-        "databaseUser": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseUser,basics('nullValue'))]",
+        "username": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseUser,basics('nullValue'))]",
         "location": "[if(and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new')),steps('scheduler').schedulerSection.dbRegionDropdown,basics('nullValue'))]",
         "sku": "[if(and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new')),steps('scheduler').schedulerSection.mysqlServerSku,basics('nullValue'))]",
         "dbId": "[if(equals(steps('scheduler').schedulerSection.newexistingDb,'existing'),steps('scheduler').schedulerSection.dbSelector.id,basics('nullValue'))]",
