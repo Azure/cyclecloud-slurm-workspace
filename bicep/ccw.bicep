@@ -33,7 +33,7 @@ param gpu types.hpc_t
 param tags types.resource_tags_t
 @secure()
 param databaseAdminPassword string
-param databaseConfig types.databaseConfig_t
+param database types.database_t
 param clusterName string
 param manualInstall bool
 param acceptMarketplaceTerms bool

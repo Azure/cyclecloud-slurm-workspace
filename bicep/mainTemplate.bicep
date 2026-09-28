@@ -28,7 +28,7 @@ param gpu types.hpc_t
 param tags types.resource_tags_t 
 @secure()
 param databaseAdminPassword string = ''
-param databaseConfig types.databaseConfig_t = { type: 'disabled' }
+param database types.database_t = { type: 'disabled' }
 @minLength(3)
 @description('The user-defined name of the cluster. Regex: ^[a-zA-Z0-9@_-]{3,}$')
 param clusterName string = 'ccw'
@@ -82,7 +82,7 @@ module makeCCWresources 'ccw.bicep' = {
     cyclecloudBaseImage: cyclecloudBaseImage
     resourceGroup: resourceGroup
     databaseAdminPassword: databaseAdminPassword
-    databaseConfig: databaseConfig
+    database: database
     tags: tags
     clusterName: clusterName
     branch: branch
