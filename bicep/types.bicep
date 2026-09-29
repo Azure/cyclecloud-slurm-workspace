@@ -288,6 +288,7 @@ type db_new_mysql_flex_t = {
   type: 'new'
   username: string
   location: string
+  serverEdition: string
   sku: string
 }
 

@@ -77,7 +77,6 @@ module ccwNetwork './network-new.bicep' = if (create_new_vnet) {
     natGatewayId: natGateawayId
     createNetApp: createNetApp
     createLustre: createLustre
-    databaseConfig: databaseConfig
   }
 }
 
@@ -220,18 +219,16 @@ module ccwStoragePrivateEndpoint './privateEndpoint.bicep' = {
   }
 }
 
-var create_database = contains(slurmSettings, 'databaseAdminPassword')
-var db_name = 'ccw-mysqldb-${uniqueString(az.resourceGroup().id)}'
 
-module mySQLccw './mysql.bicep' = if (create_database) {
+module mySQLccw './mysql.bicep' = if (database.type == 'new') {
   name: 'MySQLDB-ccw'
   params: {
-    location: location
+    location: database!.location
     tags: getTags('Microsoft.DBforMySQL/flexibleServers', tags)
-    Name: db_name
-    adminUser: adminUsername
+    adminUser: database!.username
     adminPassword: databaseAdminPassword
-    subnetId: subnets.?database ?? ''
+    serverEdition: database!.serverEdition
+    skuName: database!.sku
   }
 }
 
