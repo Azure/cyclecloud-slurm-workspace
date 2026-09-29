@@ -286,20 +286,20 @@ type db_none_t = {
 
 type db_new_mysql_flex_t = {
   type: 'new'
-  databaseUser: string
+  username: string
   location: string
   sku: string
 }
 
 type db_existing_mysql_flex_t = {
   type: 'existing'
-  databaseUser: string
+  username: string
   id: string
 }
 
 type db_connection_t = {
   type: 'connection'
-  databaseUser: string
+  username: string
   ip: string
 }
 
