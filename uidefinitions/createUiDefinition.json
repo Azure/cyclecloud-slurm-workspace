@@ -1340,7 +1340,7 @@
           {
             "name": "dnsZone",
             "type": "Microsoft.Common.Section",
-            "label": "Private DNS zone",
+            "label": "Storage account private DNS zone",
             "elements": [
               {
                 "name": "dnsZoneInfoBox",
@@ -1393,6 +1393,11 @@
                 "resourceType": "Microsoft.Network/privateDnsZones",
                 "constraints": {
                   "required": true
+                },
+                "options": {
+                  "filter": {
+                    "subscription": "onBasics"
+                  }
                 },
                 "visible": "[equals(steps('networking').dnsZone.newExisting,'existing')]"
               },
@@ -1670,11 +1675,11 @@
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Create new MySQL Flexible Server (with private endpoint?)",
+                      "label": "Create new MySQL Flexible Server with private endpoint",
                       "value": "new"
                     },
                     {
-                      "label": "Use existing MySQL Flexible Server (with private endpoint?)",
+                      "label": "Use existing MySQL Flexible Server with private endpoint",
                       "value": "existing"
                     },
                     {
@@ -1840,7 +1845,7 @@
                 "visible": true,
                 "options": {
                   "icon": "Info",
-                  "text": "Optionally automatically create private DNS zone and virtual network link resources or use existing ones to connect the virtual network chosen above with the cluster storage account via a private endpoint."
+                  "text": "Optionally automatically create private DNS zone and virtual network link resources or use existing ones to connect the virtual network chosen previously with the MySQL Flexible Server via a private endpoint."
                 }
               },
               {
@@ -1849,7 +1854,7 @@
                 "visible": "[equals(steps('scheduler').dnsZone.newExisting,'new')]",
                 "options": {
                   "icon": "Warning",
-                  "text": "The cluster deployment will fail if the virtual network selected above has an existing link to a private DNS zone for\nAzure Blob Storage and the option to create a new such private DNS zone resource is chosen below."
+                  "text": "The cluster deployment will fail if the virtual network selected on the last page has an existing link to a private DNS zone for\nAzure Blob Storage and the option to create a new such private DNS zone resource is chosen below."
                 }
               },
               {
@@ -1885,6 +1890,11 @@
                 "resourceType": "Microsoft.Network/privateDnsZones",
                 "constraints": {
                   "required": true
+                },
+                "options": {
+                  "filter": {
+                    "subscription": "onBasics"
+                  }
                 },
                 "visible": "[equals(steps('scheduler').dnsZone.newExisting,'existing')]"
               },
@@ -2974,6 +2984,7 @@
         "type": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.newexistingDb,'disabled')]",
         "username": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseUser,basics('nullValue'))]",
         "location": "[if(and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new')),steps('scheduler').schedulerSection.dbRegionDropdown,basics('nullValue'))]",
+        "serverEdition": "[if(and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new')),steps('scheduler').schedulerSection.mysqlServerEdition,basics('nullValue'))]",
         "sku": "[if(and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new')),steps('scheduler').schedulerSection.mysqlServerSku,basics('nullValue'))]",
         "dbId": "[if(equals(steps('scheduler').schedulerSection.newexistingDb,'existing'),steps('scheduler').schedulerSection.dbSelector.id,basics('nullValue'))]",
         "ip": "[if(equals(steps('scheduler').schedulerSection.newexistingDb,'connection'),steps('scheduler').schedulerSection.databasePIP,basics('nullValue'))]"
