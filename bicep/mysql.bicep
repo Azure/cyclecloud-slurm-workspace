@@ -9,7 +9,7 @@ param adminPassword string
 @description('Provide the tier of the particular SKU. High Availability is available only for GeneralPurpose and MemoryOptimized sku.')
 @allowed([
   'Burstable'
-  'Generalpurpose'
+  'GeneralPurpose'
   'MemoryOptimized'
 ])
 param serverEdition string 
@@ -48,3 +48,4 @@ resource server 'Microsoft.DBforMySQL/flexibleServers@2024-12-30' = {
 
 //output fqdn string = reference(server.id, server.apiVersion, 'full').properties.fullyQualifiedDomainName
 output fqdn string = server.properties.fullyQualifiedDomainName
+output dbId string = server.id
