@@ -40,11 +40,6 @@ var base_octets_non24 = union(base_octets,{
     o4: 32
     cidr: 28
   }
-  database: {
-    o3: 0
-    o4: 224
-    cidr: 28
-  }
 }) 
 
 assert cidr19 = subnet_octets(19) ==  union(base_octets_non24,{
@@ -122,11 +117,6 @@ assert cidr24 = subnet_octets(24) ==  union(base_octets,{
     o3: 0
     o4: 48
     cidr: 28
-  }
-  database: {
-    o3: 0
-    o4: 40
-    cidr: 29
   }
   compute: {
     o3: 0
