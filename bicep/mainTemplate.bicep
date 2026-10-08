@@ -28,7 +28,8 @@ param gpu types.hpc_t
 param tags types.resource_tags_t 
 @secure()
 param databaseAdminPassword string = ''
-param database types.database_t = { type: 'disabled' }
+param database types.database_t 
+param databasePrivateDnsZone types.privateDnsZone_t
 @minLength(3)
 @description('The user-defined name of the cluster. Regex: ^[a-zA-Z0-9@_-]{3,}$')
 param clusterName string = 'ccw'
@@ -83,6 +84,7 @@ module makeCCWresources 'ccw.bicep' = {
     resourceGroup: resourceGroup
     databaseAdminPassword: databaseAdminPassword
     database: database
+    databasePrivateDnsZone: databasePrivateDnsZone
     tags: tags
     clusterName: clusterName
     branch: branch
