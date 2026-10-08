@@ -1669,7 +1669,7 @@
                 "name": "newexistingDb",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Create new database",
-                "defaultValue": "Create new MySQL Flexible Server",
+                "defaultValue": "Create new MySQL Flexible Server with private endpoint",
                 "toolTip": "Create new database or use existing for Slurm job accounting",
                 "multiselect": false,
                 "constraints": {
@@ -1776,8 +1776,8 @@
                 "name": "databaseAdminPassword",
                 "type": "Microsoft.Common.PasswordBox",
                 "label": {
-                  "password": "Database Admin Password",
-                  "confirmPassword": "Confirm Password"
+                  "password": "Database admin password",
+                  "confirmPassword": "Confirm password"
                 },
                 "toolTip": "Password for the Slurm accounting database admin user",
                 "constraints": {
@@ -1793,15 +1793,15 @@
               {
                 "name": "databasePIP",
                 "type": "Microsoft.Common.TextBox",
-                "label": "Database Private IP",
+                "label": "Database hostname or IP",
                 "defaultValue": "",
-                "toolTip": "Enter the private IP address of the MySQL database",
+                "toolTip": "Enter the hostname or IP address of the MySQL database",
                 "constraints": {
                   "required": true,
                   "validations": [
                     {
-                      "regex": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$",
-                      "message": "Invalid IP address"
+                      "regex": "^[A-Za-z0-9._:-]+$",
+                      "message": "Invalid hostname or IP"
                     }
                   ]
                 },
@@ -2986,7 +2986,7 @@
         "location": "[if(and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new')),steps('scheduler').schedulerSection.dbRegionDropdown,basics('nullValue'))]",
         "serverEdition": "[if(and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new')),steps('scheduler').schedulerSection.mysqlServerEdition,basics('nullValue'))]",
         "sku": "[if(and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new')),steps('scheduler').schedulerSection.mysqlServerSku,basics('nullValue'))]",
-        "dbId": "[if(equals(steps('scheduler').schedulerSection.newexistingDb,'existing'),steps('scheduler').schedulerSection.dbSelector.id,basics('nullValue'))]",
+        "id": "[if(equals(steps('scheduler').schedulerSection.newexistingDb,'existing'),steps('scheduler').schedulerSection.dbSelector.id,basics('nullValue'))]",
         "ip": "[if(equals(steps('scheduler').schedulerSection.newexistingDb,'connection'),steps('scheduler').schedulerSection.databasePIP,basics('nullValue'))]"
       },
       "databasePrivateDnsZone": {
