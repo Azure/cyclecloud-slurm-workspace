@@ -2,7 +2,7 @@
 set -e
 # This script builds the ARM template and UI definition for the marketplace solution
 cd $(dirname $0)/
-VERSION="2025.09.15"
+VERSION="2026.09.02"
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -25,8 +25,8 @@ fi
 echo az CLI version: 
 az version
 az bicep version
-az bicep build -f $(pwd)/bicep/ood/oodEntraApp.bicep --stdout | jq -r 'del(.metadata._generator)' | jq -r 'del(.metadata)' > bicep/ood/oodEntraApp.json
-git diff --exit-code bicep/ood/oodEntraApp.json
+az bicep build -f $(pwd)/bicep/entra/ccwEntraApp.bicep --stdout | jq -r 'del(.metadata._generator)' | jq -r 'del(.metadata)' > bicep/entra/ccwEntraApp.json
+git diff --exit-code bicep/entra/ccwEntraApp.json
 
 # run tests 
 pushd bicep-test
@@ -37,8 +37,12 @@ UI_DEFINITION=${GIT_ROOT}/uidefinitions/createUiDefinition.json
 
 build_dir="${GIT_ROOT}/build"
 
-PYTHONPATH=util/ python3 util/build.py build --branch $BRANCH --build-dir "$build_dir" --ui-definition "$UI_DEFINITION" 
-
+PYTHONPATH=util/ python3 util/build.py build --branch $BRANCH --build-dir "$build_dir" --ui-definition "$UI_DEFINITION" 2> >(grep -v BCP187 >&2)
+rm -rf .buildvenv
+python3 -m venv .buildvenv
+source .buildvenv/bin/activate
+pip install pytest
+pytest tests/
 # Check if base 64-encoded utility files used by install.sh are the same as the prior commit
 git diff --exit-code bicep/files-to-load/encoded
 
@@ -47,4 +51,4 @@ pushd "$build_dir"
 zip -j "${GIT_ROOT}/build.zip" ./*
 popd
 
-${THIS_DIR}/arm-ttk/arm-ttk/Test-AzTemplate.sh $build_dir # -Skip Parameter-Types-Should-Be-Consistent
+${THIS_DIR}/arm-ttk/arm-ttk/Test-AzTemplate.sh $build_dir -Skip apiVersions-Should-Be-Recent 

@@ -20,7 +20,7 @@ param dataDisks array
 param osDiskSize int = 0 //TODO: add to UI
 param managedIdentityId string
 
-resource nic 'Microsoft.Network/networkInterfaces@2023-11-01' = {
+resource nic 'Microsoft.Network/networkInterfaces@2025-05-01' = {
   name: '${name}-nic'
   location: location
   tags: networkInterfacesTags
@@ -40,11 +40,12 @@ resource nic 'Microsoft.Network/networkInterfaces@2023-11-01' = {
   }
 }
 
-resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = {
   name: split(managedIdentityId, '/')[8]
+  scope: az.resourceGroup(split(managedIdentityId, '/')[2], split(managedIdentityId, '/')[4])
 }
 
-resource virtualMachine 'Microsoft.Compute/virtualMachines@2024-11-01' = {
+resource virtualMachine 'Microsoft.Compute/virtualMachines@2025-04-01' = {
   name: name
   location: location
   tags: tags
@@ -122,7 +123,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2024-11-01' = {
   }
 }
 
-resource cse 'Microsoft.Compute/virtualMachines/extensions@2024-03-01' = {
+resource cse 'Microsoft.Compute/virtualMachines/extensions@2025-04-01' = {
   name: '${name}-customScriptExtension'
   location: location
   parent: virtualMachine

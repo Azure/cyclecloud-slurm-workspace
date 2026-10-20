@@ -35,7 +35,8 @@ if [ -d "$GIT_ROOT/arm-ttk" ]; then
     exit 0
 fi
 
-wget https://github.com/Azure/arm-ttk/releases/download/20240328/arm-ttk.zip
+LATEST_VERSION=$(curl -s https://api.github.com/repos/Azure/arm-ttk/releases/latest | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+wget "https://github.com/Azure/arm-ttk/releases/download/${LATEST_VERSION}/arm-ttk.zip"
 unzip -u arm-ttk.zip -d $GIT_ROOT
 rm arm-ttk.zip
 chmod +x $GIT_ROOT/arm-ttk/arm-ttk/Test-AzTemplate.sh

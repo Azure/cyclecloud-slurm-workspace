@@ -1,6 +1,44 @@
 @export()
 type availabilityZone_t = '1' | '2' | '3'
 
+type entra_disabled_t = {
+  type: 'disabled'
+}
+
+type entra_enabled_t = {
+  type: 'enabled'
+  tenantId: string
+  clientId: string
+}
+
+@discriminator('type')
+@export()
+type entra_t = entra_disabled_t | entra_enabled_t
+
+type sched_nfs_new_t = {
+  type: 'nfs-new'
+  nfsCapacityInGb: int
+}
+
+type sched_nfs_existing_t = {
+  type: 'nfs-existing'
+  ipAddress: string
+  exportPath: string
+  mountOptions: string?
+}
+
+type sched_anf_new_t = {
+  type: 'anf-new'
+  anfServiceLevel: string
+  anfCapacityInTiB: int
+  anfFlexThroughputMiBps: int?
+  availabilityZone:  availabilityZone_t[]?
+}
+
+@discriminator('type')
+@export()
+type schedFilesystem_t = sched_nfs_new_t | sched_nfs_existing_t | sched_anf_new_t
+
 type shared_nfs_new_t = {
   type: 'nfs-new'
   nfsCapacityInGb: int
@@ -15,8 +53,9 @@ type shared_nfs_existing_t = {
 
 type shared_anf_new_t = {
   type: 'anf-new'
-  anfServiceTier: string
+  anfServiceLevel: string
   anfCapacityInTiB: int
+  anfFlexThroughputMiBps: int?
   availabilityZone:  availabilityZone_t[]?
 }
 
@@ -26,7 +65,7 @@ type sharedFilesystem_t = shared_nfs_new_t | shared_nfs_existing_t | shared_anf_
 
 type additional_anf_new_t = {
   type: 'anf-new'
-  anfServiceTier: string
+  anfServiceLevel: string
   anfCapacityInTiB: int
   mountPath: string
   availabilityZone: availabilityZone_t[]?
@@ -65,6 +104,14 @@ type additionalFilesystem_t = additional_anf_new_t | additional_nfs_existing_t |
 
 @export()
 type filerInfo_t = {
+  sched: {
+    type: string
+    nfsCapacityInGb: int
+    ipAddress: string
+    exportPath: string
+    mountOptions: string
+    mountPath: string
+  }
   home: {
     type: string
     nfsCapacityInGb: int
@@ -87,8 +134,7 @@ type filerInfo_t = {
 
 type peered_vnet_t = {
   id: string
-  location: string
-  name: string
+  allowGatewayTransit: bool
 }
 
 type vnet_autocreate_t = {
@@ -97,8 +143,8 @@ type vnet_autocreate_t = {
   addressSpace: string
   cyclecloudSubnet: string?
   computeSubnet: string?
-  sharedFilerSubnet: string?
-  additionalFilerSubnet: string?
+  netappSubnet: string?
+  lustreSubnet: string?
   bastion: bool?
   createNatGateway: bool?
   vnetToPeer: peered_vnet_t?
@@ -111,8 +157,8 @@ type vnet_existing_t = {
   id: string
   cyclecloudSubnet: string
   computeSubnet: string
-  sharedFilerSubnet: string?
-  additionalFilerSubnet: string?
+  netappSubnet: string?
+  lustreSubnet: string?
   storagePrivateDnsZoneId: string?
   vnetLink: bool?
 }
@@ -121,49 +167,39 @@ type vnet_existing_t = {
 @export()
 type vnet_t = vnet_autocreate_t | vnet_existing_t
 
-type storagePrivateDnsZone_new_t = {
+type privateDnsZone_new_t = {
   type: 'new' 
 }
 
-type storagePrivateDnsZone_existing_t = {
+type privateDnsZone_existing_t = {
   type: 'existing'
   id: string
   vnetLink: bool?
 }
 
-type storagePrivateDnsZone_none_t = {
+type privateDnsZone_none_t = {
   type: 'none'
 }
 
 @discriminator('type')
 @export()
-type storagePrivateDnsZone_t = storagePrivateDnsZone_new_t | storagePrivateDnsZone_existing_t | storagePrivateDnsZone_none_t
-
-@export()
-type rsc_t = {
-  id: string 
-  name: string
-  rg: string
-}
+type privateDnsZone_t = privateDnsZone_new_t | privateDnsZone_existing_t | privateDnsZone_none_t
 
 @export()
 type networkOutput_t = {
-  id: string
-  name: string
-  rg: string
   type: string
-  computeSubnetName: string
+  id: string
   computeSubnetId: string
 }
 
 @export()
 type subnets_t = {
-  cyclecloud: rsc_t
-  compute: rsc_t
-  home: rsc_t?
-  additional: rsc_t?
-  bastion: rsc_t?
-  database: rsc_t?
+  cyclecloud: string
+  compute: string
+  netapp: string?
+  lustre: string?
+  bastion: string?
+  database: string?
 }
 
 @export()
@@ -230,12 +266,19 @@ type partitions_t = {
   gpu: hpc_t //if any property becomes optional, create a *_output_t type
 }
 
-@export()
-type storedKey_t = {
-  id: string
-  location: string
-  name: string
+type publicKey_entered_t = {
+  type: 'entered'
+  value: string
 }
+
+type publicKey_stored_t = {
+  type: 'stored'
+  id: string
+}
+
+@export()
+@discriminator('type')
+type publicKey_t = publicKey_entered_t | publicKey_stored_t
 
 type db_none_t = {
   type: 'disabled'
@@ -284,7 +327,6 @@ type ood_enabled_t = {
   startCluster: bool
   sku: string
   osImage: string
-  userDomain: string
   fqdn: string?
   registerEntraIDApp: bool
   appId: string?
@@ -295,8 +337,24 @@ type ood_enabled_t = {
 @export()
 @discriminator('type')
 type oodConfig_t = ood_none_t | ood_enabled_t
-type cluster_init_target_t = 'login' | 'scheduler' | 'htc' | 'hpc' | 'gpu' | 'dynamic' | 'ood'
 
+type monitoring_disabled_t = {
+  type: 'disabled'
+}
+
+type monitoring_enabled_t = {
+  type: 'enabled'
+  monitorWorkspaceId: string
+  ingestionEndpoint: string
+  dcrId: string
+  grafanaId: string
+}
+
+@export()
+@discriminator('type')
+type monitoring_t = monitoring_disabled_t | monitoring_enabled_t
+
+type cluster_init_target_t = 'login' | 'scheduler' | 'htc' | 'hpc' | 'gpu' | 'dynamic' | 'ood'
 
 type github_cluster_init_t = {
   type: 'gitHubReleaseURL'

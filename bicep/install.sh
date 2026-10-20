@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -eo pipefail +o histexpand
 # this is not set if you run this manually
 export PATH=$PATH:/usr/local/bin
 ccw_root="/opt/ccw"
@@ -76,10 +76,8 @@ if command -v apt; then
     retry_command "apt update -y"
     #apt install -y 
 else
-    # update the almalinux repo to use HTTPS inteads of the default HTTP for azure.repo.almalinux.org
-    sed -i 's|# baseurl=https://repo.almalinux.org/almalinux|baseurl=https://azure.repo.almalinux.org/|' /etc/yum.repos.d/almalinux.repo
     dnf clean all
-    dnf makecache
+    retry_command "dnf makecache" 5 60
     retry_command "yum update -y --exclude=cyclecloud*" 5 60
     retry_command "yum install -y jq"
 fi
@@ -262,9 +260,10 @@ echo Restarting cyclecloud so that new records take effect
 cycle_server stop
 cycle_server start --wait
 # this will block until CC responds
-curl -k https://localhost
+timeout 360s bash -c 'until (curl -k https://localhost); do sleep 5; done'
 
-cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" --verify-ssl=false --name=$SLURM_CLUSTER_NAME
+cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" --verify-ssl=false --name=$SLURM_CLUSTER_NAME --force
+sudo -i -u ${CYCLECLOUD_USERNAME} bash -c "/usr/local/bin/cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password='${CYCLECLOUD_PASSWORD}' --verify-ssl=false --name=$SLURM_CLUSTER_NAME --force"
 echo "CC CLI initialize successful"
 
 # Ensure CC properly initializes
@@ -287,62 +286,45 @@ done
 # needs to be done after initialization, as we now call fetch/upload
 (python3 create_cc_param.py slurm --dbPassword="${DATABASE_ADMIN_PASSWORD}") > slurm_params.json 
 
-if [[ -n $(/opt/cycle_server/./cycle_server execute 'select * from Cloud.Cluster where ClusterName=="slurm_template_3.0.11"') ]]; then 
-    cp availability_zones.json /opt/cycle_server/config/data/
-    sleep 1
-    while [ -e /opt/cycle_server/config/data/availability_zones.json ]; do
-        echo "Waiting for availability_zones.json to be imported..."
-        sleep 5
-    done
-    echo "availability_zones.json imported successfully"
-fi
+SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Cloud.Project WHERE Name=="Slurm"' | jq -r '.[0].Version')
 
 # copying template parameters file to admin user's home directory
 SLURM_PARAMS_COPY="${HOME_CLUSTER_DIR}/slurm_params.json"
 cp slurm_params.json "${SLURM_PARAMS_COPY}"
 chown "${CYCLECLOUD_USERNAME}:${CYCLECLOUD_USERNAME}" "${SLURM_PARAMS_COPY}"
 
-SLURM_PROJ_VERSION=$(cycle_server execute --format json 'SELECT Version FROM Cloud.Project WHERE Name=="Slurm"' | jq -r '.[0].Version')
-
 cyclecloud create_cluster slurm_template_${SLURM_PROJ_VERSION} $SLURM_CLUSTER_NAME -p slurm_params.json
-echo "CC create_cluster successful"
+echo "CC create_cluster for Slurm successful"
 
-## BEGIN temporary login node max count patch
-# TODO After azslurm 3.0.12 is released we should have a proper parameter for maxcount for login nodes
-LOGIN_NODES_MAX_COUNT=$(jq -r '.loginNodes.value.maxNodes' ccwOutputs.json)
-# ensure the value is actually an integer
-python3 -c "import sys; int(sys.argv[1])" $LOGIN_NODES_MAX_COUNT
-/opt/cycle_server/./cycle_server execute "UPDATE Cloud.Node \
-                                          SET MaxCount=${LOGIN_NODES_MAX_COUNT} \
-                                          WHERE ClusterName==\"$SLURM_CLUSTER_NAME\" && Name==\"login\""
-## END temporary login node max count patch
-
+# When we add OOD as an icon to CycleCloud, only parameter creation and create_cluster calls should
+# remain. The fetch / upload / import_template calls should be removed. 
+OOD_PROJECT_VERSION=$(jq -r .ood.value.version ccwOutputs.json)
+ood_url="https://github.com/Azure/cyclecloud-open-ondemand/releases/${OOD_PROJECT_VERSION}"
+echo fetching OOD project from $ood_url
+cyclecloud project fetch $ood_url ood
+cd ood
+cyclecloud project upload azure-storage
+ood_template_name=OpenOnDemand_${OOD_PROJECT_VERSION}
+cyclecloud import_template -c OpenOnDemand -f templates/OpenOnDemand.txt $ood_template_name --force
+echo "Open OnDemand template import successful"
+cd ..
 if [ $INCLUDE_OOD == true ]; then
-    # When we add OOD as an icon to CycleCloud, only parameter creation and create_cluster calls should
-    # remain. The fetch / upload / import_template calls should be removed.
-    (python3 create_cc_param.py ood) > ood_params.json 
-
-    OOD_PROJECT_VERSION=$(jq -r .ood.value.version ccwOutputs.json)
-    ood_url="https://github.com/Azure/cyclecloud-open-ondemand/releases/${OOD_PROJECT_VERSION}"
-    echo fetching OOD project from $ood_url
-    cyclecloud project fetch $ood_url ood
-    cd ood
-    cyclecloud project upload azure-storage
-    ood_template_name=OpenOnDemand_${OOD_PROJECT_VERSION}
-    cyclecloud import_template -c OpenOnDemand -f templates/OpenOnDemand.txt $ood_template_name --force
-    cd ..
+    (python3 create_cc_param.py ood) > ood_params.json
     cyclecloud create_cluster $ood_template_name OpenOnDemand -p ood_params.json
+    echo "CC create_cluster for OpenOnDemand successful "
 fi
 # ensure machine types are loaded ASAP
 cycle_server run_action 'Run:Application.Timer' -eq 'Name' 'plugin.azure.monitor_reference'
 
 # Wait for Azure.MachineType to be populated
 while [ $(/opt/cycle_server/./cycle_server execute --format json "
-                        SELECT Name, M.Name as MachineType FROM Cloud.Node
+                        SELECT Name, M.Name as MachineType, CM.Name as CMName FROM Cloud.Node
                         OUTER JOIN Azure.MachineType M
                         ON  MachineType === M.Name &&
                             Region === M.Location
-                        WHERE (ClusterName == "OpenOnDemand" || ClusterName == \"$SLURM_CLUSTER_NAME\")" | jq -r ".[] | select(.MachineType == null).Name" | wc -l) != 0 ]; do
+                        OUTER JOIN Cloud.MachineType CM
+                        ON  MachineType === CM.Name
+                        WHERE (ClusterName == "OpenOnDemand" || ClusterName == \"$SLURM_CLUSTER_NAME\")"  | jq -r ".[] | select(.MachineType == null or .CMName == null).Name" | wc -l) != 0 ]; do
     echo "Waiting for Azure.MachineType to be populated..."
     sleep 10
 done
@@ -365,10 +347,111 @@ if [ $INCLUDE_OOD == true ]; then
     START_OOD_CLUSTER=$(jq -r .ood.value.startCluster ccwOutputs.json)
     if [ "$START_OOD_CLUSTER" == "true" ]; then
         cyclecloud start_cluster OpenOnDemand
-        echo "CC start_cluster for OpenOnDemand successful"
+        echo "CC start_cluster for Open OnDemand successful"
     fi
+    OOD_CLUSTER_DIR="${ADMIN_USER_HOME_DIR}/OpenOnDemand"
+    mkdir -p "${OOD_CLUSTER_DIR}"
+    # copying template file to admin user's home directory
+    cp ood/templates/OpenOnDemand.txt "${OOD_CLUSTER_DIR}/OpenOnDemand_template.txt"
+    # copying template parameters file to admin user's home directory
+    OOD_PARAMS_COPY="${OOD_CLUSTER_DIR}/ood_params.json"
+    cp ood_params.json "${OOD_PARAMS_COPY}"
+    # set permissions for OOD 
+    chown -R "${CYCLECLOUD_USERNAME}:${CYCLECLOUD_USERNAME}" "${OOD_CLUSTER_DIR}"
     rm -f ood_params.json
     echo "Deleted OOD input parameters file" 
+fi
+
+ENABLE_ENTRA_AUTH=false
+if [ $(jq -r .entraIdInfo.value.type ccwOutputs.json) == 'enabled'  ]; then
+    ENABLE_ENTRA_AUTH=true
+fi
+
+if [ $ENABLE_ENTRA_AUTH == true ]; then
+    echo "Configuring Entra ID authentication for CycleCloud"
+    ENTRA_TENANT_ID=$(jq -r .entraIdInfo.value.tenantId ccwOutputs.json)
+    ENTRA_CLIENT_ID=$(jq -r .entraIdInfo.value.clientId ccwOutputs.json)
+    ENTRA_OBJECT_ID=$(jq -r .cyclecloudPrincipalId.value ccwOutputs.json)
+    ENTRA_AUTH_ENDPOINT=$(jq -r .entraIdInfo.value.loginEndpoint ccwOutputs.json)
+    # Note to future dev: These indentations are with tab characters, not spaces.
+    # Pressing the tab key in VSCode will insert four spaces unless you change the settings.
+    # This is needed for the file to be properly parsed.
+	cat > /tmp/entra_auth.txt <<-EOF
+	Category = "Authorization"
+	AdType = "Application.Setting"
+	Description = "The tenant ID to use for Entra ID authentication"
+	Label = "Tenant ID"
+	Value = "${ENTRA_TENANT_ID}"
+	Name = "authentication.entra.tenantid"
+	ParameterType = "String"
+
+	Category = "Authorization"
+	AdType = "Application.Setting"
+	Description = "The client ID (application ID) to use for Entra ID authentication"
+	Label = "Client ID"
+	Value = "${ENTRA_CLIENT_ID}"
+	Name = "authentication.entra.clientid"
+	ParameterType = "String"
+
+	Category = "Authorization"
+	AdType = "Application.Setting"
+	Description = "The Entra ID authentication endpoint to use, including the protocol (Example: '${ENTRA_AUTH_ENDPOINT%.*}.com')."
+	Label = "Endpoint"
+	Value = "${ENTRA_AUTH_ENDPOINT}"
+	Name = "authentication.entra.endpoint"
+	ParameterType = "String"
+
+	Category = "Authorization"
+	AdType = "Application.Setting"
+	Description = "If set to true, use Entra ID for authentication"
+	Value = true
+	Name = "authentication.entra.enabled"
+	ParameterType = "Boolean"
+
+	Authentication = "internal"
+	EntraTID = "${ENTRA_TENANT_ID}"
+	UID = 19000
+	EntraOID = "${ENTRA_OBJECT_ID}"
+	Superuser = true
+	NodeAccessDisabled = true
+	AdType = "AuthenticatedUser"
+	Roles = {"Administrator","User","Cluster Creator"}
+	NodeUserName = "cc-vm-mi"
+	ServiceAccount = true
+	Name = "cc-vm-mi"
+	ForcePasswordReset = false
+	EOF
+
+    chown cycle_server:cycle_server /tmp/entra_auth.txt # unsure if this is necessary
+    chmod 664 /tmp/entra_auth.txt # unsure if this is necessary
+    mv /tmp/entra_auth.txt /opt/cycle_server/config/data/entra_auth.txt
+    echo Waiting for Entra records to be imported
+    timeout 360s bash -c 'until (! ls /opt/cycle_server/config/data/*.txt 2> /dev/null); do sleep 10; done'
+    echo "Entra ID authentication records imported"
+
+    # initializing CycleCloud CLI with Entra ID auth
+    echo "Initializing CycleCloud CLI with Entra ID authentication"
+    cyclecloud initialize --batch --identity --object_id=${ENTRA_OBJECT_ID} --url=https://localhost --verify-ssl=false --loglevel=debug --force
+    sudo -i -u ${CYCLECLOUD_USERNAME} bash -c "/usr/local/bin/cyclecloud initialize --batch --identity --object_id=${ENTRA_OBJECT_ID} --url=https://localhost --verify-ssl=false --loglevel=debug --force"
+    echo "CycleCloud CLI initialization with Entra ID successful"
+fi
+
+# add Slurm dashboards to Azure Managed Grafana
+if [ $(jq -r .monitoring.value.type ccwOutputs.json) == 'enabled' ]; then
+    GRAFANA_NAME=$(jq -r '.monitoring.value.grafanaName' ccwOutputs.json)
+    MONITORING_RESOURCE_GROUP=$(jq -r '.monitoring.value.grafanaResourceGroup' ccwOutputs.json)
+    MONITORING_PROJECT_VERSION=$(/opt/cycle_server/./cycle_server execute --format json 'select * from Cloud.Project where Name=="monitoring" order by Version desc limit 1' | jq -r '.[0].Version')
+    EXTRACTED_DIR="cyclecloud-monitoring-${MONITORING_PROJECT_VERSION}"
+    MONITORING_TARBALL="${EXTRACTED_DIR}.tar.gz"
+    curl --fail --location --silent --show-error -o "${MONITORING_TARBALL}" "https://github.com/Azure/cyclecloud-monitoring/archive/refs/tags/${MONITORING_PROJECT_VERSION}.tar.gz"
+    tar -xzf "${MONITORING_TARBALL}"
+    pushd "${EXTRACTED_DIR}/infra"
+    echo "Adding Slurm dashboards to Grafana instance ${GRAFANA_NAME} in resource group ${MONITORING_RESOURCE_GROUP}"
+    az config set extension.use_dynamic_install=yes_without_prompt
+    ./add_dashboards.sh "$MONITORING_RESOURCE_GROUP" "$GRAFANA_NAME" --slurm
+    popd
+    rm -rf "${EXTRACTED_DIR}"
+    rm -rf "${MONITORING_TARBALL}"
 fi
 
 #TODO next step: wait for scheduler node to be running, get IP address of scheduler + login nodes (if enabled)

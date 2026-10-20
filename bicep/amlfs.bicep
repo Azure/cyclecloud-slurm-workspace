@@ -23,7 +23,7 @@ param capacity int
 param infrastructureOnly bool = false
 param availabilityZone availabilityZone_t[]
 
-resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2024-03-01' = if (!infrastructureOnly){
+resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2026-01-01' = if (!infrastructureOnly){
   name: '${name}-${uniqueString(resourceGroup().id,deployment().name)}'
   location: location
   tags: tags
@@ -42,7 +42,7 @@ resource fileSystem 'Microsoft.StorageCache/amlFileSystems@2024-03-01' = if (!in
 }
 
 // All fs modules must output ipAddress, exportPath and mountOptions
-output ipAddress string = infrastructureOnly ? '' : fileSystem.properties.clientInfo.mgsAddress
+output ipAddress string = infrastructureOnly ? '' : fileSystem!.properties.clientInfo.mgsAddress
 // TODO we are fighting the chef cookbooks here by adding tcp:/lustrefs, as it simply prepends all paths
 // with tcp:/lustrefs
 output exportPath string = '' //what should our placeholder be for new amlfs??

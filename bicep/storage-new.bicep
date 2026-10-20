@@ -5,7 +5,7 @@ var storageAccountName = 'ccwstorage${uniqueString(az.resourceGroup().id)}'
 param location string
 param tags tags_t = {}
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' = {
   name: storageAccountName
   location: location
   tags: tags
@@ -26,3 +26,4 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
 }
 
 output storageAccountName string = storageAccount.name
+output storageAccountId string = storageAccount.id

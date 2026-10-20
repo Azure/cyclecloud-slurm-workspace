@@ -8,21 +8,22 @@ param insidersBuild bool
 param branch string
 param projectVersion string
 param oodProjectVersion string
-param pyxisProjectVersion string
 
 param adminUsername string
 @secure()
 param adminPassword string
-param adminSshPublicKey string
-param storedKey types.storedKey_t
 param storageAccount types.storageAccount_t
+param key types.publicKey_t
 param ccVMName string
 param ccVMSize string
+param cyclecloudBaseImage string
 param resourceGroup string
+param entraIdInfo types.entra_t
+param schedFilesystem types.schedFilesystem_t
 param sharedFilesystem types.sharedFilesystem_t
 param additionalFilesystem types.additionalFilesystem_t 
 param network types.vnet_t 
-param storagePrivateDnsZone types.storagePrivateDnsZone_t
+param storagePrivateDnsZone types.privateDnsZone_t
 param clusterInitSpecs types.cluster_init_param_t
 param slurmSettings types.slurmSettings_t 
 param schedulerNode types.scheduler_t
@@ -38,19 +39,20 @@ param clusterName string
 param manualInstall bool
 param acceptMarketplaceTerms bool
 param ood types.oodConfig_t
+param monitoring types.monitoring_t
 
 var anfDefaultMountOptions = 'rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8'
 
 func getTags(resource_type string, tags types.resource_tags_t) types.tags_t => tags[?resource_type] ?? {}
 
-var useEnteredKey = adminSshPublicKey != ''
-module ccwPublicKey './publicKey.bicep' = if (!useEnteredKey && !infrastructureOnly) {
+var useStoredKey = key.type == 'stored'
+module ccwPublicKey './publicKey.bicep' = if (!infrastructureOnly && useStoredKey) {
   name: 'ccwPublicKey'
   params: {
-    storedKey: storedKey
+    storedKeyId: key.?id ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
   }
 }
-var publicKey = infrastructureOnly ? '' : (useEnteredKey ? adminSshPublicKey : ccwPublicKey.outputs.publicKey)
+var publicKey = infrastructureOnly ? '' : (useStoredKey ? ccwPublicKey!.outputs.publicKey : (key.?value ?? ''))
 
 var createNatGateway = network.?createNatGateway ?? false
 module natgateway './natgateway.bicep' = if (createNatGateway) {
@@ -61,9 +63,11 @@ module natgateway './natgateway.bicep' = if (createNatGateway) {
     name: 'ccw-nat-gateway'
   }
 }
-var natGateawayId = createNatGateway ? natgateway.outputs.NATGatewayId : ''
+var natGateawayId = createNatGateway ? natgateway!.outputs.NATGatewayId : ''
 
 var create_new_vnet = network.type == 'new'
+var createNetApp = (schedFilesystem.type == 'anf-new' || sharedFilesystem.type == 'anf-new' || additionalFilesystem.type == 'anf-new') && !infrastructureOnly
+var createLustre = additionalFilesystem.type == 'aml-new' && !infrastructureOnly
 module ccwNetwork './network-new.bicep' = if (create_new_vnet) {
   name: 'ccwNetwork'
   params: {
@@ -72,35 +76,28 @@ module ccwNetwork './network-new.bicep' = if (create_new_vnet) {
     nsgTags: getTags('Microsoft.Network/networkSecurityGroups', tags)
     network: network
     natGatewayId: natGateawayId
-    sharedFilesystem: sharedFilesystem
-    additionalFilesystem: additionalFilesystem
+    createNetApp: createNetApp
+    createLustre: createLustre
     databaseConfig: databaseConfig
   }
 }
 
 var subnets = create_new_vnet
-  ? ccwNetwork.outputs.subnetsCCW
+  ? ccwNetwork!.outputs.subnetsCCW
   : {
-      cyclecloud: { id: join([network.?id, 'subnets', network.?cyclecloudSubnet], '/') }
-      compute: { id: join([network.?id, 'subnets', network.?computeSubnet], '/') }
-      home: { id: join([network.?id, 'subnets', network.?sharedFilerSubnet ?? 'null'], '/') }
-      additional: { id: join([network.?id, 'subnets', network.?additionalFilerSubnet ?? 'null'], '/') }
+      cyclecloud: join([network.?id, 'subnets', network.?cyclecloudSubnet], '/')
+      compute: join([network.?id, 'subnets', network.?computeSubnet], '/')
+      netapp: join([network.?id, 'subnets', network.?netappSubnet ?? 'null'], '/')
+      lustre: join([network.?id, 'subnets', network.?lustreSubnet ?? 'null'], '/')
     }
 
-output vnet types.networkOutput_t = union(
-  create_new_vnet
-    ? ccwNetwork.outputs.vnetCCW
-    : {
-        id: network.?id ?? ''
-        name: network.?name
-        rg: split(network.?id ?? '////', '/')[4]
-      },
-  {
-    type: network.type
-    computeSubnetName: network.?computeSubnet ?? 'ccw-compute-subnet'
-    computeSubnetId: subnets.compute.id
-  }
-)
+var existingNetworkId = network.?id ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
+
+output vnet types.networkOutput_t = {
+  type: network.type
+  id: create_new_vnet ? ccwNetwork!.outputs.vnetCCWId : existingNetworkId
+  computeSubnetId: subnets.compute
+}
 
 var deploy_bastion = network.?bastion ?? false
 module ccwBastion './bastion.bicep' = if (deploy_bastion) {
@@ -109,11 +106,10 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
   params: {
     location: location
     tags: getTags('Microsoft.Network/bastionHosts', tags)
-    subnetId: subnets.bastion.id
+    subnetId: subnets.?bastion ?? ''
   }
 }
 
-param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.7.320250909'
 var vmMiName = 'ccwCycleCloudVirtualMachineManagedIdentity'
 module ccwVirtualMachineManagedIdentity './vmManagedIdentity.bicep' = if (!infrastructureOnly && storageAccount.type == 'new') {
   name: vmMiName
@@ -147,7 +143,7 @@ module ccwVM './vm.bicep' = if (!infrastructureOnly) {
             version: split(cyclecloudBaseImage, ':')[3]
           }
     }
-    subnetId: subnets.cyclecloud.id
+    subnetId: subnets.cyclecloud
     adminUser: adminUsername
     adminPassword: adminPassword
     databaseAdminPassword: databaseAdminPassword
@@ -164,9 +160,6 @@ module ccwVM './vm.bicep' = if (!infrastructureOnly) {
     ]
     managedIdentityId: ccwVirtualMachineManagedIdentityId
   }
-  dependsOn: [
-    ccwNetwork
-  ]
 }
 
 module ccwNewStorageAccount './storage-new.bicep' = if (storageAccount.type == 'new') {
@@ -177,15 +170,41 @@ module ccwNewStorageAccount './storage-new.bicep' = if (storageAccount.type == '
   }
 }
 var storageAccountName  = storageAccount.type == 'existing' ? split(storageAccount.storageAccountId, '/')[8] : ccwNewStorageAccount!.outputs.storageAccountName
+var storageAccountId = storageAccount.type == 'existing' ? storageAccount.storageAccountId : ccwNewStorageAccount!.outputs.storageAccountId
 
-module ccwStorageNetworking './storage-networking.bicep' = {
-  name: 'ccwStorageAccountNetworking'
+var monitorWorkspaceRoleAssignmentScope = monitoring.type == 'enabled' ? split(monitoring.monitorWorkspaceId, '/')[4] : resourceGroup
+module ccwMonitorWorkspaceRoleAssignment './vmMonitoringRoleAssignments.bicep' = if (!infrastructureOnly && storageAccount.type == 'new' && monitoring.type == 'enabled') {
+  name: 'ccwMonitorWorkspaceRoleFor-${ccVMName}'
+  scope: az.resourceGroup(monitorWorkspaceRoleAssignmentScope)
+  params: {
+    roles: [
+      'Monitoring Metrics Publisher'
+    ]
+    principalId: ccwVM!.outputs.principalId
+  }
+}
+
+var managedGrafanaRoleAssignmentScope = monitoring.type == 'enabled' ? split(monitoring.grafanaId, '/')[4] : resourceGroup
+module ccwManagedGrafanaRoleAssignment './vmMonitoringRoleAssignments.bicep' = if (!infrastructureOnly && storageAccount.type == 'new' && monitoring.type == 'enabled') {
+  name: 'ccwManagedGrafanaRoleFor-${ccVMName}'
+  scope: az.resourceGroup(managedGrafanaRoleAssignmentScope)
+  params: {
+    roles: [
+      'Grafana Admin'
+    ]
+    principalId: ccwVM!.outputs.principalId
+  }
+}
+
+module ccwStorageNetworking './privateEndpoint.bicep' = {
+  name: 'ccwStoragePrivateEndpoint'
   params: {
     location: location
-    saName: storageAccountName
     tags: getTags('Microsoft.Storage/storageAccounts', tags)
-    subnetId: subnets.cyclecloud.id
-    storagePrivateDnsZone: storagePrivateDnsZone
+    resourceId: storageAccountId
+    computeSubnetId: subnets.cyclecloud
+    privateDnsZone: storagePrivateDnsZone
+    groupId: 'blob'
   }
 }
 
@@ -196,26 +215,18 @@ module ccwVMSSManagedIdentity 'vmssManagedIdentity.bicep' = if (!infrastructureO
     name: vmssMiName
     location: location
     storageAccountName: storageAccountName
+    monitoringEnabled: monitoring.type == 'enabled'
+    dcrId: monitoring.?dcrId ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
     tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
   }
 }
 var vmssManagedIdentityId = !infrastructureOnly ? ( storageAccount.type == 'new' ? ccwVMSSManagedIdentity!.outputs.managedIdentityId : storageAccount.vmssManagedIdentityId) : ''
 
-// module ccwRoleAssignments './vmRoleAssignments.bicep' = if (!infrastructureOnly) {
-//   name: 'ccwRoleFor-${ccVMName}-${location}'
-//   scope: subscription()
-//   params: {
-//     roles: [
-//       'Contributor'
-//       'Storage Account Contributor'
-//       'Storage Blob Data Contributor'
-//     ]
-//     principalId: ccwVM.outputs.principalId
-//   }
-//   dependsOn: [
-//     ccwVM
-//   ]
-// }
+var existingVMSSManagedIdentityId = storageAccount.?vmssManagedIdentityId ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
+resource existingVMSSManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = if (!infrastructureOnly && storageAccount.type == 'existing' && monitoring.type == 'enabled') {
+  name: split(existingVMSSManagedIdentityId, '/')[8]
+  scope: az.resourceGroup(split(existingVMSSManagedIdentityId, '/')[2], split(existingVMSSManagedIdentityId, '/')[4])
+}
 
 var create_database = contains(slurmSettings, 'databaseAdminPassword')
 var db_name = 'ccw-mysqldb-${uniqueString(az.resourceGroup().id)}'
@@ -228,28 +239,25 @@ module mySQLccw './mysql.bicep' = if (create_database) {
     Name: db_name
     adminUser: adminUsername
     adminPassword: databaseAdminPassword
-    subnetId: subnets.database.id
+    subnetId: subnets.?database ?? ''
   }
 }
 
-module ccwAMLFS 'amlfs.bicep' = if (additionalFilesystem.type == 'aml-new') {
+module ccwAMLFS 'amlfs.bicep' = if (createLustre) {
   name: 'ccwAMLFS-additional'
   params: {
     location: location
     tags: getTags('Microsoft.StorageCache/amlFileSystems', tags)
     name: 'ccw-lustre'
-    subnetId: subnets.?additional.id ?? ''
+    subnetId: subnets.?lustre ?? ''
     sku: additionalFilesystem.?lustreTier
     capacity: additionalFilesystem.?lustreCapacityInTib
     availabilityZone:  additionalFilesystem.?availabilityZone ?? []
     infrastructureOnly: infrastructureOnly
   }
-  dependsOn: [
-    ccwNetwork
-  ]
 }
 
-module ccwANFAccount 'anf-account.bicep' = if((sharedFilesystem.type == 'anf-new' || additionalFilesystem.type == 'anf-new') && !infrastructureOnly) {
+module ccwANFAccount 'anf-account.bicep' = if(createNetApp) {
   name: 'ccwANFAccount'
   params: {
     location: location
@@ -257,28 +265,29 @@ module ccwANFAccount 'anf-account.bicep' = if((sharedFilesystem.type == 'anf-new
 }
 
 module ccwANF 'anf.bicep' = [
-  for filer in items({ home: sharedFilesystem, additional: additionalFilesystem }): if (filer.value.type == 'anf-new') {
+  for filer in items({ sched: schedFilesystem, home: sharedFilesystem, additional: additionalFilesystem }): if (filer.value.type == 'anf-new' && !infrastructureOnly) {
     name: 'ccwANF-${filer.key}'
     params: {
       location: location
       tags: getTags('Microsoft.NetApp/netAppAccounts', tags)
       name: filer.key
-      subnetId: subnets[filer.key].id
-      serviceLevel: filer.value.anfServiceTier
+      subnetId: subnets.?netapp ?? ''
+      serviceLevel: filer.value.anfServiceLevel
       sizeTiB: filer.value.anfCapacityInTiB
+      throughputMibps: filer.value.?anfFlexThroughputMiBps ?? 0
       defaultMountOptions: anfDefaultMountOptions
       availabilityZone:  filer.value.?availabilityZone ?? []
       infrastructureOnly: infrastructureOnly
     }
     dependsOn: [
-      ccwNetwork
       ccwANFAccount
     ]
   }
 ]
 
 var deployOOD = ood.type != 'disabled'
-var registerOODApp = ood.?registerEntraIDApp ?? false
+// Temporary deprecation of automatic registration of Entra app registration
+var registerOODApp = false // ood.?registerEntraIDApp ?? false
 var createOODMI = deployOOD && ood.?appManagedIdentityId == null
 
 var oodNicName = 'ccwOpenOnDemandNIC'
@@ -288,49 +297,59 @@ module oodNIC 'ood-NIC.bicep' = if (deployOOD) {
     location: location
     name: 'ood-${uniqueString(az.resourceGroup().id)}'
     networkInterfacesTags: getTags('Microsoft.Network/networkInterfaces', tags)
-    subnetId: subnets.compute.id
+    subnetId: subnets.compute
   }
 }
 
 // create a user assigned managed identity to be assigned to the OOD VM
 var oodManagedIdentityName = 'ccwOpenOnDemandManagedIdentity'
-resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (createOODMI) {
+resource oodNewManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = if (createOODMI) {
   name: oodManagedIdentityName
   location: location
 }
 
 var oodAppName = 'CycleCloudOpenOnDemandApp-${uniqueString(az.resourceGroup().id)}'
-module oodApp 'ood/oodEntraApp.bicep' = if (registerOODApp) {
+module oodApp 'entra/ccwEntraApp.bicep' = if (registerOODApp) {
   name: 'oodApp'
   params: {
     umiName: oodManagedIdentityName
     appName: oodAppName
-    fqdn: oodNIC.outputs.privateIp
+    // fqdn: oodNIC.outputs.privateIp
   }
 }
 
 output filerInfoFinal types.filerInfo_t = {
+  sched: {
+    type: schedFilesystem.type
+    nfsCapacityInGb: schedFilesystem.?nfsCapacityInGb ?? -1
+    ipAddress: schedFilesystem.type == 'anf-new' ? ccwANF[2]!.outputs.ipAddress : schedFilesystem.?ipAddress ?? ''
+    exportPath: schedFilesystem.type == 'anf-new' ? ccwANF[2]!.outputs.exportPath : schedFilesystem.?exportPath ?? ''
+    mountOptions: schedFilesystem.type == 'anf-new'
+      ? ccwANF[2]!.outputs.mountOptions
+      : schedFilesystem.?mountOptions ?? ''
+    mountPath: '/sched'
+  }
   home: {
     type: sharedFilesystem.type
     nfsCapacityInGb: sharedFilesystem.?nfsCapacityInGb ?? -1
-    ipAddress: sharedFilesystem.type == 'anf-new' ? ccwANF[1].outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
-    exportPath: sharedFilesystem.type == 'anf-new' ? ccwANF[1].outputs.exportPath : sharedFilesystem.?exportPath ?? ''
+    ipAddress: sharedFilesystem.type == 'anf-new' ? ccwANF[1]!.outputs.ipAddress : sharedFilesystem.?ipAddress ?? ''
+    exportPath: sharedFilesystem.type == 'anf-new' ? ccwANF[1]!.outputs.exportPath : sharedFilesystem.?exportPath ?? ''
     mountOptions: sharedFilesystem.type == 'anf-new'
-      ? ccwANF[1].outputs.mountOptions
+      ? ccwANF[1]!.outputs.mountOptions
       : sharedFilesystem.?mountOptions ?? ''
     mountPath: '/shared'
   }
   additional: {
     type: additionalFilesystem.type
     ipAddress: additionalFilesystem.type == 'anf-new'
-      ? ccwANF[0].outputs.ipAddress
-      : additionalFilesystem.type == 'aml-new' ? ccwAMLFS.outputs.ipAddress : additionalFilesystem.?ipAddress ?? ''
+      ? ccwANF[0]!.outputs.ipAddress
+      : additionalFilesystem.type == 'aml-new' ? ccwAMLFS!.outputs.ipAddress : additionalFilesystem.?ipAddress ?? ''
     exportPath: additionalFilesystem.type == 'anf-new'
-      ? ccwANF[0].outputs.exportPath
+      ? ccwANF[0]!.outputs.exportPath
       :additionalFilesystem.?exportPath ?? ''
     mountOptions: additionalFilesystem.type == 'anf-new'
-      ? ccwANF[0].outputs.mountOptions
-      : additionalFilesystem.type == 'aml-new' ? ccwAMLFS.outputs.mountOptions : additionalFilesystem.?mountOptions ?? ''
+      ? ccwANF[0]!.outputs.mountOptions
+      : additionalFilesystem.type == 'aml-new' ? ccwAMLFS!.outputs.mountOptions : additionalFilesystem.?mountOptions ?? ''
     mountPath: additionalFilesystem.?mountPath ?? ''
   }
 }
@@ -340,7 +359,7 @@ output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM!.outputs.p
 // MI for VMSS
 output managedIdentityId string = vmssManagedIdentityId
 
-// Automatically inject the ccw and pyxis cluster init specs
+// Automatically inject the ccw cluster init spec
 
 var ccwClusterInitSpec = {
   type: 'gitHubReleaseURL'
@@ -349,15 +368,7 @@ var ccwClusterInitSpec = {
   target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
 }
 
-var pyxisClusterInitSpec = {
-  type: 'gitHubReleaseURL'
-  gitHubReleaseURL: uri('https://github.com/Azure/cyclecloud-pyxis/releases/tag/', pyxisProjectVersion)
-  spec: 'default'
-  target: ['login', 'scheduler', 'htc', 'hpc', 'gpu', 'dynamic']
-}
-
-// Projects <= 2025.02.06 have the pyxis logic embedded in the ccw cluster init spec
-var requiredClusterInitSpecs = [ccwClusterInitSpec, pyxisClusterInitSpec]
+var requiredClusterInitSpecs = [ccwClusterInitSpec]
 
 output clusterInitSpecs types.cluster_init_param_t = union(requiredClusterInitSpecs, clusterInitSpecs)
 
@@ -401,7 +412,7 @@ output tenantId string = subscription().tenantId
 // output databaseFQDN string = create_database ? mySQLccw.outputs.fqdn : ''
 output databaseInfo types.databaseOutput_t = databaseConfig.type != 'disabled' ?{
   databaseUser: databaseConfig.?databaseUser
-  url: databaseConfig.type == 'fqdn' ? databaseConfig.?fqdn : databaseConfig.type == 'privateIp' ? databaseConfig.?privateIp : ccwNetwork.outputs.?databaseFQDN 
+  url: databaseConfig.type == 'fqdn' ? databaseConfig.?fqdn : databaseConfig.type == 'privateIp' ? databaseConfig.?privateIp : ccwNetwork!.outputs.?databaseFQDN
 } : {}
 output azureEnvironment string = envNameToCloudMap[environment().name]
 output nodeArrayTags types.tags_t = tags[?'Node Array'] ?? {}
@@ -412,22 +423,34 @@ output insidersBuild bool = insidersBuild
 output manualInstall bool = manualInstall
 output acceptMarketplaceTerms bool = acceptMarketplaceTerms
 
+output entraIdInfo object = union(entraIdInfo,
+  {loginEndpoint: environment().authentication.loginEndpoint})
+
 output ood object = union(ood, {
   version: oodProjectVersion
-  nic: deployOOD ? oodNIC.outputs.NICId : ''
+  nic: deployOOD ? oodNIC!.outputs.NICId : ''
   managedIdentity: deployOOD ? createOODMI ? oodNewManagedIdentity.id : ood.?appManagedIdentityId : ''
-  clientId: deployOOD ? registerOODApp ? oodApp.outputs.oodClientAppId : ood.?appId : ''
-  tenantId: deployOOD ? subscription().tenantId : ''
+  clientId: deployOOD ? registerOODApp ? oodApp!.outputs.ccwEntraClientAppId : ood.?appId : ''
+  tenantId: deployOOD ? registerOODApp ? oodApp!.outputs.ccwEntraClientTenantId : ood.?appTenantId : ''
 })
 
 output oodManualRegistration object = {
   appName: oodAppName
   umiName: oodManagedIdentityName
-  fqdn: deployOOD ? oodNIC.outputs.privateIp : ''
+  fqdn: deployOOD ? oodNIC!.outputs.privateIp : ''
+}
+
+output monitoring object = {
+  type: monitoring.type
+  ingestionEndpoint: monitoring.type == 'enabled' ? monitoring.ingestionEndpoint : ''
+  managedIdentityClientId: !infrastructureOnly && monitoring.type == 'enabled'
+    ? (storageAccount.type == 'new' ? ccwVMSSManagedIdentity!.outputs.managedIdentityClientId : existingVMSSManagedIdentity!.properties.clientId)
+    : ''
+  grafanaName: monitoring.type == 'enabled' ? split(monitoring.grafanaId, '/')[8] : ''
+  grafanaResourceGroup: monitoring.type == 'enabled' ? split(monitoring.grafanaId, '/')[4] : ''
 }
 
 output files object = {
-  availability_zones_json: loadTextContent('./files-to-load/encoded/availability_zones.json.base64')
   create_cc_param_py: loadTextContent('./files-to-load/encoded/create_cc_param.py.base64')
   cyclecloud_install_py: loadTextContent('./files-to-load/encoded/cyclecloud_install.py.base64')
   initial_params_json: loadTextContent('./files-to-load/encoded/initial_params.json.base64')

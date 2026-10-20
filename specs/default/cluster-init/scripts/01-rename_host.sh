@@ -7,6 +7,20 @@ JETPACK=/opt/cycle/jetpack/bin/jetpack
 
 source $script_dir/../files/$os_release/rename_host.sh
 
+function ensure_nslookup() {
+  if ! command -v nslookup &> /dev/null; then
+    logger -s "nslookup not found, installing..."
+    case "$os_release" in
+      ubuntu|debian)
+        apt-get update && apt-get install -y dnsutils
+        ;;
+      *)
+        yum install -y bind-utils
+        ;;
+    esac
+  fi
+}
+
 function check_host_renaming() {
   delay=15
   n=1
@@ -47,6 +61,7 @@ function check_host_renaming() {
     # Check if the new hostname is resolvable and loop until it is or max_retry is reached
     n=1
     max_retry=3
+    ensure_nslookup
     while true; do
       logger -s "Checking if $target_hostname is resolvable"
       nslookup $target_hostname

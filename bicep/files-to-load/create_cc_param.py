@@ -18,16 +18,13 @@ def get_json_dict(file_name):
 
 def set_slurm_params(params, dbPassword, outputs):
     params['Region'] = outputs['location']['value']
-    if outputs['vnet']['value']['type'] == 'new':
-        subnetID = outputs['vnet']['value']['computeSubnetId']
-        subnet_toks = subnetID.split("/")
-        if len(subnet_toks) >= 11:
-            params['SubnetId'] = "/".join([subnet_toks[4], subnet_toks[8], subnet_toks[10]])
-        else:
-            print(f"Unexpected subnet id {subnetID} - passing as SubnetId directly instead of resource_group/vnet_name/subnet_name", file=sys.stderr)
-            params['SubnetId'] = subnetID
+    subnetID = outputs['vnet']['value']['computeSubnetId']
+    subnet_toks = subnetID.split("/")
+    if len(subnet_toks) >= 11:
+        params['SubnetId'] = "/".join([subnet_toks[4], subnet_toks[8], subnet_toks[10]])
     else:
-        params['SubnetId'] = '/'.join([outputs['vnet']['value']['rg'], outputs['vnet']['value']['name'], outputs['vnet']['value']['computeSubnetName']])
+        print(f"Unexpected subnet id {subnetID} - passing as SubnetId directly instead of resource_group/vnet_name/subnet_name", file=sys.stderr)
+        params['SubnetId'] = subnetID
         
     # Define Availability Zone
     params['DefineNodesAvailabilityZone'] = any('availabilityZone' in zoneList for zoneList in [outputs['partitions']['value']['htc'], outputs['partitions']['value']['hpc'], outputs['partitions']['value']['gpu']])
@@ -70,6 +67,7 @@ def set_slurm_params(params, dbPassword, outputs):
     #login node(s)
     params['loginMachineType'] = (outputs['loginNodes']['value']['sku']).strip()
     params['NumberLoginNodes'] = int(outputs['loginNodes']['value']['initialNodes'])
+    params['MaxLoginNodeCount'] = int(outputs['loginNodes']['value']['maxNodes'])
     params['LoginImageName'] = outputs['loginNodes']['value']['osImage']
     params['EnableNodeHealthChecks'] = outputs['slurmSettings']['value']['healthCheckEnabled']
 
@@ -77,6 +75,17 @@ def set_slurm_params(params, dbPassword, outputs):
     params['NodeTags'] = outputs['nodeArrayTags']['value']
 
     #Network Attached Storage
+    params['UseBuiltinSched'] = outputs['filerInfoFinal']['value']['sched']['type'] == 'nfs-new' 
+    if params['UseBuiltinSched']:
+        params['SchedFilesystemSize'] = outputs['filerInfoFinal']['value']['sched']['nfsCapacityInGb']
+    else:
+        params['NFSSchedType'] = 'nfs' if outputs['filerInfoFinal']['value']['sched']['type'] in ['nfs-existing','anf-new'] else 'lustre'
+        # We no longer need to handle these differently based on the fs type, as each
+        # fs module's common outputs map to these.
+        params['NFSSchedExportPath'] = outputs['filerInfoFinal']['value']['sched']['exportPath']
+        params['NFSSchedMountOptions'] = outputs['filerInfoFinal']['value']['sched']['mountOptions']
+        params['NFSSchedAddress'] = outputs['filerInfoFinal']['value']['sched']['ipAddress']
+
     params['UseBuiltinShared'] = outputs['filerInfoFinal']['value']['home']['type'] == 'nfs-new' 
     if params['UseBuiltinShared']:
         params['FilesystemSize'] = outputs['filerInfoFinal']['value']['home']['nfsCapacityInGb']
@@ -95,6 +104,11 @@ def set_slurm_params(params, dbPassword, outputs):
         params['AdditionalNFSExportPath'] = outputs['filerInfoFinal']['value']['additional']['exportPath']
         params['AdditionalNFSMountOptions'] = outputs['filerInfoFinal']['value']['additional']['mountOptions']
         params['AdditionalNFSAddress'] = outputs['filerInfoFinal']['value']['additional']['ipAddress']
+    
+    # Monitoring
+    params['configuration_monitoring_enabled'] = outputs['monitoring']['value']['type'] == 'enabled'
+    params['configuration_identity_client_id'] = outputs['monitoring']['value']['managedIdentityClientId'] if params['configuration_monitoring_enabled'] else None
+    params['configuration_ingestion_endpoint'] = outputs['monitoring']['value']['ingestionEndpoint'] if params['configuration_monitoring_enabled'] else None
 
 
 def set_ood_params(params, outputs):
@@ -114,10 +128,11 @@ def set_ood_params(params, outputs):
     params['ImageName'] = outputs['ood']['value'].get('osImage')
 
     params['ood_server_name'] = outputs['ood']['value'].get('fqdn','')
-    params['ood_entra_user_map_match'] = outputs['ood']['value'].get('userDomain')
     params['ood_entra_client_id'] = outputs['ood']['value'].get('clientId')
     params['ood_entra_tenant_id'] = outputs['ood']['value'].get('tenantId')
     params['ood_nic'] = outputs['ood']['value'].get('nic')
+
+    params['NodeTags'] = slurm_params['NodeTags']
 
 class ClusterInitSpec:
     def __init__(self, project: str, version: str, spec: str, targets: typing.List[str]):

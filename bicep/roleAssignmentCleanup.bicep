@@ -12,7 +12,7 @@ param roles array = [
 var subscriptionId = split(subscription().id, '/')[2]
 
 
-resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
+resource ccwResourceGroup 'Microsoft.Resources/resourceGroups@2025-03-01' = {
   name: resourceGroup
   location: location
 }

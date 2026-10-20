@@ -5,7 +5,7 @@
   "parameters": {
     "config": {
       "basics": {
-        "description": "Version **2025.09.15**: [Release Notes](https://learn.microsoft.com/azure/cyclecloud/release-notes/ccws/release-notes)",
+        "description": "Version **2026.09.02**: [Release Notes](https://learn.microsoft.com/azure/cyclecloud/release-notes/ccws/release-notes)",
         "resourceGroup": {
           "visible": false
         },
@@ -90,7 +90,7 @@
         "constraints": {
           "validations": [
             {
-              "regex": "^(?!.*\\.$)[a-zA-Z0-9_().-À-ÖØ-öø-ſ]?[a-zA-Z0-9_().-À-ÖØ-öø-ſ]{0,88}$",
+              "regex": "^(?!.*\\/)(?!.*\\.$)[a-zA-Z0-9_().-À-ÖØ-öø-ſ]?[a-zA-Z0-9_().-À-ÖØ-öø-ſ]{1,88}$",
               "message": "Resource group names may only include alphanumeric, underscore, parentheses, hyphens, and periods (except at end)."
             }
           ],
@@ -185,7 +185,7 @@
         "type": "Microsoft.Common.TextBox",
         "label": "CycleCloud VM Name",
         "defaultValue": "ccw-cyclecloud-vm",
-        "toolTip": "Name for the CycleCloud VM",
+        "toolTip": "Name for the CycleCloud VM, must be unique per DNS zone",
         "constraints": {
           "required": true,
           "validations": [
@@ -397,15 +397,15 @@
         "visible": true
       },
       {
-        "name": "autogeneratePasswordsAndKeys",
+        "name": "publicKeySource",
         "type": "Microsoft.Common.DropDown",
         "label": "SSH public key source",
-        "defaultValue": "Use existing public key",
+        "defaultValue": "Manually enter public key",
         "toolTip": "Public keys can be entered manually or retrieved from an Azure Public Key resource",
         "constraints": {
           "allowedValues": [
             {
-              "label": "Use existing public key",
+              "label": "Manually enter public key",
               "value": "entered"
             },
             {
@@ -422,11 +422,11 @@
         "label": "Admin SSH Public Key",
         "toolTip": "SSH Public Key for the Virtual Machines",
         "constraints": {
-          "required": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]",
+          "required": "[equals(basics('publicKeySource'),'entered')]",
           "regex": "^ssh-[a-zA-Z0-9]+ [A-Za-z0-9+/=]+(?: .*)?$",
           "validationMessage": "Invalid SSH public key"
         },
-        "visible": "[equals(basics('autogeneratePasswordsAndKeys'),'entered')]"
+        "visible": "[equals(basics('publicKeySource'),'entered')]"
       },
       {
         "name": "keySelector",
@@ -443,7 +443,43 @@
           "required": true,
           "validationMessage": "Please select a stored SSH key."
         },
-        "visible": "[equals(basics('autogeneratePasswordsAndKeys'),'stored')]"
+        "visible": "[equals(basics('publicKeySource'),'stored')]"
+      },
+      {
+        "name": "enableEntra",
+        "type": "Microsoft.Common.CheckBox",
+        "label": "Enable Microsoft Entra ID SSO",
+        "toolTip": "Enable single sign-on (SSO) with Microsoft Entra ID",
+        "defaultValue": false,
+        "constraints": {
+          "required": false
+        }
+      },
+      {
+        "name": "clientId",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Application (client) ID",
+        "defaultValue": "",
+        "toolTip": "Application or client ID of the Entra ID application registration",
+        "constraints": {
+          "required": true,
+          "regex": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$",
+          "validationMessage": "Enter a valid client ID"
+        },
+        "visible": "[basics('enableEntra')]"
+      },
+      {
+        "name": "tenantId",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Tenant ID",
+        "defaultValue": "",
+        "toolTip": "Tenant ID of the Entra ID application registration",
+        "constraints": {
+          "required": true,
+          "regex": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$",
+          "validationMessage": "Enter a valid tenant ID"
+        },
+        "visible": "[basics('enableEntra')]"
       },
       {
         "name": "nullValue",
@@ -464,6 +500,191 @@
         },
         "bladeTitle": "Filesystem Settings",
         "elements": [
+          {
+            "name": "sched",
+            "type": "Microsoft.Common.Section",
+            "label": "File-system mount /sched",
+            "elements": [
+              {
+                "name": "schedInfo",
+                "type": "Microsoft.Common.TextBlock",
+                "visible": true,
+                "options": {
+                  "text": "The directory /sched is a network attached mount and exists in all nodes of the cluster. It is managed by the scheduler."
+                }
+              },
+              {
+                "name": "newexisting",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Create new file-system",
+                "defaultValue": "Create new",
+                "toolTip": "Create new file-system type or use existing for /sched directory",
+                "multiselect": false,
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Create new",
+                      "value": "new"
+                    },
+                    {
+                      "label": "Use existing external NFS",
+                      "value": "existing"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": true
+              },
+              {
+                "name": "filertype",
+                "type": "Microsoft.Common.DropDown",
+                "label": "File-system Type",
+                "defaultValue": "[if(equals(steps('filesystem').sched.newexisting,'new'),'Builtin NFS','External NFS')]",
+                "toolTip": "Filer type for the /sched directory",
+                "multiselect": false,
+                "constraints": {
+                  "allowedValues": "[parse(concat('[{\"label\":\"', 'Builtin NFS','\",\"value\":\"nfs\"}',if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),',',''),if(contains(steps('basics').anfAvailabilityZonesApi, 'properties'),'{\"label\":\"Azure NetApp Files\",\"value\":\"anf\"}',''),']'))]",
+                  "required": true
+                },
+                "visible": "[equals(steps('filesystem').sched.newexisting,'new')]"
+              },
+              {
+                "name": "anfInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('filesystem').sched.filertype,'anf')]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "NetApp Resource Provider must be registered for your subscription."
+                }
+              },
+              {
+                "name": "anfInfoBoxSlurmHA",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": false,
+                "options": {
+                  "icon": "Warning",
+                  "text": "Slurm High Availability will be unavailable in Slurm Settings with this choice of file-system."
+                }
+              },
+              {
+                "name": "anfServiceLevel",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Service Level",
+                "defaultValue": "Premium (64 MiB/s per TiB)",
+                "multiselect": false,
+                "toolTip": "Service level for the Azure NetApp Files volume with max. throughput",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Standard (16 MiB/s per TiB)",
+                      "value": "Standard"
+                    },
+                    {
+                      "label": "Premium (64 MiB/s per TiB)",
+                      "value": "Premium"
+                    },
+                    {
+                      "label": "Ultra (128 MiB/s per TiB)",
+                      "value": "Ultra"
+                    },
+                    {
+                      "label": "Flexible (custom throughput)",
+                      "value": "Flexible"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": "[and(equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.newexisting,'new'))]"
+              },
+              {
+                "name": "anfcapacity",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Capacity",
+                "toolTip": "Capacity of the Azure NetApp Files volume",
+                "subLabel": "TiB",
+                "defaultValue": "4",
+                "constraints": {
+                  "required": true,
+                  "regex": "^(?:[1-9]\\d{0,2}|1000)$",
+                  "validationMessage": "Please enter an integer between 1 and 1000"
+                },
+                "visible": "[and(equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.newexisting,'new'))]"
+              },
+              {
+                "name": "anfFlexThroughput",
+                "type": "Microsoft.Common.Slider",
+                "min": 128,
+                "max": "[mul(mul(5,128),int(steps('filesystem').sched.anfcapacity))]",
+                "label": "Maximum Throughput",
+                "subLabel": "Mi/s",
+                "defaultValue": 24,
+                "showStepMarkers": false,
+                "toolTip": "Maximum throughput of the Flexible Azure NetApp Files volume",
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[and(equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.newexisting,'new'),equals(steps('filesystem').sched.anfServiceLevel,'Flexible'))]"
+              },
+              {
+                "name": "nfscapacity",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Capacity",
+                "toolTip": "Capacity of the NFS volume",
+                "subLabel": "GB",
+                "defaultValue": "30",
+                "constraints": {
+                  "required": true,
+                  "regex": "^([1-9]\\d{1,3}|10[01]\\d{2}|102[0-3]\\d|10240)$",
+                  "validationMessage": "Please enter an integer between 10 and 10240"
+                },
+                "visible": "[and(equals(steps('filesystem').sched.newexisting,'new'),equals(steps('filesystem').sched.filertype,'nfs'))]"
+              },
+              {
+                "name": "ipAddress",
+                "type": "Microsoft.Common.TextBox",
+                "label": "IP Address",
+                "toolTip": "IP address of the filer mount",
+                "defaultValue": "",
+                "constraints": {
+                  "required": true,
+                  "validations": [
+                    {
+                      "regex": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$",
+                      "message": "Invalid IP address"
+                    }
+                  ]
+                },
+                "visible": "[equals(steps('filesystem').sched.newexisting,'existing')]"
+              },
+              {
+                "name": "exportPath",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Export path",
+                "defaultValue": "/sched",
+                "toolTip": "Export path for the primary filer",
+                "constraints": {
+                  "required": true,
+                  "regex": "^\/(?:[\\w-.]+\/)*[\\w-.]+$",
+                  "validationMessage": "Must be an absolute path"
+                },
+                "visible": "[equals(steps('filesystem').sched.newexisting,'existing')]"
+              },
+              {
+                "name": "mountOptions",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Mount options",
+                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8",
+                "toolTip": "Mount options for the primary filer",
+                "constraints": {
+                  "required": false,
+                  "regex": "^.+$",
+                  "validationMessage": "Please enter a mount option"
+                },
+                "visible": "[equals(steps('filesystem').sched.newexisting,'existing')]"
+              }
+            ],
+            "visible": true
+          },
           {
             "name": "shared",
             "type": "Microsoft.Common.Section",
@@ -531,25 +752,29 @@
                 }
               },
               {
-                "name": "anftier",
+                "name": "anfServiceLevel",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Service Level",
-                "defaultValue": "Premium",
+                "defaultValue": "Premium (64 MiB/s per TiB)",
                 "multiselect": false,
-                "toolTip": "Service level for the Azure NetApp Files volume",
+                "toolTip": "Service level for the Azure NetApp Files volume with max. throughput",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Standard",
+                      "label": "Standard (16 MiB/s per TiB)",
                       "value": "Standard"
                     },
                     {
-                      "label": "Premium",
+                      "label": "Premium (64 MiB/s per TiB)",
                       "value": "Premium"
                     },
                     {
-                      "label": "Ultra",
+                      "label": "Ultra (128 MiB/s per TiB)",
                       "value": "Ultra"
+                    },
+                    {
+                      "label": "Flexible (custom throughput)",
+                      "value": "Flexible"
                     }
                   ],
                   "required": true
@@ -569,6 +794,21 @@
                   "validationMessage": "Please enter an integer between 1 and 1000"
                 },
                 "visible": "[and(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.newexisting,'new'))]"
+              },
+              {
+                "name": "anfFlexThroughput",
+                "type": "Microsoft.Common.Slider",
+                "min": 128,
+                "max": "[mul(mul(5,128),int(steps('filesystem').shared.anfcapacity))]",
+                "label": "Maximum Throughput",
+                "subLabel": "Mi/s",
+                "defaultValue": 24,
+                "showStepMarkers": false,
+                "toolTip": "Maximum throughput of the Flexible Azure NetApp Files volume",
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[and(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.newexisting,'new'),equals(steps('filesystem').shared.anfServiceLevel,'Flexible'))]"
               },
               {
                 "name": "nfscapacity",
@@ -618,7 +858,7 @@
                 "name": "mountOptions",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Mount options",
-                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev",
+                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8",
                 "toolTip": "Mount options for the primary filer",
                 "constraints": {
                   "required": false,
@@ -723,25 +963,29 @@
                 }
               },
               {
-                "name": "anftier",
+                "name": "anfServiceLevel",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Service Level",
-                "defaultValue": "Premium",
+                "defaultValue": "Premium (64 MiB/s per TiB)",
                 "multiselect": false,
-                "toolTip": "Service level for the Azure NetApp Files volume",
+                "toolTip": "Service level for the Azure NetApp Files volume with max. throughput",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "Standard",
+                      "label": "Standard (16 MiB/s per TiB)",
                       "value": "Standard"
                     },
                     {
-                      "label": "Premium",
+                      "label": "Premium (64 MiB/s per TiB)",
                       "value": "Premium"
                     },
                     {
-                      "label": "Ultra",
+                      "label": "Ultra (128 MiB/s per TiB)",
                       "value": "Ultra"
+                    },
+                    {
+                      "label": "Flexible (custom throughput)",
+                      "value": "Flexible"
                     }
                   ],
                   "required": true
@@ -763,32 +1007,43 @@
                 "visible": "[and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'))]"
               },
               {
+                "name": "anfFlexThroughput",
+                "type": "Microsoft.Common.Slider",
+                "min": 128,
+                "max": "[mul(mul(5,128),int(steps('filesystem').additional.anfcapacity))]",
+                "label": "Maximum Throughput",
+                "subLabel": "Mi/s",
+                "defaultValue": 24,
+                "showStepMarkers": false,
+                "toolTip": "Maximum throughput of the Flexible Azure NetApp Files volume",
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.newexisting,'new'),equals(steps('filesystem').additional.anfServiceLevel,'Flexible'))]"
+              },
+              {
                 "name": "lustretier",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Lustre Tier",
-                "defaultValue": "AMLFS-Durable-Premium-500",
+                "defaultValue": "AMLFS-Durable-Premium-500 (500 MB/s per TB)",
                 "multiselect": false,
                 "toolTip": "Select the Azure Manage Lustre SKU to use",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "AMLFS-Durable-Premium-40",
-                      "description": "40 MB/s/TB, 48TB size increment",
+                      "label": "AMLFS-Durable-Premium-40 (40 MB/s per TB)",
                       "value": "AMLFS-Durable-Premium-40"
                     },
                     {
-                      "label": "AMLFS-Durable-Premium-125",
-                      "description": "125 MB/s/TB, 16TB size increment",
+                      "label": "AMLFS-Durable-Premium-125 (125 MB/s per TB)",
                       "value": "AMLFS-Durable-Premium-125"
                     },
                     {
-                      "label": "AMLFS-Durable-Premium-250",
-                      "description": "250 MB/s/TB, 8TB size increment",
+                      "label": "AMLFS-Durable-Premium-250 (250 MB/s per TB)",
                       "value": "AMLFS-Durable-Premium-250"
                     },
                     {
-                      "label": "AMLFS-Durable-Premium-500",
-                      "description": "500 MB/s/TB, 4TB size increment",
+                      "label": "AMLFS-Durable-Premium-500 (500 MB/s per TB)",
                       "value": "AMLFS-Durable-Premium-500"
                     }
                   ],
@@ -876,7 +1131,7 @@
                 "name": "mountOptionsNfs",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Mount options",
-                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev",
+                "defaultValue": "rw,hard,rsize=262144,wsize=262144,vers=3,tcp,_netdev,nconnect=8",
                 "toolTip": "Mount options for the additional filer",
                 "constraints": {
                   "required": false,
@@ -1073,9 +1328,9 @@
                 "visible": "[equals(steps('networking').newexisting,'existing')]"
               },
               {
-                "name": "anfInfoBox1",
+                "name": "anfInfoBox",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'), equals(0,length(first(map(filter(steps('networking').networkSettings.subNetProvidersApi.value, (item) => equals(item.name, steps('networking').networkSettings.filersubnet1)), (item) => filter(item.properties.delegations, (item) => equals(item.properties.serviceName, 'Microsoft.Netapp/volumes')))))))]",
+                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'), equals(0,length(first(map(filter(steps('networking').networkSettings.subNetProvidersApi.value, (item) => equals(item.name, steps('networking').networkSettings.netappSubnet)), (item) => filter(item.properties.delegations, (item) => equals(item.properties.serviceName, 'Microsoft.Netapp/volumes')))))))]",
                 "options": {
                   "icon": "Warning",
                   "text": "The subnet selected below is missing the Microsoft.NetApp/volumes delegation required to use Azure NetApp Files.\nIt must have this delegation for the deployment to succeed.\n\nClick on this box to view the relevant official documentation in a new browser tab.",
@@ -1083,25 +1338,15 @@
                 }
               },
               {
-                "name": "filersubnet1",
+                "name": "netappSubnet",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Primary file-system subnet",
-                "toolTip": "Select subnet for primary file-system",
+                "label": "Azure NetApp Files subnet",
+                "toolTip": "Select subnet for new instance(s) of Azure NetApp Files",
                 "constraints": {
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' (',if(contains(item.properties,'addressPrefix'),item.properties.addressPrefix,first(item.properties.addressPrefixes)), ')', '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
                 },
-                "visible": "[and(equals(steps('filesystem').shared.filertype, 'anf'), equals(steps('networking').newexisting,'existing'))]"
-              },
-              {
-                "name": "anfInfoBox2",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(equals(steps('networking').newexisting,'existing'),steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.filertype,'anf'), equals(0,length(first(map(filter(steps('networking').networkSettings.subNetProvidersApi.value, (item) => equals(item.name, steps('networking').networkSettings.filersubnet2)), (item) => filter(item.properties.delegations, (item) => equals(item.properties.serviceName, 'Microsoft.Netapp/volumes')))))))]",
-                "options": {
-                  "icon": "Warning",
-                  "text": "The subnet selected below is missing the Microsoft.NetApp/volumes delegation required to use Azure NetApp Files.\nIt must have this delegation for the deployment to succeed.\n\nClick on this box to view the relevant official documentation in a new browser tab.",
-                  "uri": "https://learn.microsoft.com/azure/cyclecloud/how-to/ccws/plan-your-deployment?view=cyclecloud-8#brownfield-deployment"
-                }
+                "visible": "[and(or(equals(steps('filesystem').sched.filertype, 'anf'),equals(steps('filesystem').shared.filertype, 'anf'),equals(steps('filesystem').additional.filertype, 'anf')), equals(steps('networking').newexisting,'existing'))]"
               },
               {
                 "name": "lustreInfoBoxExisting",
@@ -1113,10 +1358,10 @@
                 }
               },
               {
-                "name": "filersubnet2",
+                "name": "lustreSubnet",
                 "type": "Microsoft.Common.DropDown",
-                "label": "Additional file-system subnet",
-                "toolTip": "Select subnet for additional file-system",
+                "label": "Azure Manged Lustre subnet",
+                "toolTip": "Select subnet for new instance of Azure Managed Lustre",
                 "constraints": {
                   "allowedValues": "[map(steps('networking').networkSettings.subNetProvidersApi.value, (item) => parse(concat('{\"label\":\"', item.name,' (',if(contains(item.properties,'addressPrefix'),item.properties.addressPrefix,first(item.properties.addressPrefixes)), ')', '\",\"value\":\"', item.name, '\"}')))]",
                   "required": true
@@ -1290,6 +1535,31 @@
             "label": "Cluster Configuration",
             "elements": [
               {
+                "name": "clusterName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Cluster name",
+                "defaultValue": "ccw",
+                "toolTip": "Cluster name must be unique per DNS zone",
+                "constraints": {
+                  "required": true,
+                  "validations": [
+                    {
+                      "regex": "^.{3,50}$",
+                      "message": "Cluster name must be at least 3 and no more than 50 characters long."
+                    },
+                    {
+                      "regex": "^[a-z0-9-]+$",
+                      "message": "Cluster name may only contain lowercase alphanumeric characters or -."
+                    },
+                    {
+                      "regex": "^[a-z0-9]{2}.*[a-z0-9]$",
+                      "message": "The first two and last characters of the cluster name must be lowercase alphanumeric."
+                    }
+                  ]
+                },
+                "visible": true
+              },
+              {
                 "name": "startClusterInfo",
                 "type": "Microsoft.Common.InfoBox",
                 "visible": "[steps('scheduler').clusterSettings.startCluster]",
@@ -1327,19 +1597,6 @@
                 "constraints": {
                   "required": false
                 }
-              },
-              {
-                "name": "clusterName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Cluster name",
-                "defaultValue": "ccw",
-                "toolTip": "Name of cluster in CycleCloud portal",
-                "constraints": {
-                  "required": true,
-                  "regex": "^[a-zA-Z0-9@_-]{3,}$",
-                  "validationMessage": "Cluster name must be at least 3 characters long. Characters must be alphanumeric, @, -, or _."
-                },
-                "visible": false
               }
             ],
             "visible": true
@@ -1392,17 +1649,25 @@
                 "name": "ImageName",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
-                "toolTip": "Select the image to use for the Login Nodes",
+                "defaultValue": "Ubuntu 24.04",
+                "toolTip": "Select the image to use for the scheduler node",
                 "constraints": {
                   "allowedValues": [
+                    {
+                      "label": "Ubuntu 24.04",
+                      "value": "cycle.image.ubuntu24"
+                    },
+                    {
+                      "label": "Ubuntu 22.04",
+                      "value": "cycle.image.ubuntu22"
+                    },
                     {
                       "label": "Alma Linux 8",
                       "value": "almalinux8"
                     },
                     {
-                      "label": "Ubuntu 22.04",
-                      "value": "cycle.image.ubuntu22"
+                      "label": "Alma Linux 9",
+                      "value": "almalinux9"
                     },
                     {
                       "label": "Custom image",
@@ -1447,19 +1712,14 @@
                 "name": "slurmVersion",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Slurm Version",
-                "defaultValue": "24.05.4",
+                "defaultValue": "25.11.5",
                 "toolTip": "Select the version of Slurm to use",
                 "constraints": {
                   "allowedValues": [
                     {
-                      "label": "23.11.10",
-                      "description": "Version 23.11.10",
-                      "value": "23.11.10-2"
-                    },
-                    {
-                      "label": "24.05.4",
-                      "description": "Version 24.05.4",
-                      "value": "24.05.4-2"
+                      "label": "25.11.5",
+                      "description": "Version 25.11.5",
+                      "value": "25.11.5"
                     }
                   ],
                   "required": true
@@ -1514,7 +1774,7 @@
                 },
                 "toolTip": "Password for the Slurm accounting database admin user",
                 "constraints": {
-                  "required": "[not(equals(basics('autogeneratePasswordsAndKeys'),1))]",
+                  "required": true,
                   "regex": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_\\-+=[\\]{}|\\\\:'\",.?`~\";]).{8,123}$",
                   "validationMessage": "Your password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character (@ # $ % ^ & * - _ ! + = [ ] { } | \\ : ' , . ? ` ~ \" ( ) ; )"
                 },
@@ -1618,7 +1878,7 @@
                 "name": "vmsize",
                 "type": "Microsoft.Compute.SizeSelector",
                 "label": "Size",
-                "toolTip": "Select a VM Size for the Login nodes",
+                "toolTip": "Select a VM Size for the login nodes",
                 "recommendedSizes": [
                   "Standard_F4s_v2"
                 ],
@@ -1634,17 +1894,25 @@
                 "name": "ImageName",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
-                "toolTip": "Select the image to use for the Login Nodes",
+                "defaultValue": "Ubuntu 24.04",
+                "toolTip": "Select the image to use for the login nodes",
                 "constraints": {
                   "allowedValues": [
+                    {
+                      "label": "Ubuntu 24.04",
+                      "value": "cycle.image.ubuntu24"
+                    },
+                    {
+                      "label": "Ubuntu 22.04",
+                      "value": "cycle.image.ubuntu22"
+                    },
                     {
                       "label": "Alma Linux 8",
                       "value": "almalinux8"
                     },
                     {
-                      "label": "Ubuntu 22.04",
-                      "value": "cycle.image.ubuntu22"
+                      "label": "Alma Linux 9",
+                      "value": "almalinux9"
                     },
                     {
                       "label": "Custom image",
@@ -1767,17 +2035,25 @@
                 "name": "ImageName",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
+                "defaultValue": "Ubuntu 24.04",
                 "toolTip": "Select the image to use for the HTC partition",
                 "constraints": {
                   "allowedValues": [
+                    {
+                      "label": "Ubuntu 24.04",
+                      "value": "cycle.image.ubuntu24"
+                    },
+                    {
+                      "label": "Ubuntu 22.04",
+                      "value": "cycle.image.ubuntu22"
+                    },
                     {
                       "label": "Alma Linux 8",
                       "value": "almalinux8"
                     },
                     {
-                      "label": "Ubuntu 22.04",
-                      "value": "cycle.image.ubuntu22"
+                      "label": "Alma Linux 9",
+                      "value": "almalinux9"
                     },
                     {
                       "label": "Custom image",
@@ -1863,17 +2139,25 @@
                 "name": "ImageName",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
+                "defaultValue": "Ubuntu 24.04",
                 "toolTip": "Select the image to use for the HPC partition",
                 "constraints": {
                   "allowedValues": [
+                    {
+                      "label": "Ubuntu 24.04",
+                      "value": "cycle.image.ubuntu24"
+                    },
+                    {
+                      "label": "Ubuntu 22.04",
+                      "value": "cycle.image.ubuntu22"
+                    },
                     {
                       "label": "Alma Linux 8",
                       "value": "almalinux8"
                     },
                     {
-                      "label": "Ubuntu 22.04",
-                      "value": "cycle.image.ubuntu22"
+                      "label": "Alma Linux 9",
+                      "value": "almalinux9"
                     },
                     {
                       "label": "Custom image",
@@ -1962,17 +2246,25 @@
                 "name": "ImageName",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
+                "defaultValue": "Ubuntu 24.04",
                 "toolTip": "Select the image to use for the GPU partition",
                 "constraints": {
                   "allowedValues": [
+                    {
+                      "label": "Ubuntu 24.04",
+                      "value": "cycle.image.ubuntu24"
+                    },
+                    {
+                      "label": "Ubuntu 22.04",
+                      "value": "cycle.image.ubuntu22"
+                    },
                     {
                       "label": "Alma Linux 8",
                       "value": "almalinux8"
                     },
                     {
-                      "label": "Ubuntu 22.04",
-                      "value": "cycle.image.ubuntu22"
+                      "label": "Alma Linux 9",
+                      "value": "almalinux9"
                     },
                     {
                       "label": "Custom image",
@@ -2039,20 +2331,29 @@
                 }
               },
               {
+                "name": "oodEntraInfo",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[not(basics('enableEntra'))]",
+                "options": {
+                  "icon": "Error",
+                  "text": "Open OnDemand requires the use of Microsoft Entra ID for single sign-on (SSO) to Azure CycleCloud. Configuration for this setting can be found on the Basics menu with links to official documentation."
+                }
+              },
+              {
                 "name": "deployOOD",
                 "type": "Microsoft.Common.CheckBox",
                 "label": "Deploy Open OnDemand",
                 "toolTip": "Deploy Open OnDemand alongside the Slurm cluster",
-                "defaultValue": true,
+                "defaultValue": false,
                 "constraints": {
                   "required": false
                 },
-                "visible": true
+                "visible": "[basics('enableEntra')]"
               },
               {
                 "name": "oodLoginNodeInfo",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(steps('ood').OODSection.deployOOD,equals(int(steps('scheduler').loginNodesSection.initialNodes),0))]",
+                "visible": "[and(steps('ood').OODSection.deployOOD,equals(int(steps('scheduler').loginNodesSection.initialNodes),0),basics('enableEntra'))]",
                 "options": {
                   "icon": "Warning",
                   "text": "Open OnDemand requires a minimum of one login node for use as a proxy between Azure CycleCloud and the Open OnDemand web server. Please review selections made under the Slurm Settings menu."
@@ -2061,7 +2362,7 @@
               {
                 "name": "oodFilesystemInfo",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(steps('ood').OODSection.deployOOD,not(equals(steps('filesystem').shared.filertype,'anf')))]",
+                "visible": "[and(steps('ood').OODSection.deployOOD,not(equals(steps('filesystem').shared.filertype,'anf')),basics('enableEntra'))]",
                 "options": {
                   "icon": "Info",
                   "text": "Open OnDemand is best-deployed with Azure NetApp Files as the file-system for the /shared and /home directories."
@@ -2073,9 +2374,10 @@
                 "label": "Open OnDemand VM Size",
                 "toolTip": "Select a SKU for the Open OnDemand VM",
                 "recommendedSizes": [
+                  "Standard_D4ads_v5",
                   "Standard_D4as_v5",
                   "Standard_D4s_v5",
-                  "Standard_D4as_v4",
+                  "Standard_D4ads_v4",
                   "Standard_D4s_v4"
                 ],
                 "options": {
@@ -2100,23 +2402,65 @@
                     "Standard_D48s_v6",
                     "Standard_D64s_v6",
                     "Standard_D96s_v6",
-                    "Standard_D128s_v6"
-                  ]
+                    "Standard_D128s_v6",
+                    "Standard_D2ads_v6",
+                    "Standard_D4ads_v6",
+                    "Standard_D8ads_v6",
+                    "Standard_D16ads_v6",
+                    "Standard_D32ads_v6",
+                    "Standard_D48ads_v6",
+                    "Standard_D64ads_v6",
+                    "Standard_D96ads_v6",
+                    "Standard_DC2ads_v6",
+                    "Standard_DC4ads_v6",
+                    "Standard_DC8ads_v6",
+                    "Standard_DC16ads_v6",
+                    "Standard_DC32ads_v6",
+                    "Standard_DC64ads_v6",
+                    "Standard_DC96ads_v6",
+                    "Standard_E2ads_v6",
+                    "Standard_E4ads_v6",
+                    "Standard_E8ads_v6",
+                    "Standard_E16ads_v6",
+                    "Standard_E32ads_v6",
+                    "Standard_E48ads_v6",
+                    "Standard_E64ads_v6",
+                    "Standard_E96ads_v6",
+                    "Standard_EC2ads_v6",
+                    "Standard_EC4ads_v6",
+                    "Standard_EC8ads_v6",
+                    "Standard_EC16ads_v6",
+                    "Standard_EC32ads_v6",
+                    "Standard_EC64ads_v6",
+                    "Standard_EC96ads_v6"
+                    ]
                 },
                 "osPlatform": "Linux",
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]"
               },
               {
                 "name": "ImageName",
                 "type": "Microsoft.Common.DropDown",
                 "label": "Image Name",
-                "defaultValue": "Ubuntu 22.04",
+                "defaultValue": "Ubuntu 24.04",
                 "toolTip": "Select the image to use for the OOD virtual machine",
                 "constraints": {
                   "allowedValues": [
                     {
+                      "label": "Ubuntu 24.04",
+                      "value": "cycle.image.ubuntu24"
+                    },
+                    {
                       "label": "Ubuntu 22.04",
                       "value": "cycle.image.ubuntu22"
+                    },
+                    {
+                      "label": "Alma Linux 8",
+                      "value": "almalinux8"
+                    },
+                    {
+                      "label": "Alma Linux 9",
+                      "value": "almalinux9"
                     },
                     {
                       "label": "Custom image",
@@ -2126,7 +2470,7 @@
                   "required": true,
                   "validationMessage": "Image Name is required."
                 },
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]"
               },
               {
                 "name": "customImageInfoBox",
@@ -2151,36 +2495,23 @@
                 "visible": "[equals(steps('ood').OODSection.ImageName,'custom')]"
               },
               {
-                "name": "userDomain",
-                "type": "Microsoft.Common.TextBox",
-                "label": "User domain",
-                "defaultValue": "contoso.com",
-                "toolTip": "Domain of user email addresses",
-                "constraints": {
-                  "required": true,
-                  "regex": "^(?!-)[A-Za-z0-9-]+(?<!-)(\\.[A-Za-z0-9-]+(?<!-))*\\.[A-Za-z]{2,}$",
-                  "validationMessage": "Enter a valid domain name"
-                },
-                "visible": "[steps('ood').OODSection.deployOOD]"
-              },
-              {
                 "name": "fqdn",
                 "type": "Microsoft.Common.TextBox",
-                "label": "FQDN",
+                "label": "FQDN or IP",
                 "defaultValue": "",
-                "toolTip": "FQDN for the Open OnDemand web server",
+                "toolTip": "FQDN or IP of the Open OnDemand web server",
                 "constraints": {
                   "required": false,
-                  "regex": "^(?!-)[A-Za-z0-9-]+(?<!-)(\\.[A-Za-z0-9-]+(?<!-))*\\.[A-Za-z]{2,}$",
-                  "validationMessage": "Enter a valid FQDN or leave blank"
+                  "regex": "^(?:(?!-)[A-Za-z0-9-]+(?<!-)(\\.[A-Za-z0-9-]+(?<!-))*\\.[A-Za-z]{2,}|(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})$",
+                  "validationMessage": "Enter a valid FQDN, IPv4 address, or leave blank"
                 },
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]"
               },
               {
                 "name": "registerEntraIDApp",
-                "type": "Microsoft.Common.OptionsGroup",
+                "type": "Microsoft.Common.DropDown",
                 "label": "Microsoft Entra ID Application Registration",
-                "defaultValue": "Automatically register an Entra ID Application",
+                "defaultValue": "Use existing Entra ID Application registration",
                 "toolTip": "Register a Microsoft Entra ID Application for Open OnDemand authentication using OpenID Connect",
                 "constraints": {
                   "allowedValues": [
@@ -2199,39 +2530,34 @@
                   ],
                   "required": true
                 },
-                "visible": "[steps('ood').OODSection.deployOOD]"
+                "visible": false
               },
               {
-                "name": "managedIdentity",
+                "name": "ccEntraIdInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]",
+                "options": {
+                  "text": "The Open OnDemand cluster will use the Entra ID Application Registration indicated in the Basics menu."
+                }
+              },
+              {
+                "name": "oodManagedIdentity",
                 "type": "Microsoft.Solutions.ResourceSelector",
                 "label": "Managed Identity",
-                "toolTip": "Select the user-assigned managed identity created for the federated credentials",
+                "toolTip": "Select the user-assigned managed identity created for the federated credentials associated with the application registration",
                 "resourceType": "Microsoft.ManagedIdentity/userAssignedIdentities",
                 "constraints": {
                   "required": true,
                   "validationMessage": "Please select a managed identity."
                 },
-                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
-              },
-              {
-                "name": "clientId",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Application (client) ID",
-                "defaultValue": "",
-                "toolTip": "Application or client ID of the Entra ID Application in the Azure AD tenant",
-                "constraints": {
-                  "required": true,
-                  "regex": "^(\\w{8}(-\\w{4}){3}-\\w{12}?)$",
-                  "validationMessage": "Enter a valid application (client) ID"
-                },
-                "visible": "[equals(steps('ood').OODSection.registerEntraIDApp,'existing')]"
+                "visible": "[and(steps('ood').OODSection.deployOOD,basics('enableEntra'))]"
               },
               {
                 "name": "startClusterInfo",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[and(not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),steps('ood').OODSection.startCluster)]",
+                "visible": "[and(not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),steps('ood').OODSection.startCluster,basics('enableEntra'))]",
                 "options": {
-                  "text": "Postponing the start of the cluster allows for additional configuration through the CycleCloud portal or with a custom cluster template. Click on this box to view the official Azure CycleCloud documentation in a new browser tab.",
+                  "text": "Postponing the start of Open OnDemand allows for additional configuration through the CycleCloud portal or with a custom template. Click on this box to view the official Azure CycleCloud documentation in a new browser tab.",
                   "uri": "https://learn.microsoft.com/azure/cyclecloud/?view=cyclecloud-8"
                 }
               },
@@ -2240,19 +2566,20 @@
                 "type": "Microsoft.Common.InfoBox",
                 "visible": "[and(steps('ood').OODSection.deployOOD,equals(steps('ood').OODSection.registerEntraIDApp,'manual'))]",
                 "options": {
-                  "text": "The Open OnDemand cluster will not automatically start to allow for completion of the Microsoft Entra ID Application registration. Additional configuration through the CycleCloud portal or with a custom cluster template is also possible."
+                  "text": "Open OnDemand will not automatically start to allow for completion of the Microsoft Entra ID Application registration. Additional configuration through the CycleCloud portal or with a custom template is also possible. Click on this box to view the official Azure CycleCloud documentation in a new browser tab.",
+                  "uri": "https://learn.microsoft.com/azure/cyclecloud/?view=cyclecloud-8"
                 }
               },
               {
                 "name": "startCluster",
                 "type": "Microsoft.Common.CheckBox",
-                "label": "Start cluster",
-                "toolTip": "Automatically start the Open OnDemand cluster following deployment completion",
+                "label": "Start Open OnDemand",
+                "toolTip": "Automatically start Open OnDemand following deployment completion",
                 "defaultValue": true,
                 "constraints": {
                   "required": false
                 },
-                "visible": "[and(steps('ood').OODSection.deployOOD,not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')))]"
+                "visible": "[and(steps('ood').OODSection.deployOOD,not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),basics('enableEntra'))]"
               }
             ],
             "visible": true
@@ -2311,6 +2638,18 @@
                   "text": "All virtual machine sizes must be set in the Partition Settings menu before configuring availability zones."
                 },
                 "visible": "[and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize)), contains(first(filter(steps('basics').locationInfoApi.value, (item) => equals(item.name, location()))), 'availabilityZoneMappings'))]"
+              },
+              {
+                "name": "schedNetAppAvailabilityZone",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Scheduler Azure NetApp Files",
+                "multiselect": false,
+                "toolTip": "Availability zone for the scheduler Azure NetApp Files volume",
+                "constraints": {
+                  "allowedValues": "[if(contains(steps('basics').anfAvailabilityZonesApi.properties, 'availabilityZoneMappings'), map(filter(parse('[\"1\",\"2\",\"3\"]'), (item) => contains(map(filter(steps('basics').anfAvailabilityZonesApi.properties.availabilityZoneMappings, (item) => item.isAvailable), (item) => item.availabilityZone),item)), (zone) => parse(concat('{\"label\":\"', 'Zone ',zone, '\",\"value\":\"', zone, '\"}'))), parse('[{\"label\":\"No Availability Zone Support\",\"value\":\"null\"}]'))]",
+                  "required": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.newexisting,'new'))]"
+                },
+                "visible": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.newexisting,'new'))]"
               },
               {
                 "name": "sharedNetAppAvailabilityZone",
@@ -2394,6 +2733,80 @@
                 "visible": "[and(not(or(empty(steps('slurmSettings').HTCSection.vmsize),empty(steps('slurmSettings').HPCSection.vmsize),empty(steps('slurmSettings').GPUSection.vmsize))),steps('advancedSettings').availabilityzone.defineAvailabilityZones)]"
               }
             ]
+          },
+          {
+            "name": "monitoringSection",
+            "type": "Microsoft.Common.Section",
+            "label": "Monitoring",
+            "elements": [
+              {
+                "name": "monitoringInfo",
+                "type": "Microsoft.Common.TextBlock",
+                "visible": true,
+                "options": {
+                  "text": "Optionally deploy monitoring agents & sidecars with an ingestion endpoint for data collection authorization. This solution will add the latest version of project dashboards to the Azure Managed Grafana instance selected below."
+                }
+              },
+              {
+                "name": "monitoringEnabled",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Enable monitoring",
+                "toolTip": "Deploy monitoring agents and enable data collection",
+                "defaultValue": false,
+                "constraints": {
+                  "required": false
+                }
+              },
+              {
+                "name": "monitoringInstructions",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[steps('advancedSettings').monitoringSection.monitoringEnabled]",
+                "options": {
+                  "text": "Review the linked document to learn how to create the monitoring infrastructure suitable for Azure CycleCloud.",
+                  "uri": "https://github.com/Azure/cyclecloud-monitoring/blob/1.0.8/README.md"
+                }
+              },
+              {
+                "name": "monitorWorkspaceSelector",
+                "type": "Microsoft.Solutions.ResourceSelector",
+                "label": "Select Azure Monitor workspace",
+                "toolTip": "Select the Azure Monitor workspace instance to link for data collection",
+                "resourceType": "Microsoft.Monitor/accounts",
+                "options": {
+                  "filter": {
+                    "subscription": "onBasics"
+                  }
+                },
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[steps('advancedSettings').monitoringSection.monitoringEnabled]"
+              },
+              {
+                "name": "monitorWorkspaceArmApi",
+                "type": "Microsoft.Solutions.ArmApiControl",
+                "request": {
+                  "method": "GET",
+                  "path": "[concat(steps('advancedSettings').monitoringSection.monitorWorkspaceSelector.id,'?api-version=2025-10-03')]"
+                }
+              },
+              {
+                "name": "managedGrafanaSelector",
+                "type": "Microsoft.Solutions.ResourceSelector",
+                "label": "Select Azure Managed Grafana",
+                "toolTip": "Select the Azure Managed Grafana instance to which to add Slurm dashboards",
+                "resourceType": "Microsoft.Dashboard/grafana",
+                "options": {
+                  "filter": {
+                    "subscription": "onBasics"
+                  }
+                },
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[steps('advancedSettings').monitoringSection.monitoringEnabled]"
+              }
+            ]
           }
         ]
       },
@@ -2427,8 +2840,11 @@
       "location": "[location()]",
       "adminUsername": "[basics('adminUser')]",
       "adminPassword": "[basics('adminPasswordBox')]",
-      "adminSshPublicKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
-      "storedKey": "[if(equals(basics('autogeneratePasswordsAndKeys'),'stored'),basics('keySelector'),basics('nullValue'))]",
+      "key": {
+        "type": "[basics('publicKeySource')]",
+        "value": "[if(equals(basics('publicKeySource'),'entered'),basics('adminSshPublicKey'),basics('nullValue'))]",
+        "id": "[if(equals(basics('publicKeySource'),'stored'),basics('keySelector').id,basics('nullValue'))]"
+      },
       "ccVMName": "[basics('CycleCloudVmName')]",
       "ccVMSize": "[basics('CycleCloudVmSize')]",
       "resourceGroup": "[if(equals(basics('newexisting'),'existing'),first(split(basics('rgExisting'),'~')),basics('rgNew'))]",
@@ -2438,11 +2854,27 @@
         "vmManagedIdentityId": "[if(equals(basics('byoStorageAndIdentities'),'existing'),basics('vmManagedIdentityDropDown'),basics('nullValue'))]",
         "vmssManagedIdentityId": "[if(equals(basics('byoStorageAndIdentities'),'existing'),basics('vmssManagedIdentityDropDown'),basics('nullValue'))]"
       },
+      "entraIdInfo": {
+        "type": "[if(basics('enableEntra'),'enabled','disabled')]",
+        "tenantId": "[if(basics('enableEntra'),basics('tenantId'),basics('nullValue'))]",
+        "clientId": "[if(basics('enableEntra'),basics('clientId'),basics('nullValue'))]"      },
+      "schedFilesystem": {
+        "type": "[concat(if(equals(steps('filesystem').sched.newexisting,'new'),steps('filesystem').sched.filertype,'nfs'),'-',steps('filesystem').sched.newexisting)]",
+        "nfsCapacityInGb": "[if(equals(steps('filesystem').sched.filertype,'nfs'),int(steps('filesystem').sched.nfscapacity),basics('nullValue'))]",
+        "anfServiceLevel": "[if(equals(steps('filesystem').sched.filertype,'anf'),steps('filesystem').sched.anfServiceLevel,basics('nullValue'))]",
+        "anfCapacityInTiB": "[if(equals(steps('filesystem').sched.filertype,'anf'),int(steps('filesystem').sched.anfcapacity),basics('nullValue'))]",
+        "anfFlexThroughputMiBps": "[if(and(equals(steps('filesystem').sched.filertype,'anf'),equals(steps('filesystem').sched.anfServiceLevel,'Flexible')),int(steps('filesystem').sched.anfFlexThroughput),basics('nullValue'))]",
+        "ipAddress": "[if(equals(steps('filesystem').sched.newexisting,'existing'),steps('filesystem').sched.ipAddress,basics('nullValue'))]",
+        "exportPath": "[if(equals(steps('filesystem').sched.newexisting,'existing'),steps('filesystem').sched.exportPath,basics('nullValue'))]",
+        "mountOptions": "[if(equals(steps('filesystem').sched.newexisting,'existing'),steps('filesystem').sched.mountOptions,basics('nullValue'))]",
+        "availabilityZone": "[if(and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,equals(steps('filesystem').sched.newexisting,'new'),equals(steps('filesystem').sched.filertype,'anf')),parse(concat('[\"', steps('advancedSettings').availabilityzone.schedNetAppAvailabilityZone, '\"]')),basics('nullValue'))]"
+      },
       "sharedFilesystem": {
         "type": "[concat(if(equals(steps('filesystem').shared.newexisting,'new'),steps('filesystem').shared.filertype,'nfs'),'-',steps('filesystem').shared.newexisting)]",
         "nfsCapacityInGb": "[if(equals(steps('filesystem').shared.filertype,'nfs'),int(steps('filesystem').shared.nfscapacity),basics('nullValue'))]",
-        "anfServiceTier": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anftier,basics('nullValue'))]",
+        "anfServiceLevel": "[if(equals(steps('filesystem').shared.filertype,'anf'),steps('filesystem').shared.anfServiceLevel,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').shared.filertype,'anf'),int(steps('filesystem').shared.anfcapacity),basics('nullValue'))]",
+        "anfFlexThroughputMiBps": "[if(and(equals(steps('filesystem').shared.filertype,'anf'),equals(steps('filesystem').shared.anfServiceLevel,'Flexible')),int(steps('filesystem').shared.anfFlexThroughput),basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.ipAddress,basics('nullValue'))]",
         "exportPath": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.exportPath,basics('nullValue'))]",
         "mountOptions": "[if(equals(steps('filesystem').shared.newexisting,'existing'),steps('filesystem').shared.mountOptions,basics('nullValue'))]",
@@ -2450,8 +2882,9 @@
       },
       "additionalFilesystem": {
         "type": "[if(steps('filesystem').additionalCheck.checkbox,concat(steps('filesystem').additional.filertype,'-',steps('filesystem').additional.newexisting),'disabled')]",
-        "anfServiceTier": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anftier,basics('nullValue'))]",
+        "anfServiceLevel": "[if(equals(steps('filesystem').additional.filertype,'anf'),steps('filesystem').additional.anfServiceLevel,basics('nullValue'))]",
         "anfCapacityInTiB": "[if(equals(steps('filesystem').additional.filertype,'anf'),int(steps('filesystem').additional.anfcapacity),basics('nullValue'))]",
+        "anfFlexThroughputMiBps": "[if(and(equals(steps('filesystem').additional.filertype,'anf'),equals(steps('filesystem').additional.anfServiceLevel,'Flexible')),int(steps('filesystem').additional.anfFlexThroughput),basics('nullValue'))]",
         "lustreTier": "[if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.lustretier,basics('nullValue'))]",
         "lustreCapacityInTib": "[if(equals(steps('filesystem').additional.filertype,'aml'),int(steps('filesystem').additional.azurelustrecapacity),basics('nullValue'))]",
         "ipAddress": "[if(equals(steps('filesystem').additional.newexisting,'existing'),if(equals(steps('filesystem').additional.filertype,'aml'),steps('filesystem').additional.ipAddressAml,steps('filesystem').additional.ipAddressNfs),basics('nullValue'))]",
@@ -2467,12 +2900,11 @@
         "id": "[if(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.networkSelector.id,basics('nullValue'))]",
         "cyclecloudSubnet": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.ccsubnet)]",
         "computeSubnet": "[if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.computesubnet)]",
-        "sharedFilerSubnet": "[if(equals(steps('filesystem').shared.filertype,'anf'),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.filersubnet1),basics('nullValue'))]",
-        "additionalFilerSubnet": "[if(and(steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new')),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.filersubnet2),basics('nullValue'))]",
+        "netappSubnet": "[if(or(equals(steps('filesystem').sched.filertype, 'anf'),equals(steps('filesystem').shared.filertype, 'anf'),equals(steps('filesystem').additional.filertype, 'anf')),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.netappSubnet),basics('nullValue'))]",
+        "lustreSubnet": "[if(and(steps('filesystem').additionalCheck.checkbox,equals(steps('filesystem').additional.newexisting,'new')),if(equals(steps('networking').newexisting,'new'),basics('nullValue'),steps('networking').networkSettings.lustreSubnet),basics('nullValue'))]",
         "bastion": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.bastion,basics('nullValue'))]",
         "createNatGateway": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.natgateway,basics('nullValue'))]",
-        "vnetToPeer": "[if(steps('networking').networkSettings.peering,steps('networking').networkSettings.vnetPeeredVnetSelector,basics('nullValue'))]",
-        "peeringAllowGatewayTransit": "[if(equals(steps('networking').newexisting,'new'),steps('networking').networkSettings.gateway,basics('nullValue'))]"
+        "vnetToPeer": "[if(steps('networking').networkSettings.peering,parse(concat('{','\"id\": \"',steps('networking').networkSettings.vnetPeeredVnetSelector.id,'\",','\"allowGatewayTransit\": ',string(steps('networking').networkSettings.gateway),'}')),basics('nullValue'))]"
       },
       "storagePrivateDnsZone": {
         "type": "[if(equals(steps('networking').newexisting,'new'),'new',steps('networking').dnsZone.newExisting)]",
@@ -2524,15 +2956,22 @@
         "availabilityZone": "[if(and(steps('advancedSettings').availabilityzone.defineAvailabilityZones,not(contains(steps('advancedSettings').availabilityzone.gpuZone,'NA'))),parse(concat('[\"',steps('advancedSettings').availabilityzone.gpuZone,'\"]')),basics('nullValue'))]"
       },
       "ood": {
-        "type": "[if(steps('ood').OODSection.deployOOD,'enabled','disabled')]",
-        "startCluster": "[if(steps('ood').OODSection.deployOOD,if(not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),steps('ood').OODSection.startCluster,false),basics('nullValue'))]",
-        "sku": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.vmsize,basics('nullValue'))]",
-        "osImage": "[if(steps('ood').OODSection.deployOOD,if(equals(steps('ood').OODSection.ImageName,'custom'),steps('ood').OODSection.customImageName,steps('ood').OODSection.ImageName),basics('nullValue'))]",
-        "userDomain": "[if(steps('ood').OODSection.deployOOD,steps('ood').OODSection.userDomain,basics('nullValue'))]",
+        "type": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),'enabled','disabled')]",
+        "startCluster": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),if(not(equals(steps('ood').OODSection.registerEntraIDApp,'manual')),steps('ood').OODSection.startCluster,false),basics('nullValue'))]",
+        "sku": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),steps('ood').OODSection.vmsize,basics('nullValue'))]",
+        "osImage": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),if(equals(steps('ood').OODSection.ImageName,'custom'),steps('ood').OODSection.customImageName,steps('ood').OODSection.ImageName),basics('nullValue'))]",
         "fqdn": "[if(not(equals(steps('ood').OODSection.fqdn,'')),steps('ood').OODSection.fqdn,basics('nullValue'))]",
-        "registerEntraIDApp": "[if(steps('ood').OODSection.deployOOD,equals(steps('ood').OODSection.registerEntraIDApp,'autoregister'),basics('nullValue'))]",
-        "appId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.clientId,basics('nullValue'))]",
-        "appManagedIdentityId": "[if(equals(steps('ood').OODSection.registerEntraIDApp,'existing'),steps('ood').OODSection.managedIdentity.id,basics('nullValue'))]"
+        "registerEntraIDApp": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),equals(steps('ood').OODSection.registerEntraIDApp,'autoregister'),basics('nullValue'))]",
+        "appTenantId": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),basics('tenantId'),basics('nullValue'))]",
+        "appId": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),basics('clientId'),basics('nullValue'))]",
+        "appManagedIdentityId": "[if(and(steps('ood').OODSection.deployOOD,basics('enableEntra')),steps('ood').OODSection.oodManagedIdentity.id,basics('nullValue'))]"
+      },
+      "monitoring": {
+        "type": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,'enabled','disabled')]",
+        "monitorWorkspaceId": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,steps('advancedSettings').monitoringSection.monitorWorkspaceSelector.id,basics('nullValue'))]",
+        "ingestionEndpoint": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,concat(steps('advancedSettings').monitoringSection.monitorWorkspaceArmApi.properties.defaultIngestionSettings.ingestionEndpoints.metrics,'/dataCollectionRules/',steps('advancedSettings').monitoringSection.monitorWorkspaceArmApi.properties.defaultIngestionSettings.dataCollectionRuleImmutableId,'/streams/Microsoft-PrometheusMetrics/api/v1/write?api-version=2023-04-24'),basics('nullValue'))]",
+        "dcrId": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,steps('advancedSettings').monitoringSection.monitorWorkspaceArmApi.properties.defaultIngestionSettings.dataCollectionRuleResourceId,basics('nullValue'))]",
+        "grafanaId": "[if(steps('advancedSettings').monitoringSection.monitoringEnabled,steps('advancedSettings').monitoringSection.managedGrafanaSelector.id,basics('nullValue'))]"
       },
       "tags": "[steps('tags').tagsByResource]"
     }

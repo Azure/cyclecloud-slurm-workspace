@@ -5,14 +5,10 @@ param address string = network.?addressSpace
 param location string
 param tags types.tags_t
 param nsgTags types.tags_t
-param sharedFilesystem types.sharedFilesystem_t
-param additionalFilesystem types.additionalFilesystem_t 
-var filerTypes = [sharedFilesystem.type, additionalFilesystem.type]
-var create_anf = contains(filerTypes, 'anf-new')
-var create_anf_subnet = create_anf ? (sharedFilesystem.type == 'anf-new' ? network.?sharedFilerSubnet : network.?additionalFilerSubnet) : null
-var create_lustre = additionalFilesystem.type == 'aml-new'
-var deploy_bastion = network.?bastion ?? false
-var create_database = false //update once MySQL capacity is available
+param createNetApp bool 
+param createLustre bool 
+var deployBastion = network.bastion
+var createDatabase = false //update once MySQL capacity is available
 param natGatewayId string 
 param databaseConfig types.databaseConfig_t
 var create_private_endpoint = databaseConfig.type == 'privateEndpoint'
@@ -104,9 +100,9 @@ var vnet  = {
         delegations: []
       }
     },
-    create_anf ? {
+    createNetApp ? {
       netapp: {
-        name: create_anf_subnet ?? 'ccw-anf-subnet'
+        name: network.?netappSubnet ?? 'ccw-anf-subnet'
         cidr: subnet_cidr.netapp
         nat_gateway : false
         service_endpoints: []
@@ -115,16 +111,16 @@ var vnet  = {
         ]
       }
     } : {},
-    create_lustre ? {
+    createLustre ? {
       lustre: {
-        name: network.?additionalFilerSubnet ?? 'ccw-lustre-subnet'
+        name: network.?lustreSubnet ?? 'ccw-lustre-subnet'
         cidr: subnet_cidr.lustre
         nat_gateway : false
         service_endpoints: []
         delegations: []
       }
     } : {},
-    deploy_bastion ? {
+    deployBastion ? {
       bastion: {
         name: 'AzureBastionSubnet'
         cidr: subnet_cidr.bastion
@@ -133,7 +129,7 @@ var vnet  = {
         delegations: []
       }
     } : {},
-    create_database ? {
+    createDatabase ? {
       database: {
         name: 'ccw-database-subnet'
         cidr: subnet_cidr.database
@@ -163,10 +159,7 @@ var nsg_rules = {
 
     // CycleCloud
     AllowCycleClientComputeIn: ['460', 'Inbound', 'Allow', 'Tcp', 'CycleCloud', 'subnet', 'compute', 'subnet', 'cyclecloud']
-
-    // Deny all remaining traffic
-    DenyVnetInbound: ['3100', 'Inbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
-
+    
     //
     // OUTBOUND RULES
     //    
@@ -181,9 +174,8 @@ var nsg_rules = {
     // All communications inside compute subnet
     AllowAllComputeComputeOut: ['540', 'Outbound', 'Allow', 'Tcp', 'All', 'subnet', 'compute', 'subnet', 'compute']
 
-    // Deny all remaining traffic and allow Internet access
+    // Allow traffic to any peered virtual networks including VPN and allow Internet access
     AllowInternetOutBound: ['3000', 'Outbound', 'Allow', 'Tcp', 'All', 'tag', 'VirtualNetwork', 'tag', 'Internet']
-    DenyVnetOutbound: ['3100', 'Outbound', 'Deny', '*', 'All', 'tag', 'VirtualNetwork', 'tag', 'VirtualNetwork']
   }
   // TODO : Need to be validated
   mysql: {
@@ -229,10 +221,10 @@ var nsg_rules = {
 
 var nsgRules = items(union(
   nsg_rules.default,
-  deploy_bastion ? nsg_rules.bastion : {},
-  create_anf ? nsg_rules.anf : {},
-  create_lustre ? nsg_rules.lustre : {},
-  create_database ? nsg_rules.mysql : {}))
+  deployBastion ? nsg_rules.bastion : {},
+  createNetApp ? nsg_rules.anf : {},
+  createLustre ? nsg_rules.lustre : {},
+  createDatabase ? nsg_rules.mysql : {}))
 var servicePorts = {
   All: ['0-65535']
   Bastion: ['8080','5701']
@@ -280,11 +272,11 @@ var securityRules = [ for rule in nsgRules : {
 //var asgNames = []
 
 var peeringEnabled = contains(network,'vnetToPeer')
-var peeredVnetName = peeringEnabled ? network.?vnetToPeer.name : 'foo'
-var peeredVnetResourceGroup = peeringEnabled ? split(network.?vnetToPeer.id,'/')[4] : 'foo'
-var peeredVnetId = peeringEnabled ? network.?vnetToPeer.id : 'foo'
+var peeredVnetId = network.?vnetToPeer.?id ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
+var peeredVnetName = split(peeredVnetId,'/')[8] 
+var peeredVnetResourceGroup = split(peeredVnetId,'/')[4]
 
-resource ccwCommonNsg 'Microsoft.Network/networkSecurityGroups@2023-11-01' = {
+resource ccwCommonNsg 'Microsoft.Network/networkSecurityGroups@2025-01-01' = {
   name: 'nsg-ccw-common'
   location: location
   tags: nsgTags
@@ -293,7 +285,7 @@ resource ccwCommonNsg 'Microsoft.Network/networkSecurityGroups@2023-11-01' = {
   }
 }
 
-resource ccwVirtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
+resource ccwVirtualNetwork 'Microsoft.Network/virtualNetworks@2025-01-01' = {
   name: vnet.name
   location: location
   tags: tags
@@ -325,13 +317,13 @@ resource ccwVirtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   }
 }
 
-resource ccw_to_peer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-11-01' = if (peeringEnabled) {
+resource ccw_to_peer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2025-01-01' = if (peeringEnabled) {
   name: '${ccwVirtualNetwork.name}-to-${peeredVnetName}-${uniqueString(resourceGroup().id)}'
   parent: ccwVirtualNetwork
   properties: {
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: false
-    useRemoteGateways: network.?peeringAllowGatewayTransit
+    useRemoteGateways: network.?vnetToPeer.allowGatewayTransit ?? false
     remoteVirtualNetwork: {
       id: peeredVnetId
     }
@@ -349,81 +341,34 @@ module peer_to_ccw './network-peering.bicep' = if (peeringEnabled) {
   }
 }
 
-//generate outputs for ccw.bicep
-func fetch_rsc_id(subId string, rg string, rscId string) string =>
-  '/subscriptions/${subId}/resourceGroups/${rg}/providers/${rscId}'
-func fetch_rsc_name(rscId string) string => last(split(rscId, '/'))
-func rsc_output(rsc object) types.rsc_t => {
-  id: fetch_rsc_id(rsc.subscriptionId, rsc.resourceGroupName, rsc.resourceId)
-  name: fetch_rsc_name(rsc.resourceId)
-  rg: rsc.resourceGroupName
-}
-
-resource subnetCycleCloud 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
-  name: vnet.subnets.cyclecloud.name
-  parent: ccwVirtualNetwork
-}
-var subnet_cyclecloud = rsc_output(subnetCycleCloud)
-
-resource subnetCompute 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
-  name: vnet.subnets.compute.name
-  parent: ccwVirtualNetwork
-}
-var subnet_compute = rsc_output(subnetCompute)
-
-resource subnetNetApp 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = if (create_anf) {
-  name: contains(vnet.subnets,'netapp') ? vnet.subnets.netapp.name : 'foo'
-  parent: ccwVirtualNetwork
-}
-var subnet_netapp = create_anf ? rsc_output(subnetNetApp) : {}
-
-resource subnetLustre 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = if (create_lustre) {
-  name: contains(vnet.subnets,'lustre') ? vnet.subnets.lustre.name : 'foo'
-  parent: ccwVirtualNetwork
-}
-//var subnet_lustre = lustre_count > 0 ? rsc_output(subnetLustre) : {}
-var subnet_lustre = create_lustre ? rsc_output(subnetLustre) : {}
-
-resource subnetBastion 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = if (deploy_bastion) {
-  name: contains(vnet.subnets,'bastion') ? vnet.subnets.bastion.name : 'foo'
-  parent: ccwVirtualNetwork
-}
-var subnet_bastion = deploy_bastion ? rsc_output(subnetBastion) : {}
-
-resource subnetDatabase 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = if (create_database) {
-  name: contains(vnet.subnets,'database') ? vnet.subnets.database.name : 'foo'
-  parent: ccwVirtualNetwork
-}
-var subnet_database = create_database ? rsc_output(subnetDatabase) : {}
-
-var filerTypeHome = sharedFilesystem.type
-var filerTypeAddl = additionalFilesystem.type
-var output_home_subnet = filerTypeHome == 'anf-new' 
-var output_addl_subnet = contains(['aml-new','anf-new'],filerTypeAddl)
-var home_filer = output_home_subnet ? (filerTypeHome == 'anf-new' ? { home: subnet_netapp } : { home: subnet_lustre }) : {}
-var addl_filer = output_addl_subnet ? (filerTypeAddl == 'anf-new' ? { additional: subnet_netapp } : { additional: subnet_lustre }) : {}
+var subnetCyclecloudId = join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.cyclecloud.name], '/') 
+var subnetComputeId = join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.compute.name], '/')
+var subnetNetAppId = createNetApp ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.netapp.name], '/') : ''
+var subnetLustreId = createLustre ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.lustre.name], '/') : ''
+var subnetBastionId = deployBastion ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.bastion.name], '/') : ''
+var subnetDatabaseId = createDatabase ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.database.name], '/') : ''
 var subnets = union(
-  { cyclecloud: subnet_cyclecloud },
-  { compute: subnet_compute },
-  home_filer,
-  addl_filer,
-  deploy_bastion ? { bastion: subnet_bastion } : {},
-  create_database ? { database: subnet_database } : {}
+  { cyclecloud: subnetCyclecloudId },
+  { compute: subnetComputeId },
+  createNetApp ? { netapp: subnetNetAppId } : {},
+  createLustre ? { lustre: subnetLustreId } : {},
+  deployBastion ? { bastion: subnetBastionId } : {},
+  createDatabase ? { database: subnetDatabaseId } : {}
 )
 
-resource ccwDatabase 'Microsoft.DBforMySQL/flexibleServers@2023-10-01-preview' existing = if (create_private_endpoint && databaseConfig.type != 'disabled') {
+resource ccwDatabase 'Microsoft.DBforMySQL/flexibleServers@2024-12-30' existing = if (create_private_endpoint && databaseConfig.type != 'disabled') {
   name: databaseConfig.?dbInfo.?name ?? 'disabled'
   scope: resourceGroup(split(databaseConfig.?dbInfo.?id ?? '////','/')[4])
 }
 
 var privateEndpointName = 'ccw-mysql-pe'
 
-resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-11-01' = if (create_private_endpoint) {
+resource privateEndpoint 'Microsoft.Network/privateEndpoints@2025-01-01' = if (create_private_endpoint) {
   name: privateEndpointName
   location: location
   properties: {
     subnet: {
-      id: subnetCompute.id
+      id: subnetComputeId
     }
     privateLinkServiceConnections: [
       {
@@ -437,7 +382,7 @@ resource privateEndpoint 'Microsoft.Network/privateEndpoints@2023-11-01' = if (c
   }
 }
 
-output nsgCCW types.rsc_t = rsc_output(ccwCommonNsg)
-output vnetCCW types.rsc_t = rsc_output(ccwVirtualNetwork)
+output nsgCCWId string = ccwCommonNsg.id
+output vnetCCWId string = ccwVirtualNetwork.id
 output subnetsCCW types.subnets_t = subnets
-output databaseFQDN string = create_private_endpoint ? privateEndpoint.properties.customDnsConfigs[0].ipAddresses[0] : ''
+output databaseFQDN string = create_private_endpoint ? privateEndpoint!.properties.customDnsConfigs[0].ipAddresses[0] : ''

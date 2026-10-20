@@ -6,7 +6,7 @@ param location string
 param networkInterfacesTags types.tags_t
 param subnetId string
 
-resource nic 'Microsoft.Network/networkInterfaces@2023-11-01' = {
+resource nic 'Microsoft.Network/networkInterfaces@2025-01-01' = {
   name: '${name}-nic'
   location: location
   tags: networkInterfacesTags
