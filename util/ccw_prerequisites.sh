@@ -69,7 +69,7 @@ else
 fi
 az deployment group create \
     --resource-group "$RESOURCE_GROUP" \
-    --template-file $(pwd)/bicep/vmssManagedIdentity.bicep \
+    --template-file $(pwd)/bicep/lockerManagedIdentity.bicep \
     --parameters name="ccwLockerManagedIdentity" \
     --parameters location="$LOCATION" \
     --parameters storageAccountName="$STORAGE_ACCOUNT_NAME" \
@@ -84,7 +84,7 @@ else
 fi
 az deployment group create \
     --resource-group "$RESOURCE_GROUP" \
-    --template-file $(pwd)/bicep/vmManagedIdentity.bicep \
+    --template-file $(pwd)/bicep/orchestratorManagedIdentity.bicep \
     --parameters location="$LOCATION" \
     --parameters applyRoleAssignments="$APPLY_ROLE_ASSIGNMENTS" \
     --name "ccw-vm-mi-deployment-${RESOURCE_GROUP}-${LOCATION}"

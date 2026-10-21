@@ -111,7 +111,7 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
 }
 
 var orchestratorMiName = 'ccwCycleCloudVirtualMachineManagedIdentity'
-module ccwOrchestratorManagedIdentity './vmManagedIdentity.bicep' = if (!infrastructureOnly && storageAccount.type == 'new') {
+module ccwOrchestratorManagedIdentity './orchestratorManagedIdentity.bicep' = if (!infrastructureOnly && storageAccount.type == 'new') {
   name: orchestratorMiName
   params: {
     name: orchestratorMiName
@@ -209,7 +209,7 @@ module ccwStorageNetworking './privateEndpoint.bicep' = {
 }
 
 var lockerMiName = 'ccwLockerManagedIdentity'
-module ccwLockerManagedIdentity 'vmssManagedIdentity.bicep' = if (!infrastructureOnly && storageAccount.type == 'new') {
+module ccwLockerManagedIdentity 'lockerManagedIdentity.bicep' = if (!infrastructureOnly && storageAccount.type == 'new') {
   name: lockerMiName
   params: {
     name: lockerMiName

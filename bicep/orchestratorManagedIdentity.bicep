@@ -13,7 +13,7 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-
   tags: tags
 }
 
-module ccwCycleCloudVirtualMachineRoleAssignments './vmManagedIdentityRoleAssignments.bicep' = if (applyRoleAssignments) {
+module ccwCycleCloudVirtualMachineRoleAssignments './orchestratorManagedIdentityRoleAssignments.bicep' = if (applyRoleAssignments) {
   name: 'ccwRoleForCycleCloudVirtualMachine-${location}'
   scope: subscription()
   params: {

@@ -16,7 +16,7 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-
   tags: tags
 }
 
-module ccwLockerManagedIdentityRoleAssignments './vmssManagedIdentityRoleAssignments.bicep' = if (applyRoleAssignments) {
+module ccwLockerManagedIdentityRoleAssignments './lockerManagedIdentityRoleAssignments.bicep' = if (applyRoleAssignments) {
   name: 'ccwRoleForLockerManagedIdentity'
   params: {
     principalId: managedIdentity.properties.principalId
