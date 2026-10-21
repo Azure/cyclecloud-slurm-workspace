@@ -383,8 +383,8 @@ type storageAccount_new_t = {
 type storageAccount_existing_t = {
   type: 'existing'
   storageAccountId: string
-  vmManagedIdentityId: string
-  vmssManagedIdentityId: string
+  orchestratorIdentityId: string
+  lockerIdentityId: string
 }
 
 @export()

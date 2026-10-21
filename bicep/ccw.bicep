@@ -110,17 +110,17 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
   }
 }
 
-var vmMiName = 'ccwCycleCloudVirtualMachineManagedIdentity'
-module ccwVirtualMachineManagedIdentity './vmManagedIdentity.bicep' = if (!infrastructureOnly && storageAccount.type == 'new') {
-  name: vmMiName
+var orchestratorMiName = 'ccwCycleCloudVirtualMachineManagedIdentity'
+module ccwOrchestratorManagedIdentity './vmManagedIdentity.bicep' = if (!infrastructureOnly && storageAccount.type == 'new') {
+  name: orchestratorMiName
   params: {
-    name: vmMiName
+    name: orchestratorMiName
     location: location
     tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
   }
 }
 
-var ccwVirtualMachineManagedIdentityId = !infrastructureOnly ? ( storageAccount.type == 'new' ? ccwVirtualMachineManagedIdentity!.outputs.managedIdentityId : storageAccount.vmManagedIdentityId) : ''
+var ccwOrchestratorIdentityId = !infrastructureOnly ? ( storageAccount.type == 'new' ? ccwOrchestratorManagedIdentity!.outputs.managedIdentityId : storageAccount.orchestratorIdentityId) : ''
 module ccwVM './vm.bicep' = if (!infrastructureOnly) {
   name: 'ccwVM-cyclecloud'
   params: {
@@ -158,7 +158,7 @@ module ccwVM './vm.bicep' = if (!infrastructureOnly) {
         createOption: split(cyclecloudBaseImage, ':')[0] == 'azurecyclecloud' ? 'FromImage' : 'Empty'
       }
     ]
-    managedIdentityId: ccwVirtualMachineManagedIdentityId
+    managedIdentityId: ccwOrchestratorIdentityId
   }
 }
 
@@ -208,11 +208,11 @@ module ccwStorageNetworking './privateEndpoint.bicep' = {
   }
 }
 
-var vmssMiName = 'ccwLockerManagedIdentity'
-module ccwVMSSManagedIdentity 'vmssManagedIdentity.bicep' = if (!infrastructureOnly && storageAccount.type == 'new') {
-  name: vmssMiName
+var lockerMiName = 'ccwLockerManagedIdentity'
+module ccwLockerManagedIdentity 'vmssManagedIdentity.bicep' = if (!infrastructureOnly && storageAccount.type == 'new') {
+  name: lockerMiName
   params: {
-    name: vmssMiName
+    name: lockerMiName
     location: location
     storageAccountName: storageAccountName
     monitoringEnabled: monitoring.type == 'enabled'
@@ -220,12 +220,12 @@ module ccwVMSSManagedIdentity 'vmssManagedIdentity.bicep' = if (!infrastructureO
     tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
   }
 }
-var vmssManagedIdentityId = !infrastructureOnly ? ( storageAccount.type == 'new' ? ccwVMSSManagedIdentity!.outputs.managedIdentityId : storageAccount.vmssManagedIdentityId) : ''
+var lockerIdentityId = !infrastructureOnly ? ( storageAccount.type == 'new' ? ccwLockerManagedIdentity!.outputs.managedIdentityId : storageAccount.lockerIdentityId) : ''
 
-var existingVMSSManagedIdentityId = storageAccount.?vmssManagedIdentityId ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
-resource existingVMSSManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = if (!infrastructureOnly && storageAccount.type == 'existing' && monitoring.type == 'enabled') {
-  name: split(existingVMSSManagedIdentityId, '/')[8]
-  scope: az.resourceGroup(split(existingVMSSManagedIdentityId, '/')[2], split(existingVMSSManagedIdentityId, '/')[4])
+var existingLockerIdentityId = storageAccount.?lockerIdentityId ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
+resource existingLockerManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = if (!infrastructureOnly && storageAccount.type == 'existing' && monitoring.type == 'enabled') {
+  name: split(existingLockerIdentityId, '/')[8]
+  scope: az.resourceGroup(split(existingLockerIdentityId, '/')[2], split(existingLockerIdentityId, '/')[4])
 }
 
 var create_database = contains(slurmSettings, 'databaseAdminPassword')
@@ -357,7 +357,7 @@ output filerInfoFinal types.filerInfo_t = {
 output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM!.outputs.principalId
 
 // MI for VMSS
-output managedIdentityId string = vmssManagedIdentityId
+output managedIdentityId string = lockerIdentityId
 
 // Automatically inject the ccw cluster init spec
 
@@ -444,7 +444,7 @@ output monitoring object = {
   type: monitoring.type
   ingestionEndpoint: monitoring.type == 'enabled' ? monitoring.ingestionEndpoint : ''
   managedIdentityClientId: !infrastructureOnly && monitoring.type == 'enabled'
-    ? (storageAccount.type == 'new' ? ccwVMSSManagedIdentity!.outputs.managedIdentityClientId : existingVMSSManagedIdentity!.properties.clientId)
+    ? (storageAccount.type == 'new' ? ccwLockerManagedIdentity!.outputs.managedIdentityClientId : existingLockerManagedIdentity!.properties.clientId)
     : ''
   grafanaName: monitoring.type == 'enabled' ? split(monitoring.grafanaId, '/')[8] : ''
   grafanaResourceGroup: monitoring.type == 'enabled' ? split(monitoring.grafanaId, '/')[4] : ''

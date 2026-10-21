@@ -157,10 +157,10 @@
         }
       },
       {
-        "name": "vmManagedIdentityDropDown",
+        "name": "orchestratorIdentityDropDown",
         "type": "Microsoft.Common.DropDown",
-        "label": "VM Managed Identity",
-        "toolTip": "TODO AGB: VM MANAGED IDENTITY TOOLTIP",
+        "label": "Orchestrator managed identity",
+        "toolTip": "Identity used by CycleCloud to manage resources & read/write storage blobs",
         "multiLine": true,
         "constraints": {
           "allowedValues": "[map(basics('managedIdentityApi').value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"description\":\"', concat('Resource group: ',first(skip(split(item.id,'/'),4)),'\\nRegion: ',item.location), '\",\"value\":\"', item.id, '\"}')))]",
@@ -169,10 +169,10 @@
         "visible": "[equals(basics('byoStorageAndIdentities'),'existing')]"
       },
       {
-        "name": "vmssManagedIdentityDropDown",
+        "name": "lockerIdentityDropdown",
         "type": "Microsoft.Common.DropDown",
-        "label": "VMSS Managed Identity",
-        "toolTip": "TODO AGB: VMSS MANAGED IDENTITY TOOLTIP",
+        "label": "Locker identity",
+        "toolTip": "Identity used by nodes to read storage blobs",
         "multiLine": true,
         "constraints": {
           "allowedValues": "[map(basics('managedIdentityApi').value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"description\":\"', concat('Resource group: ',first(skip(split(item.id,'/'),4)),'\\nRegion: ',item.location), '\",\"value\":\"', item.id, '\"}')))]",
@@ -2851,8 +2851,8 @@
       "storageAccount": {
         "type": "[basics('byoStorageAndIdentities')]",
         "storageAccountId": "[if(equals(basics('byoStorageAndIdentities'),'existing'),basics('storageDropDown'),basics('nullValue'))]",
-        "vmManagedIdentityId": "[if(equals(basics('byoStorageAndIdentities'),'existing'),basics('vmManagedIdentityDropDown'),basics('nullValue'))]",
-        "vmssManagedIdentityId": "[if(equals(basics('byoStorageAndIdentities'),'existing'),basics('vmssManagedIdentityDropDown'),basics('nullValue'))]"
+        "orchestratorIdentityId": "[if(equals(basics('byoStorageAndIdentities'),'existing'),basics('orchestratorIdentityDropDown'),basics('nullValue'))]",
+        "lockerIdentityId": "[if(equals(basics('byoStorageAndIdentities'),'existing'),basics('lockerIdentityDropdown'),basics('nullValue'))]"
       },
       "entraIdInfo": {
         "type": "[if(basics('enableEntra'),'enabled','disabled')]",
