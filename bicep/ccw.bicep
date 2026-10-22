@@ -235,7 +235,7 @@ module mySQLccw './mysql.bicep' = if (database.type == 'new') {
 
 var dbId = database.type == 'new' ? mySQLccw!.outputs.dbId : database.type == 'existing' ? database!.id : 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
 
-module ccwDatabasePrivateEndpoint './privateEndpoint.bicep' = {
+module ccwDatabasePrivateEndpoint './privateEndpoint.bicep' = if (database.type == 'new' || database.type == 'existing') {
   name: 'ccwDatabasePrivateEndpoint'
   params: {
     location: location
