@@ -18,6 +18,7 @@ param adminSshPublicKey string
 param vmSize string
 param dataDisks array
 param osDiskSize int = 0 //TODO: add to UI
+param managedIdentityId string
 
 resource nic 'Microsoft.Network/networkInterfaces@2025-05-01' = {
   name: '${name}-nic'
@@ -39,6 +40,11 @@ resource nic 'Microsoft.Network/networkInterfaces@2025-05-01' = {
   }
 }
 
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = {
+  name: split(managedIdentityId, '/')[8]
+  scope: az.resourceGroup(split(managedIdentityId, '/')[2], split(managedIdentityId, '/')[4])
+}
+
 resource virtualMachine 'Microsoft.Compute/virtualMachines@2025-04-01' = {
   name: name
   location: location
@@ -49,7 +55,10 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2025-04-01' = {
     name: split(image.plan,':')[2]
   } : null
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${managedIdentityId}': {}
+    }
   }
   properties: {
     hardwareProfile: {
@@ -132,6 +141,6 @@ resource cse 'Microsoft.Compute/virtualMachines/extensions@2025-04-01' = {
 output fqdn string = '' //contains(vm, 'pip') && vm.pip ? publicIp.properties.dnsSettings.fqdn : ''
 output publicIp string = '' //contains(vm, 'pip') && vm.pip ? publicIp.properties.ipAddress : ''
 output privateIp string = nic.properties.ipConfigurations[0].properties.privateIPAddress
-output principalId string = virtualMachine.identity.principalId
+output principalId string = managedIdentity.properties.principalId
 //output privateIps array = [ for i in range(0, count): nic[i].properties.ipConfigurations[0].properties.privateIPAddress ]
 //output principalIds array = [ for i in range(0, count): virtualMachine[i].identity.principalId ]
