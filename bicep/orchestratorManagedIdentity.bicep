@@ -1,7 +1,7 @@
 targetScope = 'resourceGroup'
 import {tags_t} from './types.bicep'
 
-param name string = 'ccwCycleCloudVirtualMachineManagedIdentity'
+param name string = 'ccwOrchestratorManagedIdentity'
 param location string
 param applyRoleAssignments bool = true
 param tags tags_t = {}

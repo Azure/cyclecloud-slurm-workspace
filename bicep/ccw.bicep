@@ -110,7 +110,7 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
   }
 }
 
-var orchestratorMiName = 'ccwCycleCloudVirtualMachineManagedIdentity'
+var orchestratorMiName = 'ccwOrchestratorManagedIdentity'
 module ccwOrchestratorManagedIdentity './orchestratorManagedIdentity.bicep' = if (!infrastructureOnly && storageAccount.type == 'new') {
   name: orchestratorMiName
   params: {
