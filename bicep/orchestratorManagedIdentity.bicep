@@ -14,7 +14,7 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-
 }
 
 module ccwCycleCloudVirtualMachineRoleAssignments './orchestratorManagedIdentityRoleAssignments.bicep' = if (applyRoleAssignments) {
-  name: 'ccwRoleForCycleCloudVirtualMachine-${location}'
+  name: 'ccwOrchestratorRoles-${uniqueString(az.resourceGroup().id, name, location)}'
   scope: subscription()
   params: {
     roles: [
