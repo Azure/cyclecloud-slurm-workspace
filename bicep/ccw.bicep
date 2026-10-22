@@ -33,7 +33,8 @@ param gpu types.hpc_t
 param tags types.resource_tags_t
 @secure()
 param databaseAdminPassword string
-param databaseConfig types.databaseConfig_t
+param database types.database_t
+param databasePrivateDnsZone types.privateDnsZone_t
 param clusterName string
 param manualInstall bool
 param acceptMarketplaceTerms bool
@@ -77,7 +78,6 @@ module ccwNetwork './network-new.bicep' = if (create_new_vnet) {
     natGatewayId: natGateawayId
     createNetApp: createNetApp
     createLustre: createLustre
-    databaseConfig: databaseConfig
   }
 }
 
@@ -220,18 +220,30 @@ module ccwStoragePrivateEndpoint './privateEndpoint.bicep' = {
   }
 }
 
-var create_database = contains(slurmSettings, 'databaseAdminPassword')
-var db_name = 'ccw-mysqldb-${uniqueString(az.resourceGroup().id)}'
 
-module mySQLccw './mysql.bicep' = if (create_database) {
+module mySQLccw './mysql.bicep' = if (database.type == 'new') {
   name: 'MySQLDB-ccw'
+  params: {
+    location: database!.location
+    tags: getTags('Microsoft.DBforMySQL/flexibleServers', tags)
+    adminUser: database!.username
+    adminPassword: databaseAdminPassword
+    serverEdition: database!.serverEdition
+    skuName: database!.sku
+  }
+}
+
+var dbId = database.type == 'new' ? mySQLccw!.outputs.dbId : database.type == 'existing' ? database!.id : 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
+
+module ccwDatabasePrivateEndpoint './privateEndpoint.bicep' = if (database.type == 'new' || database.type == 'existing') {
+  name: 'ccwDatabasePrivateEndpoint'
   params: {
     location: location
     tags: getTags('Microsoft.DBforMySQL/flexibleServers', tags)
-    Name: db_name
-    adminUser: adminUsername
-    adminPassword: databaseAdminPassword
-    subnetId: subnets.?database ?? ''
+    resourceId: dbId
+    computeSubnetId: subnets.cyclecloud
+    privateDnsZone: databasePrivateDnsZone
+    groupId: 'mysqlServer'
   }
 }
 
@@ -401,9 +413,9 @@ output adminUsername string = adminUsername
 output subscriptionId string = subscription().subscriptionId
 output tenantId string = subscription().tenantId
 // output databaseFQDN string = create_database ? mySQLccw.outputs.fqdn : ''
-output databaseInfo types.databaseOutput_t = databaseConfig.type != 'disabled' ?{
-  databaseUser: databaseConfig.?databaseUser
-  url: databaseConfig.type == 'fqdn' ? databaseConfig.?fqdn : databaseConfig.type == 'privateIp' ? databaseConfig.?privateIp : ccwNetwork!.outputs.?databaseFQDN 
+output databaseInfo types.databaseOutput_t = database.type != 'disabled' ?{
+  username: database.?username
+  url: database.type != 'connection' ? '${split(dbId, '/')[8]}.mysql.database.azure.com' : database.?ip
 } : {}
 output azureEnvironment string = envNameToCloudMap[environment().name]
 output nodeArrayTags types.tags_t = tags[?'Node Array'] ?? {}
