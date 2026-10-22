@@ -53,6 +53,7 @@ fi
 
 echo Deploying storage account to resource group "${RESOURCE_GROUP}" in location "${LOCATION}"...
 STORAGE_DEPLOYMENT_NAME="ccw-storage-deployment-${RESOURCE_GROUP}-${LOCATION}"
+STORAGE_DEPLOYMENT_NAME="${STORAGE_DEPLOYMENT_NAME:0:64}"
 az deployment group create \
     --resource-group "$RESOURCE_GROUP" \
     --template-file $(pwd)/bicep/storage-new.bicep \
