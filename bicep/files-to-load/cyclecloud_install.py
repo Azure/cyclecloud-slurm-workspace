@@ -473,16 +473,8 @@ gpgcheck=1
 gpgkey=https://packages.microsoft.com/keys/microsoft.asc
 """)
 
-    with open('/etc/yum.repos.d/azure-cli.repo', 'w') as f:
-        f.write("""\
-[azure-cli]
-name=Azure CLI
-baseurl=https://packages.microsoft.com/yumrepos/azure-cli
-enabled=1
-gpgcheck=1
-gpgkey=https://packages.microsoft.com/keys/microsoft.asc      
-""")
-
+    _catch_sys_error(
+        ["yum", "install", "-y", "https://packages.microsoft.com/config/rhel/9.0/packages-microsoft-prod.rpm"])
 
 def install_pre_req():
     print("Installing pre-requisites for CycleCloud server")
