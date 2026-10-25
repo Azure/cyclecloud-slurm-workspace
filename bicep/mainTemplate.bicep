@@ -12,6 +12,7 @@ param ccVMName string
 param ccVMSize string
 param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.10.120261021'
 param resourceGroup string
+param storageAccount types.storageAccount_t
 param entraIdInfo types.entra_t = { type: 'disabled' }
 param schedFilesystem types.schedFilesystem_t
 param sharedFilesystem types.sharedFilesystem_t
@@ -63,6 +64,7 @@ module makeCCWresources 'ccw.bicep' = {
     insidersBuild: insidersBuild
     adminUsername: adminUsername
     adminPassword: adminPassword
+    storageAccount: storageAccount
     key: key
     entraIdInfo: entraIdInfo
     schedFilesystem: schedFilesystem
