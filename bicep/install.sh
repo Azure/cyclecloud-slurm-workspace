@@ -166,6 +166,14 @@ for key in $keys; do
     # Create the file with the value decoded from base 64
     echo $filecontent | base64 --decode > "$filename.$extension"
 done
+
+# move OOD discovery reader to cron directory
+chmod 770 $ccw_root/ood_discovery_reader.py
+cat << EOF > /etc/cron.d/ood_discovery_reader
+* * * * * root /usr/bin/python3 $ccw_root/ood_discovery_reader.py
+EOF
+chmod 0644 /etc/cron.d/ood_discovery_reader
+
 while [ ! -f "$SECRETS_FILE_PATH" ]; do
     echo "Waiting for VM to create secrets file..."
     sleep 1
