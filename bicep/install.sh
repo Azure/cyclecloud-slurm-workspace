@@ -366,7 +366,7 @@ fi
 # move OOD discovery reader to cron directory
 install -o root -g root -m 0700 "$ccw_root/ood_discovery_reader.py" /root/ood_discovery_reader.py
 cat << EOF > /etc/cron.d/ood_discovery_reader
-* * * * * root /usr/bin/python3 $ccw_root/ood_discovery_reader.py 2>&1 | /usr/bin/logger -t ood-discovery-reader
+* * * * * root /usr/bin/python3 /root/ood_discovery_reader.py 2>&1 | /usr/bin/logger -t ood-discovery-reader
 EOF
 chmod 0644 /etc/cron.d/ood_discovery_reader
 
