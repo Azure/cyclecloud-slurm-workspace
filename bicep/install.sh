@@ -166,6 +166,7 @@ for key in $keys; do
     # Create the file with the value decoded from base 64
     echo $filecontent | base64 --decode > "$filename.$extension"
 done
+
 while [ ! -f "$SECRETS_FILE_PATH" ]; do
     echo "Waiting for VM to create secrets file..."
     sleep 1
@@ -361,6 +362,13 @@ if [ $INCLUDE_OOD == true ]; then
     rm -f ood_params.json
     echo "Deleted OOD input parameters file" 
 fi
+
+# move OOD discovery reader to cron directory
+install -o root -g root -m 0700 "$ccw_root/ood_discovery_reader.py" /root/ood_discovery_reader.py
+cat << EOF > /etc/cron.d/ood_discovery_reader
+* * * * * root /usr/bin/python3 /root/ood_discovery_reader.py 2>&1 | /usr/bin/logger -t ood-discovery-reader
+EOF
+chmod 0644 /etc/cron.d/ood_discovery_reader
 
 ENABLE_ENTRA_AUTH=false
 if [ $(jq -r .entraIdInfo.value.type ccwOutputs.json) == 'enabled'  ]; then
