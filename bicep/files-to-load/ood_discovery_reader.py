@@ -25,19 +25,6 @@ accounts; adding scheduler clusters does not require another run.
 Each run also removes this script's grants for clusters with no detected OOD
 nodes. Review a dry-run before applying changes.
 
-Scheduled runs
---------------
-Unchanged runs are quiet by default. Add --verbose to see detected nodes and
-completion messages; --dry-run still prints proposed changes without it.
-If one cluster fails, the script logs the error and continues with the others,
-then exits nonzero. Discovery failures stop the entire run without changes.
-
-Example /etc/cron.d/ood-discovery-reader entry (one physical line):
-
-  * * * * * root /usr/bin/python3 /root/ood_discovery_reader.py >> /var/log/ood-discovery-reader.log 2>&1
-
-Configure log rotation and monitor the log for errors.
-
 Remove discovery access
 -----------------------
 Stop any scheduled runs first. Preview removal with:
