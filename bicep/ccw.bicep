@@ -12,6 +12,7 @@ param oodProjectVersion string
 param adminUsername string
 @secure()
 param adminPassword string
+param storageAccount types.storageAccount_t
 param key types.publicKey_t
 param ccVMName string
 param ccVMSize string
@@ -84,10 +85,10 @@ module ccwNetwork './network-new.bicep' = if (create_new_vnet) {
 var subnets = create_new_vnet
   ? ccwNetwork!.outputs.subnetsCCW
   : {
-      cyclecloud: join([network.?id, 'subnets', network.?cyclecloudSubnet], '/') 
-      compute: join([network.?id, 'subnets', network.?computeSubnet], '/') 
-      netapp: join([network.?id, 'subnets', network.?netappSubnet ?? 'null'], '/') 
-      lustre: join([network.?id, 'subnets', network.?lustreSubnet ?? 'null'], '/') 
+      cyclecloud: join([network.?id, 'subnets', network.?cyclecloudSubnet], '/')
+      compute: join([network.?id, 'subnets', network.?computeSubnet], '/')
+      netapp: join([network.?id, 'subnets', network.?netappSubnet ?? 'null'], '/')
+      lustre: join([network.?id, 'subnets', network.?lustreSubnet ?? 'null'], '/')
     }
 
 var existingNetworkId = network.?id ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
@@ -109,6 +110,17 @@ module ccwBastion './bastion.bicep' = if (deploy_bastion) {
   }
 }
 
+var orchestratorMiName = 'ccwOrchestratorManagedIdentity'
+module ccwOrchestratorManagedIdentity './orchestratorManagedIdentity.bicep' = if (!infrastructureOnly && storageAccount.type == 'new') {
+  name: orchestratorMiName
+  params: {
+    name: orchestratorMiName
+    location: location
+    tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
+  }
+}
+
+var ccwOrchestratorIdentityId = !infrastructureOnly ? ( storageAccount.type == 'new' ? ccwOrchestratorManagedIdentity!.outputs.managedIdentityId : storageAccount.orchestratorIdentityId) : ''
 module ccwVM './vm.bicep' = if (!infrastructureOnly) {
   name: 'ccwVM-cyclecloud'
   params: {
@@ -146,37 +158,22 @@ module ccwVM './vm.bicep' = if (!infrastructureOnly) {
         createOption: split(cyclecloudBaseImage, ':')[0] == 'azurecyclecloud' ? 'FromImage' : 'Empty'
       }
     ]
+    managedIdentityId: ccwOrchestratorIdentityId
   }
 }
 
-var miName = 'ccwLockerManagedIdentity'
-module ccwManagedIdentity 'mi.bicep' = if (!infrastructureOnly) {
-  name: miName
+module ccwNewStorageAccount './storage-new.bicep' = if (storageAccount.type == 'new') {
+  name: 'ccwNewStorageAccount'
   params: {
-    name: miName
     location: location
-    storageAccountName: ccwStorage!.outputs.storageAccountName
-    monitoringEnabled: monitoring.type == 'enabled'
-    dcrId: monitoring.?dcrId ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
-    tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
+    tags: getTags('Microsoft.Storage/storageAccounts', tags)
   }
 }
-
-module ccwRoleAssignments './vmRoleAssignments.bicep' = if (!infrastructureOnly) {
-  name: 'ccwRoleFor-${ccVMName}-${location}'
-  scope: subscription()
-  params: {
-    roles: [
-      'Contributor'
-      'Storage Account Contributor'
-      'Storage Blob Data Contributor'
-    ]
-    principalId: ccwVM!.outputs.principalId
-  }
-}
+var storageAccountName  = storageAccount.type == 'existing' ? split(storageAccount.storageAccountId, '/')[8] : ccwNewStorageAccount!.outputs.storageAccountName
+var storageAccountId = storageAccount.type == 'existing' ? storageAccount.storageAccountId : ccwNewStorageAccount!.outputs.storageAccountId
 
 var monitorWorkspaceRoleAssignmentScope = monitoring.type == 'enabled' ? split(monitoring.monitorWorkspaceId, '/')[4] : resourceGroup
-module ccwMonitorWorkspaceRoleAssignment './vmMonitoringRoleAssignments.bicep' = if (!infrastructureOnly) {
+module ccwMonitorWorkspaceRoleAssignment './vmMonitoringRoleAssignments.bicep' = if (!infrastructureOnly && storageAccount.type == 'new' && monitoring.type == 'enabled') {
   name: 'ccwMonitorWorkspaceRoleFor-${ccVMName}'
   scope: az.resourceGroup(monitorWorkspaceRoleAssignmentScope)
   params: {
@@ -188,7 +185,7 @@ module ccwMonitorWorkspaceRoleAssignment './vmMonitoringRoleAssignments.bicep' =
 }
 
 var managedGrafanaRoleAssignmentScope = monitoring.type == 'enabled' ? split(monitoring.grafanaId, '/')[4] : resourceGroup
-module ccwManagedGrafanaRoleAssignment './vmMonitoringRoleAssignments.bicep' = if (!infrastructureOnly) {
+module ccwManagedGrafanaRoleAssignment './vmMonitoringRoleAssignments.bicep' = if (!infrastructureOnly && storageAccount.type == 'new' && monitoring.type == 'enabled') {
   name: 'ccwManagedGrafanaRoleFor-${ccVMName}'
   scope: az.resourceGroup(managedGrafanaRoleAssignmentScope)
   params: {
@@ -199,25 +196,36 @@ module ccwManagedGrafanaRoleAssignment './vmMonitoringRoleAssignments.bicep' = i
   }
 }
 
-module ccwStorage './storage.bicep' = {
-  name: 'ccwStorage'
-  params: {
-    location: location
-    tags: getTags('Microsoft.Storage/storageAccounts', tags)
-    saName: 'ccwstorage${uniqueString(az.resourceGroup().id)}'
-  }
-}
-
-module ccwStoragePrivateEndpoint './privateEndpoint.bicep' = {
+module ccwStorageNetworking './privateEndpoint.bicep' = {
   name: 'ccwStoragePrivateEndpoint'
   params: {
     location: location
     tags: getTags('Microsoft.Storage/storageAccounts', tags)
-    resourceId: ccwStorage.outputs.storageAccountId
+    resourceId: storageAccountId
     computeSubnetId: subnets.cyclecloud
     privateDnsZone: storagePrivateDnsZone
     groupId: 'blob'
   }
+}
+
+var lockerMiName = 'ccwLockerManagedIdentity'
+module ccwLockerManagedIdentity 'lockerManagedIdentity.bicep' = if (!infrastructureOnly && storageAccount.type == 'new') {
+  name: lockerMiName
+  params: {
+    name: lockerMiName
+    location: location
+    storageAccountName: storageAccountName
+    monitoringEnabled: monitoring.type == 'enabled'
+    dcrId: monitoring.?dcrId ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
+    tags: getTags('Microsoft.ManagedIdentity/userAssignedIdentities', tags)
+  }
+}
+var lockerIdentityId = !infrastructureOnly ? ( storageAccount.type == 'new' ? ccwLockerManagedIdentity!.outputs.managedIdentityId : storageAccount.lockerIdentityId) : ''
+
+var existingLockerIdentityId = storageAccount.?lockerIdentityId ?? 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
+resource existingLockerManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = if (!infrastructureOnly && storageAccount.type == 'existing' && monitoring.type == 'enabled') {
+  name: split(existingLockerIdentityId, '/')[8]
+  scope: az.resourceGroup(split(existingLockerIdentityId, '/')[2], split(existingLockerIdentityId, '/')[4])
 }
 
 var create_database = contains(slurmSettings, 'databaseAdminPassword')
@@ -279,7 +287,7 @@ module ccwANF 'anf.bicep' = [
 
 var deployOOD = ood.type != 'disabled'
 // Temporary deprecation of automatic registration of Entra app registration
-var registerOODApp = false // ood.?registerEntraIDApp ?? false 
+var registerOODApp = false // ood.?registerEntraIDApp ?? false
 var createOODMI = deployOOD && ood.?appManagedIdentityId == null
 
 var oodNicName = 'ccwOpenOnDemandNIC'
@@ -348,7 +356,8 @@ output filerInfoFinal types.filerInfo_t = {
 
 output cyclecloudPrincipalId string = infrastructureOnly ? '' : ccwVM!.outputs.principalId
 
-output managedIdentityId string = infrastructureOnly ? '' : ccwManagedIdentity!.outputs.managedIdentityId
+// MI for VMSS
+output managedIdentityId string = lockerIdentityId
 
 // Automatically inject the ccw cluster init spec
 
@@ -394,7 +403,7 @@ var clusterNameCleaned = join(clusterNameArrCleaned,'')
 
 output resourceGroup string = resourceGroup
 output location string = location
-output storageAccountName string = ccwStorage.outputs.storageAccountName
+output storageAccountName string = storageAccountName
 output clusterName string = clusterNameCleaned
 output publicKey string = publicKey
 output adminUsername string = adminUsername
@@ -403,7 +412,7 @@ output tenantId string = subscription().tenantId
 // output databaseFQDN string = create_database ? mySQLccw.outputs.fqdn : ''
 output databaseInfo types.databaseOutput_t = databaseConfig.type != 'disabled' ?{
   databaseUser: databaseConfig.?databaseUser
-  url: databaseConfig.type == 'fqdn' ? databaseConfig.?fqdn : databaseConfig.type == 'privateIp' ? databaseConfig.?privateIp : ccwNetwork!.outputs.?databaseFQDN 
+  url: databaseConfig.type == 'fqdn' ? databaseConfig.?fqdn : databaseConfig.type == 'privateIp' ? databaseConfig.?privateIp : ccwNetwork!.outputs.?databaseFQDN
 } : {}
 output azureEnvironment string = envNameToCloudMap[environment().name]
 output nodeArrayTags types.tags_t = tags[?'Node Array'] ?? {}
@@ -434,7 +443,9 @@ output oodManualRegistration object = {
 output monitoring object = {
   type: monitoring.type
   ingestionEndpoint: monitoring.type == 'enabled' ? monitoring.ingestionEndpoint : ''
-  managedIdentityClientId: monitoring.type == 'enabled' ? ccwManagedIdentity!.outputs.managedIdentityClientId : ''
+  managedIdentityClientId: !infrastructureOnly && monitoring.type == 'enabled'
+    ? (storageAccount.type == 'new' ? ccwLockerManagedIdentity!.outputs.managedIdentityClientId : existingLockerManagedIdentity!.properties.clientId)
+    : ''
   grafanaName: monitoring.type == 'enabled' ? split(monitoring.grafanaId, '/')[8] : ''
   grafanaResourceGroup: monitoring.type == 'enabled' ? split(monitoring.grafanaId, '/')[4] : ''
 }

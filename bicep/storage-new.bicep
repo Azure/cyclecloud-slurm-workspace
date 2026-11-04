@@ -1,12 +1,12 @@
 targetScope = 'resourceGroup'
 import {tags_t} from './types.bicep'
 
+var storageAccountName = 'ccwstorage${uniqueString(az.resourceGroup().id)}'
 param location string
-param tags tags_t
-param saName string
+param tags tags_t = {}
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' = {
-  name: saName
+  name: storageAccountName
   location: location
   tags: tags
   sku: {

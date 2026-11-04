@@ -4,9 +4,10 @@ import {tags_t} from './types.bicep'
 param name string
 param location string
 param storageAccountName string
-param monitoringEnabled bool 
-param dcrId string 
-param tags tags_t
+param applyRoleAssignments bool = true
+param monitoringEnabled bool = false
+param dcrId string = 'a0a0a0a0/bbbb/cccc/dddd/eeee/ffff/aaaa/bbbb/c8c8c8c8'
+param tags tags_t = {}
 
 //create managed identity for VMSSs
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
@@ -15,7 +16,7 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-
   tags: tags
 }
 
-module ccwMIRoleAssignments './miRoleAssignments.bicep' = {
+module ccwLockerManagedIdentityRoleAssignments './lockerManagedIdentityRoleAssignments.bicep' = if (applyRoleAssignments) {
   name: 'ccwRoleForLockerManagedIdentity'
   params: {
     principalId: managedIdentity.properties.principalId
@@ -24,7 +25,7 @@ module ccwMIRoleAssignments './miRoleAssignments.bicep' = {
   }
 }
 
-module ccwMIMonitoringRoleAssignment './miMonitoringRoleAssignments.bicep' = if (monitoringEnabled) {
+module ccwMIMonitoringRoleAssignment './miMonitoringRoleAssignments.bicep' = if (applyRoleAssignments && monitoringEnabled) {
   name: 'ccwMonitoringRoleForLockerManagedIdentity'
   scope : resourceGroup(split(dcrId, '/')[4])
   params: {
