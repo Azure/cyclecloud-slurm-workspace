@@ -57,7 +57,7 @@ def set_slurm_params(params, dbPassword, outputs):
     #     params['configuration_slurm_ha_enabled'] = outputs['slurmSettings']['value']['slurmHA']
     params['configuration_slurm_accounting_enabled'] = bool(outputs['databaseInfo']['value'])
     if params['configuration_slurm_accounting_enabled']:
-        params['configuration_slurm_accounting_user'] = outputs['databaseInfo']['value']['databaseUser']
+        params['configuration_slurm_accounting_user'] = outputs['databaseInfo']['value']['username']
     if params['configuration_slurm_accounting_enabled']:
         params['configuration_slurm_accounting_password'] = dbPassword
     if params['configuration_slurm_accounting_enabled']:

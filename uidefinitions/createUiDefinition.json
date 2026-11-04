@@ -46,7 +46,7 @@
         "type": "Microsoft.Solutions.ArmApiControl",
         "request": {
           "method": "GET",
-          "path": "[concat(subscription().id,'/locations?api-version=2022-12-01')]"
+          "path": "[concat(subscription().id,'/locations?api-version=2022-12-01&$orderby=name')]"
         }
       },
       {
@@ -1340,7 +1340,7 @@
           {
             "name": "dnsZone",
             "type": "Microsoft.Common.Section",
-            "label": "Private DNS zone",
+            "label": "Storage account private DNS zone",
             "elements": [
               {
                 "name": "dnsZoneInfoBox",
@@ -1393,6 +1393,11 @@
                 "resourceType": "Microsoft.Network/privateDnsZones",
                 "constraints": {
                   "required": true
+                },
+                "options": {
+                  "filter": {
+                    "subscription": "onBasics"
+                  }
                 },
                 "visible": "[equals(steps('networking').dnsZone.newExisting,'existing')]"
               },
@@ -1661,13 +1666,97 @@
                 "visible": true
               },
               {
-                "name": "databaseInfoBox",
+                "name": "newexistingDb",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Create new database",
+                "defaultValue": "Create new MySQL Flexible Server with private endpoint",
+                "toolTip": "Create new database or use existing for Slurm job accounting",
+                "multiselect": false,
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Create new MySQL Flexible Server with private endpoint",
+                      "value": "new"
+                    },
+                    {
+                      "label": "Use existing MySQL Flexible Server with private endpoint",
+                      "value": "existing"
+                    },
+                    {
+                      "label": "Connect to existing MySQL database using hostname or IP",
+                      "value": "connection"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
+              },
+              {
+                "name": "dbRegionDropdown",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Region",
+                "defaultValue": "East US",
+                "toolTip": "The region where the MySQL Flexible Server will be created",
+                "constraints": {
+                  "allowedValues": "[map(filter(basics('locationInfoApi').value, (loc) => equals(loc.metadata.regionType,'Physical')), (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.name, '\"}')))]",
+                  "required": true
+                },
+                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new'))]"
+              },
+              {
+                "name": "mysqlCapabilitiesApi",
+                "type": "Microsoft.Solutions.ArmApiControl",
+                "request": {
+                  "method": "GET",
+                  "path": "[concat(subscription().id,'/providers/Microsoft.DBforMySQL/locations/',steps('scheduler').schedulerSection.dbRegionDropdown,'/capabilitySets/default?api-version=2024-12-30')]"
+                }
+              },
+              {
+                "name": "mysqlEditionsUnavailableInfoBox",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]",
+                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new'),empty(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions))]",
+                "options": {
+                  "icon": "Error",
+                  "text": "Azure MySQL Flexible Server is not available for the selected region. If it does not load, check that Microsoft.DBforMySQL is registered."
+                }
+              },
+              {
+                "name": "mysqlServerEdition",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Compute tier",
+                "defaultValue": "GeneralPurpose",
+                "toolTip": "Note that high availability and read replicas is supported for only General purpose and Memory optimized tiers",
+                "constraints": {
+                  "allowedValues": "[map(coalesce(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions, parse('[]')), (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.name, '\"}')))]",
+                  "required": true,
+                  "validations": [
+                    {
+                      "isValid": "[not(empty(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions))]",
+                      "message": "Azure MySQL Flexible Server is not available for the selected region."
+                    }
+                  ]
+                },
+                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new'),true)]"
+              },
+              {
+                "name": "mysqlServerSku",
+                "type": "Microsoft.Common.DropDown",
+                "label": "MySQL Flexible Server SKU",
+                "toolTip": "Compute SKU for the chosen compute tier in the selected deployment region",
+                "filter": true,
+                "constraints": {
+                  "allowedValues": "[if(empty(filter(coalesce(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions, parse('[]')), (item) => equals(item.name,steps('scheduler').schedulerSection.mysqlServerEdition))), parse('[]'), map(coalesce(first(filter(coalesce(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions, parse('[]')), (item) => equals(item.name,steps('scheduler').schedulerSection.mysqlServerEdition))).supportedSkus, parse('[]')), (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.name, '\"}'))))]",
+                  "required": true
+                },
+                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new'),not(empty(filter(coalesce(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions, parse('[]')), (item) => and(equals(item.name,steps('scheduler').schedulerSection.mysqlServerEdition),not(empty(item.supportedSkus)))))))]"
+              },
+              {
+                "name": "mysqlSkusUnavailableInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new'),not(empty(filter(coalesce(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions, parse('[]')), (item) => equals(item.name,steps('scheduler').schedulerSection.mysqlServerEdition)))),empty(filter(coalesce(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions, parse('[]')), (item) => and(equals(item.name,steps('scheduler').schedulerSection.mysqlServerEdition),not(empty(item.supportedSkus))))))]",
                 "options": {
                   "icon": "Warning",
-                  "text": "CycleCloud Workspace for Slurm currently only supports job accounting in existing MySQL instances. \nPlease visit the linked page to create a new MySQL instance prior to launching CycleCloud Workspace for Slurm.",
-                  "uri": "https://portal.azure.com/#create/Microsoft.MySQLServer"
+                  "text": "No supported SKUs are available for the selected MySQL Flexible Server edition. Select a different edition or region. You can still connect to an existing database."
                 }
               },
               {
@@ -1681,14 +1770,14 @@
                   "regex": "^[a-zA-Z][a-zA-Z0-9_]{5,19}$",
                   "validationMessage": "Enter a valid username"
                 },
-                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
+                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,if(equals(steps('scheduler').schedulerSection.newexistingDb,'new'),not(empty(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions)),true))]"
               },
               {
                 "name": "databaseAdminPassword",
                 "type": "Microsoft.Common.PasswordBox",
                 "label": {
-                  "password": "Database Admin Password",
-                  "confirmPassword": "Confirm Password"
+                  "password": "Database admin password",
+                  "confirmPassword": "Confirm password"
                 },
                 "toolTip": "Password for the Slurm accounting database admin user",
                 "constraints": {
@@ -1699,72 +1788,30 @@
                 "options": {
                   "hideConfirmation": false
                 },
-                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
-              },
-              {
-                "name": "dbConnection",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Connection options",
-                "defaultValue": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'Direct: FQDN',if(equals(steps('networking').newexisting,'new'),'Private Endpoint',''))]",
-                "toolTip": "Select method by which to connect to the existing MySQL database",
-                "constraints": {
-                  "allowedValues": [
-                    {
-                      "label": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'Direct: FQDN','')]",
-                      "value": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'fqdn','')]"
-                    },
-                    {
-                      "label": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'Direct: Private IP','')]",
-                      "value": "[if(or(equals(steps('networking').newexisting,'existing'),steps('networking').networkSettings.peering),'privateIp','')]"
-                    },
-                    {
-                      "label": "[if(equals(steps('networking').newexisting,'new'),'Private Endpoint','')]",
-                      "value": "[if(equals(steps('networking').newexisting,'new'),'privateEndpoint','')]"
-                    }
-                  ],
-                  "required": true
-                },
-                "visible": "[steps('scheduler').schedulerSection.slurmAccounting]"
-              },
-              {
-                "name": "databaseURL",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Database FQDN (URL)",
-                "defaultValue": ".mysql.database.azure.com",
-                "toolTip": "Enter a FQDN (URL) for the MySQL database",
-                "constraints": {
-                  "required": true,
-                  "validations": [
-                    {
-                      "regex": "^(?:http[s]?:\\/\\/.)?(?:www\\.)?[-a-zA-Z0-9@%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b(?:[-a-zA-Z0-9@:%_\\+.~#?&\/\/=]*)$",
-                      "message": "Please enter a valid MySQL database FQDN."
-                    }
-                  ]
-                },
-                "visible": "[equals(steps('scheduler').schedulerSection.dbConnection,'fqdn')]"
+                "visible": "[and(steps('scheduler').schedulerSection.slurmAccounting,if(equals(steps('scheduler').schedulerSection.newexistingDb,'new'),not(empty(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions)),true))]"
               },
               {
                 "name": "databasePIP",
                 "type": "Microsoft.Common.TextBox",
-                "label": "Database Private IP",
+                "label": "Database hostname or IP",
                 "defaultValue": "",
-                "toolTip": "Enter the private IP address of the MySQL database",
+                "toolTip": "Enter the hostname or IP address of the MySQL database",
                 "constraints": {
                   "required": true,
                   "validations": [
                     {
-                      "regex": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$",
-                      "message": "Invalid IP address"
+                      "regex": "^[A-Za-z0-9._:-]+$",
+                      "message": "Invalid hostname or IP"
                     }
                   ]
                 },
-                "visible": "[equals(steps('scheduler').schedulerSection.dbConnection,'privateIp')]"
+                "visible": "[equals(steps('scheduler').schedulerSection.newexistingDb,'connection')]"
               },
               {
                 "name": "dbSelector",
                 "type": "Microsoft.Solutions.ResourceSelector",
                 "label": "Select MySQL Database",
-                "toolTip": "Select a MySQL Flexible Server in the Azure region selected in the Basics menu",
+                "toolTip": "Select a MySQL Flexible Server",
                 "resourceType": "Microsoft.DBforMySQL/flexibleServers",
                 "options": {
                   "filter": {
@@ -1775,7 +1822,7 @@
                   "required": true,
                   "validationMessage": "Please select a MySQL Flexible Server."
                 },
-                "visible": "[equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint')]"
+                "visible": "[equals(steps('scheduler').schedulerSection.newexistingDb,'existing')]"
               },
               {
                 "name": "useLoginNodes",
@@ -1786,6 +1833,115 @@
                 "visible": false
               }
             ]
+          },
+          {
+            "name": "dnsZone",
+            "type": "Microsoft.Common.Section",
+            "label": "Private DNS zone",
+            "elements": [
+              {
+                "name": "dnsZoneInfoBox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": true,
+                "options": {
+                  "icon": "Info",
+                  "text": "Optionally automatically create private DNS zone and virtual network link resources or use existing ones to connect the virtual network chosen previously with the MySQL Flexible Server via a private endpoint."
+                }
+              },
+              {
+                "name": "newDnsZoneWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('scheduler').dnsZone.newExisting,'new')]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "The cluster deployment will fail if the virtual network selected on the last page has an existing link to a private DNS zone for\nAzure Blob Storage and the option to create a new such private DNS zone resource is chosen below."
+                }
+              },
+              {
+                "name": "newExisting",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Private DNS zone options",
+                "defaultValue": "Use an existing private DNS zone",
+                "toolTip": "Create a new or use an existing private DNS zone for Azure Blob Storage",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Use an existing private DNS zone",
+                      "value": "existing"
+                    },
+                    {
+                      "label": "Automatically create a new private DNS zone",
+                      "value": "new"
+                    },
+                    {
+                      "label": "Do not use a private DNS zone",
+                      "value": "none"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": true
+              },
+              {
+                "name": "dnsZoneSelector",
+                "type": "Microsoft.Solutions.ResourceSelector",
+                "label": "Private DNS zone",
+                "toolTip": "Select existing private DNS zone for Azure Blob Storage",
+                "resourceType": "Microsoft.Network/privateDnsZones",
+                "constraints": {
+                  "required": true
+                },
+                "options": {
+                  "filter": {
+                    "subscription": "onBasics"
+                  }
+                },
+                "visible": "[equals(steps('scheduler').dnsZone.newExisting,'existing')]"
+              },
+              {
+                "name": "badDnsZoneWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": "[equals(steps('scheduler').dnsZone.newExisting,'existing')]",
+                "options": {
+                  "icon": "Warning",
+                  "text": "Select an appropriate private DNS zone to ensure that the cluster deployment will not fail and that the chosen virtual network can connect to Azure MySQL Flexible Server via a private endpoint.\n\nThe name of the chosen private DNS zone must be one of the following:\n • privatelink.mysql.database.azure.com\n • privatelink.mysql.database.usgovcloudapi.net"
+                }
+              },
+              {
+                "name": "vnetLinkProvidersApi",
+                "type": "Microsoft.Solutions.ArmApiControl",
+                "request": {
+                  "method": "GET",
+                  "path": "[concat(steps('scheduler').dnsZone.dnsZoneSelector.id,'/virtualNetworkLinks?api-version=2018-09-01')]"
+                }
+              }
+            ],
+            "visible": "[and(equals(steps('networking').newexisting,'existing'),or(equals(steps('scheduler').schedulerSection.newexistingDb,'existing'),equals(steps('scheduler').schedulerSection.newexistingDb,'new')),not(empty(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions)))]"
+          },
+          {
+            "name": "vnetLink",
+            "type": "Microsoft.Common.Section",
+            "label": "Virtual network link",
+            "elements": [
+              {
+                "name": "vnetLinkWarning",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": true,
+                "options": {
+                  "icon": "Warning",
+                  "text": "The selected private DNS zone is not linked to the selected virtual network.\n\nCheck the box below to create such a virtual network link resource for the cluster and ensure connectivity with the storage account that will be concurrently deployed for use by the cluster via private endpoint."
+                }
+              },
+              {
+                "name": "createVnetLink",
+                "type": "Microsoft.Common.CheckBox",
+                "label": "Create virtual network link",
+                "toolTip": "Automatically link the selected virtual network with the selected private DNS zone",
+                "defaultValue": false,
+                "visible": true
+              }
+            ],
+            "visible": "[and(equals(steps('networking').newexisting,'existing'),not(empty(steps('scheduler').schedulerSection.mysqlCapabilitiesApi.properties.supportedFlexibleServerEditions)),if(and(equals(steps('scheduler').dnsZone.newExisting,'existing'),not(equals(0,length(steps('networking').networkSettings.networkSelector.id))),not(equals(0,length(steps('scheduler').dnsZone.dnsZoneSelector.id))),or(equals(steps('scheduler').dnsZone.dnsZoneSelector.name,'privatelink.mysql.database.azure.com'),equals(steps('scheduler').dnsZone.dnsZoneSelector.name,'privatelink.mysql.database.usgovcloudapi.net'))),not(equals(length(filter(steps('scheduler').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),false))]"
           },
           {
             "name": "loginNodesSection",
@@ -2824,12 +2980,19 @@
         "vnetLink": "[if(or(equals(steps('networking').newexisting,'new'),equals(steps('networking').dnsZone.newExisting,'new')),basics('nullValue'),if(not(equals(length(filter(steps('networking').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),steps('networking').vnetLink.createVnetLink,false))]"
       },
       "databaseAdminPassword": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseAdminPassword,basics('nullValue'))]",
-      "databaseConfig": {
-        "type": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.dbConnection,'disabled')]",
-        "databaseUser": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseUser,basics('nullValue'))]",
-        "fqdn": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'fqdn'),steps('scheduler').schedulerSection.databaseURL,basics('nullValue'))]",
-        "privateIp": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateIp'),steps('scheduler').schedulerSection.databasePIP,basics('nullValue'))]",
-        "dbInfo": "[if(equals(steps('scheduler').schedulerSection.dbConnection,'privateEndpoint'),steps('scheduler').schedulerSection.dbSelector,basics('nullValue'))]"
+      "database": {
+        "type": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.newexistingDb,'disabled')]",
+        "username": "[if(steps('scheduler').schedulerSection.slurmAccounting,steps('scheduler').schedulerSection.databaseUser,basics('nullValue'))]",
+        "location": "[if(and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new')),steps('scheduler').schedulerSection.dbRegionDropdown,basics('nullValue'))]",
+        "serverEdition": "[if(and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new')),steps('scheduler').schedulerSection.mysqlServerEdition,basics('nullValue'))]",
+        "sku": "[if(and(steps('scheduler').schedulerSection.slurmAccounting,equals(steps('scheduler').schedulerSection.newexistingDb,'new')),steps('scheduler').schedulerSection.mysqlServerSku,basics('nullValue'))]",
+        "id": "[if(equals(steps('scheduler').schedulerSection.newexistingDb,'existing'),steps('scheduler').schedulerSection.dbSelector.id,basics('nullValue'))]",
+        "ip": "[if(equals(steps('scheduler').schedulerSection.newexistingDb,'connection'),steps('scheduler').schedulerSection.databasePIP,basics('nullValue'))]"
+      },
+      "databasePrivateDnsZone": {
+        "type": "[if(and(steps('scheduler').schedulerSection.slurmAccounting,not(equals(steps('scheduler').schedulerSection.newexistingDb,'connection'))),if(equals(steps('networking').newexisting,'new'),'new',steps('scheduler').dnsZone.newExisting),'none')]",
+        "id": "[if(and(equals(steps('networking').newexisting,'new'),equals(steps('scheduler').dnsZone.newExisting,'new')),basics('nullValue'),steps('scheduler').dnsZone.dnsZoneSelector.id)]",
+        "vnetLink": "[if(or(equals(steps('networking').newexisting,'new'),equals(steps('scheduler').dnsZone.newExisting,'new')),basics('nullValue'),if(not(equals(length(filter(steps('scheduler').dnsZone.vnetLinkProvidersApi.value, (item) => equals(item.properties.virtualNetwork.id,steps('networking').networkSettings.networkSelector.id))),1)),steps('scheduler').vnetLink.createVnetLink,false))]"
       },
       "clusterName": "[steps('scheduler').clusterSettings.clusterName]",
       "acceptMarketplaceTerms": "[steps('scheduler').clusterSettings.acceptMarketplaceTerms]",

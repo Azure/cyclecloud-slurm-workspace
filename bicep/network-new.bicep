@@ -8,10 +8,7 @@ param nsgTags types.tags_t
 param createNetApp bool 
 param createLustre bool 
 var deployBastion = network.bastion
-var createDatabase = false //update once MySQL capacity is available
 param natGatewayId string 
-param databaseConfig types.databaseConfig_t
-var create_private_endpoint = databaseConfig.type == 'privateEndpoint'
 
 //purpose: calculate 2^n for n between 0 and 8 or return 0 if n<0
 @export()
@@ -54,11 +51,6 @@ func subnet_octets(cidr int) object => {
     o4: (cidr == 24) ? 48 : (cidr == 23) ? 128 : 0
     cidr: (cidr == 24) ? 28 : cidr+2
   }
-  database: { //TODO AGB: Adjust once MySQL capacity is available
-    o3: 0
-    o4: (cidr == 24) ? 40 : 224
-    cidr: (cidr == 24) ? 29 : 28
-  }
   compute: {
     o3: pow2_or_0(23-cidr)
     o4: (cidr == 24) ? 128 : 0
@@ -72,7 +64,6 @@ func subnet_ranges(decomp_ip object, subnet object) object => {
   netapp: '${decomp_ip.o1}.${decomp_ip.o2}.${decomp_ip.o3+subnet.netapp.o3}.${decomp_ip.o4+subnet.netapp.o4}/${subnet.netapp.cidr}'
   bastion: '${decomp_ip.o1}.${decomp_ip.o2}.${decomp_ip.o3+subnet.bastion.o3}.${decomp_ip.o4+subnet.bastion.o4}/${subnet.bastion.cidr}'
   lustre: '${decomp_ip.o1}.${decomp_ip.o2}.${decomp_ip.o3+subnet.lustre.o3}.${decomp_ip.o4+subnet.lustre.o4}/${subnet.lustre.cidr}'
-  database: '${decomp_ip.o1}.${decomp_ip.o2}.${decomp_ip.o3+subnet.database.o3}.${decomp_ip.o4+subnet.database.o4}/${subnet.database.cidr}'
   compute: '${decomp_ip.o1}.${decomp_ip.o2}.${decomp_ip.o3+subnet.compute.o3}.${decomp_ip.o4+subnet.compute.o4}/${subnet.compute.cidr}'
 }
 
@@ -128,17 +119,6 @@ var vnet  = {
         service_endpoints: []
         delegations: []
       }
-    } : {},
-    createDatabase ? {
-      database: {
-        name: 'ccw-database-subnet'
-        cidr: subnet_cidr.database
-        nat_gateway : false
-        service_endpoints: []
-        delegations: [
-          'Microsoft.DBforMySQL/flexibleServers'
-        ]
-      }
     } : {}
   )
 }
@@ -176,13 +156,6 @@ var nsg_rules = {
 
     // Allow traffic to any peered virtual networks including VPN and allow Internet access
     AllowInternetOutBound: ['3000', 'Outbound', 'Allow', 'Tcp', 'All', 'tag', 'VirtualNetwork', 'tag', 'Internet']
-  }
-  // TODO : Need to be validated
-  mysql: {
-    // Inbound
-    AllowMySQLIn: ['700', 'Inbound', 'Allow', 'Tcp', 'MySQL', 'subnet', 'compute', 'subnet', 'database']
-    // Outbound
-    AllowMySQLOut: ['700', 'Outbound', 'Allow', 'Tcp', 'MySQL', 'subnet', 'compute', 'subnet', 'database']
   }
   // TODO : Need to be validated
   anf: {
@@ -223,8 +196,7 @@ var nsgRules = items(union(
   nsg_rules.default,
   deployBastion ? nsg_rules.bastion : {},
   createNetApp ? nsg_rules.anf : {},
-  createLustre ? nsg_rules.lustre : {},
-  createDatabase ? nsg_rules.mysql : {}))
+  createLustre ? nsg_rules.lustre : {}))
 var servicePorts = {
   All: ['0-65535']
   Bastion: ['8080','5701']
@@ -236,7 +208,6 @@ var servicePorts = {
   Nfs: ['111', '635', '2049', '4045', '4046', '4049']
   // HTTPS, AMQP
   CycleCloud: ['9443', '5672']
-  MySQL: ['3306', '33060']
   SshRdp: ['22', '3389']
 }
 var securityRules = [ for rule in nsgRules : {
@@ -346,43 +317,14 @@ var subnetComputeId = join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.comput
 var subnetNetAppId = createNetApp ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.netapp.name], '/') : ''
 var subnetLustreId = createLustre ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.lustre.name], '/') : ''
 var subnetBastionId = deployBastion ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.bastion.name], '/') : ''
-var subnetDatabaseId = createDatabase ? join([ccwVirtualNetwork.id, 'subnets', vnet.subnets.database.name], '/') : ''
 var subnets = union(
   { cyclecloud: subnetCyclecloudId },
   { compute: subnetComputeId },
   createNetApp ? { netapp: subnetNetAppId } : {},
   createLustre ? { lustre: subnetLustreId } : {},
-  deployBastion ? { bastion: subnetBastionId } : {},
-  createDatabase ? { database: subnetDatabaseId } : {}
+  deployBastion ? { bastion: subnetBastionId } : {}
 )
-
-resource ccwDatabase 'Microsoft.DBforMySQL/flexibleServers@2024-12-30' existing = if (create_private_endpoint && databaseConfig.type != 'disabled') {
-  name: databaseConfig.?dbInfo.?name ?? 'disabled'
-  scope: resourceGroup(split(databaseConfig.?dbInfo.?id ?? '////','/')[4])
-}
-
-var privateEndpointName = 'ccw-mysql-pe'
-
-resource privateEndpoint 'Microsoft.Network/privateEndpoints@2025-01-01' = if (create_private_endpoint) {
-  name: privateEndpointName
-  location: location
-  properties: {
-    subnet: {
-      id: subnetComputeId
-    }
-    privateLinkServiceConnections: [
-      {
-        name: privateEndpointName
-        properties: {
-          privateLinkServiceId: ccwDatabase.id
-          groupIds: ['mysqlServer']
-        }
-      }
-    ]
-  }
-}
 
 output nsgCCWId string = ccwCommonNsg.id
 output vnetCCWId string = ccwVirtualNetwork.id
 output subnetsCCW types.subnets_t = subnets
-output databaseFQDN string = create_private_endpoint ? privateEndpoint!.properties.customDnsConfigs[0].ipAddresses[0] : ''
