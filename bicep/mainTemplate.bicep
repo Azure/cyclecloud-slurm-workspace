@@ -10,7 +10,7 @@ param key types.publicKey_t
 @maxLength(64)
 param ccVMName string
 param ccVMSize string
-param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.10.120261021'
+param cyclecloudBaseImage string = 'azurecyclecloud:azure-cyclecloud:cyclecloud8-gen2:8.11.120261021'
 param resourceGroup string
 param entraIdInfo types.entra_t = { type: 'disabled' }
 param schedFilesystem types.schedFilesystem_t
@@ -42,7 +42,7 @@ param insidersBuild bool = false
 // build.sh will override this, but for development please set this yourself as a parameter
 param branch string = 'main'
 // This needs to be updated on each release. Our Cloud.Project records require a release tag
-param projectVersion string = '2026.10.23'
+param projectVersion string = '2026.11.25'
 // Must be updated with each Open OnDemand release
 param oodProjectVersion string = '1.1.8'
 //Internal developer use only: set true use custom CycleCloud release build 

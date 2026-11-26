@@ -28,11 +28,11 @@ def clean_up():
 def _catch_sys_error(cmd_list):
     try:
         output = check_output(cmd_list)
-        print(cmd_list)
+        #print(cmd_list)
         print(output)
         return output
     except CalledProcessError as e:
-        print("Error with cmd: %s" % e.cmd)
+        #print("Error with cmd: %s" % e.cmd)
         print("Output: %s" % e.output)
         raise
 
@@ -608,8 +608,6 @@ def main():
                         action="store_true",
                         help="Accept the Azure Marketplace terms for OS images")
     args = parser.parse_args()
-
-    print("Debugging arguments: %s" % args)
 
     if not already_installed():
         configure_msft_repos(args.insidersBuild)

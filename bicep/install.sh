@@ -264,7 +264,15 @@ cycle_server start --wait
 timeout 360s bash -c 'until (curl -k https://localhost); do sleep 5; done'
 
 cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password="${CYCLECLOUD_PASSWORD}" --verify-ssl=false --name=$SLURM_CLUSTER_NAME --force
-sudo -i -u ${CYCLECLOUD_USERNAME} bash -c "/usr/local/bin/cyclecloud initialize --batch --url=https://localhost --username=${CYCLECLOUD_USERNAME} --password='${CYCLECLOUD_PASSWORD}' --verify-ssl=false --name=$SLURM_CLUSTER_NAME --force"
+# Keep credentials out of sudo's command arguments (sudo is logged to /var/log/secure).
+{
+    printf '%q ' /usr/local/bin/cyclecloud initialize \
+        --batch --url=https://localhost \
+        "--username=$CYCLECLOUD_USERNAME" \
+        "--password=$CYCLECLOUD_PASSWORD" \
+        --verify-ssl=false "--name=$SLURM_CLUSTER_NAME" --force
+    printf '\n'
+} | sudo -i -u "$CYCLECLOUD_USERNAME" bash -s
 echo "CC CLI initialize successful"
 
 # Ensure CC properly initializes
