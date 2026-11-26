@@ -5,9 +5,13 @@ import hashlib
 import json
 import os
 import shutil
-from subprocess import check_output
+from subprocess import CalledProcessError, check_output
 import sys
+import time
 import typing
+
+PROJECT_FETCH_TIMEOUT_SECONDS = 300
+PROJECT_FETCH_RETRY_INTERVAL_SECONDS = 10
 
 
 def get_json_dict(file_name):
@@ -152,7 +156,7 @@ def download_cluster_init(outputs, root_folder, locker) -> typing.List[ClusterIn
         folder = os.path.join(root_folder, url_hash.hexdigest())
         if not os.path.exists(folder):
             # download and move to avoid repeated failures with partial downloads/uploads
-            check_output(["/usr/local/bin/cyclecloud", "project", "fetch", url, folder + ".tmp"])
+            _fetch_project_with_retry(url, folder + ".tmp")
             check_output(["/usr/local/bin/cyclecloud", "project", "upload", locker], cwd=folder + ".tmp")
             shutil.move(folder + ".tmp", folder)
             with open(os.path.join(folder, "download-url"), "w") as fw:
@@ -167,6 +171,29 @@ def download_cluster_init(outputs, root_folder, locker) -> typing.List[ClusterIn
                                    record.get("spec") or "default",
                                    record["target"]))
     return ret
+
+
+def _fetch_project_with_retry(url: str, dest: str,
+                              timeout: float = PROJECT_FETCH_TIMEOUT_SECONDS,
+                              interval: float = PROJECT_FETCH_RETRY_INTERVAL_SECONDS) -> None:
+    deadline = time.monotonic() + timeout
+    attempt = 0
+    while True:
+        attempt += 1
+        # a failed fetch can leave a partial download behind, which breaks the next attempt
+        if os.path.exists(dest):
+            shutil.rmtree(dest)
+        try:
+            check_output(["/usr/local/bin/cyclecloud", "project", "fetch", url, dest])
+            return
+        except CalledProcessError as e:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                print(f"cyclecloud project fetch {url} failed after {attempt} attempts; giving up.", file=sys.stderr)
+                raise
+            print(f"cyclecloud project fetch {url} failed (attempt {attempt}, exit code {e.returncode}); "
+                  f"retrying for up to {int(remaining)} more seconds.", file=sys.stderr)
+            time.sleep(min(interval, remaining))
 
 
 def _strip_tags_from_github_url(record):
